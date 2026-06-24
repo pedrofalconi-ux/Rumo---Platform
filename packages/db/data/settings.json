@@ -1,0 +1,14 @@
+{
+  "agencyName": "Rumo",
+  "logoUrl": "",
+  "defaultCurrency": "BRL",
+  "plan": "business",
+  "amadeusKey": "",
+  "tboKey": "",
+  "claudeKey": "",
+  "pixabayKey": "",
+  "notificationEmail": "alertas@horizonenterprise.com",
+  "subscriptionStatus": "active",
+  "accessExpiresAt": "2099-12-31T23:59:59.000Z",
+  "agencyId": "agency-default"
+}

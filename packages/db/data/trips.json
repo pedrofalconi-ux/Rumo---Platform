@@ -1,0 +1,101 @@
+[
+  {
+    "agencyId": "agency-default",
+    "documents": [],
+    "id": "HOR-9921",
+    "createdDate": "29-05-2024",
+    "name": "Viagem Roma Premium",
+    "destinations": [
+      "Roma"
+    ],
+    "startDate": "2024-07-24",
+    "endDate": "2024-07-31",
+    "travelers": [
+      "DR",
+      "+1"
+    ],
+    "status": "Publicado",
+    "clientName": "Digueira Rumo",
+    "itinerary": [
+      {
+        "id": "item-1",
+        "day": 1,
+        "type": "flight",
+        "title": "Voo ITA Airways",
+        "subTitle": "AZ 673",
+        "details": "Voo direto de São Paulo (GRU) para Roma (FCO)",
+        "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuByVbq23E6OnSqiaWYWht_8Baa9X5GgtucaFmgzZY6ToYLGjTPsAmpieIfEh3-ppopeJYwKzu4fAeAxnUYL07EklM_Ww_OSFKCZVESBQliejmPsC0WN9f3emDyFvsMT9HNSS9zi9pizmHOAoG7OM_vsmzl2X9nSUCNbBOaa_ECdF-O-B6cBjvH4RbcC52EPyW1rPFKQmzvk8phVG9TL_VmGtPtPQwLjanyPbZwBzCk3a2R6pHxc1dPMBikHxV1L0q9kDmCw_PFSTIW5",
+        "meta": {
+          "airline": "ITA Airways",
+          "flightNumber": "AZ 673",
+          "origin": "São Paulo (GRU)",
+          "destination": "Roma (FCO)",
+          "departureTime": "14:25",
+          "arrivalTime": "06:45 (+1 dia)",
+          "duration": "11h 20m"
+        }
+      },
+      {
+        "id": "item-1782316920907",
+        "day": 1,
+        "type": "activity",
+        "title": "Tour Guiado na Catedral",
+        "subTitle": "Catedral Duomo",
+        "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuAOQiAieOx5qVQtY3TDB2WMJsJDEoi69xdHwHXJiA9BAPXRGTCt33ocGTKv4ruztp7PjotVhrQnwVcQKg1NhDYeB8PYCUrDOZiRIChPoRUxGidQ0fknumzwFh3VJ2_F0Di-bBK-y-Iv8aBatLJx1OcIv8aUhkTdJL8wcPH64UmiCU9OPRFbvEQMgmKjuNG2I2F2lUisTokdPU6J3cfTVJ1MDOLLoAljUHn6TGSCDjNb5VjTyvd6GDvpycoH9JMoPJw6JAIZBSztv5tW",
+        "meta": {
+          "type": "Tour",
+          "duration": "2 horas"
+        }
+      },
+      {
+        "id": "item-1782317926919",
+        "day": 1,
+        "type": "hotel",
+        "title": "Hotel Ibis ",
+        "subTitle": "G4-203",
+        "details": "Um dos melhoresn hoteis da localidade, vista da suite para a torre eiffel",
+        "customSymbol": "hotel",
+        "meta": {
+          "address": "Endereço do hotel",
+          "rooms": "1 Quarto",
+          "checkin": "15:00"
+        }
+      }
+    ]
+  },
+  {
+    "agencyId": "agency-default",
+    "documents": [],
+    "id": "HOR-8842",
+    "createdDate": "14-04-2024",
+    "name": "Grand Tour de l'Italie",
+    "destinations": [
+      "Milão",
+      "Veneza",
+      "Florença"
+    ],
+    "startDate": "2025-04-01",
+    "endDate": "2025-04-19",
+    "travelers": [
+      "RR"
+    ],
+    "status": "Confirmado",
+    "clientName": "Raquel Rasera",
+    "itinerary": [
+      {
+        "id": "item-3",
+        "day": 2,
+        "type": "hotel",
+        "title": "NH Collection Touring",
+        "subTitle": "Acomodação em Milão",
+        "details": "Hotel 4 estrelas premium localizado no centro de Milão.",
+        "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuDoZjJz35m8EyEiFJD7-B6xM8MSfSGJ3gFAUHCpWbTtzC6gpvyGHkg2esanTe5uy10gOLbK38rEN5gmMyY0xjPCar1KNb6yej5dVjEcRywodUMS8QNbnXFAop6lEuP4OAyAxqnnPG5FFsZlbTT8UJjM1PrSR-6qpkWRr0MDZ2fi-CQGacKPT4PGQmosNgIcTYbPLjHW7nzohmbMGFDXZqDY0-TUpJR_PPlmy7hsl7vFJFwvFnUL781RvzGhXXmqVWJ4I0FHtzZvLDUi",
+        "meta": {
+          "address": "Via Iginio Ugo Tarchetti, 2",
+          "rooms": "1 Quarto Duplo",
+          "checkin": "15:00"
+        }
+      }
+    ]
+  }
+]

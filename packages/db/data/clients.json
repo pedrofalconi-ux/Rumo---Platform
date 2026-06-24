@@ -1,0 +1,32 @@
+[
+  {
+    "agencyId": "agency-default",
+    "appAccessStatus": "pending",
+    "id": "client-1",
+    "fullName": "Digueira Rumo",
+    "email": "digueira@rumo.com",
+    "phone": "+55 11 99999-9999",
+    "cpf": "123.456.789-00",
+    "passport": "BR123456"
+  },
+  {
+    "agencyId": "agency-default",
+    "appAccessStatus": "pending",
+    "id": "client-2",
+    "fullName": "Raquel Rasera",
+    "email": "raquel@rumo.com",
+    "phone": "+55 11 98888-8888",
+    "cpf": "987.654.321-11",
+    "passport": "BR654321"
+  },
+  {
+    "agencyId": "agency-default",
+    "appAccessStatus": "pending",
+    "id": "client-3",
+    "fullName": "André Negrini",
+    "email": "andre@rumo.com",
+    "phone": "+55 11 97777-7777",
+    "cpf": "456.789.123-22",
+    "passport": "BR789123"
+  }
+]

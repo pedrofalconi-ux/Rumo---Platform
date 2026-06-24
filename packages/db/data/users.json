@@ -1,0 +1,41 @@
+[
+  {
+    "avatarUrl": "",
+    "createdAt": "2026-06-24T16:50:28.148Z",
+    "agencyId": "agency-default",
+    "accessStatus": "blocked",
+    "accessExpiresAt": "2099-12-31T23:59:59.000Z",
+    "id": "user-1",
+    "fullName": "Digueira Rumo",
+    "email": "admin@rumo.com",
+    "role": "agency_admin",
+    "phone": "+55 11 99999-9999",
+    "passwordHash": "4c71d28d2edcb6550dfede621df435da:23803ac6be6d3ad63501d5d676b990d6a14d6833d9e8538c99c0077850e90388"
+  },
+  {
+    "avatarUrl": "",
+    "createdAt": "2026-06-24T16:50:28.148Z",
+    "agencyId": "agency-default",
+    "accessStatus": "blocked",
+    "accessExpiresAt": "2099-12-31T23:59:59.000Z",
+    "id": "user-2",
+    "fullName": "Rodriguera Rumo",
+    "email": "rodrigo@rumo.com",
+    "role": "agent",
+    "phone": "+55 11 96666-6666",
+    "passwordHash": "906d483c8107e70c64d2dde369792cc0:a699f8a62c3cb8be9f7435e45057c060be61cd4a840fe6c5c41ae0103b4a26ba"
+  },
+  {
+    "avatarUrl": "",
+    "createdAt": "2026-06-24T18:07:34.236Z",
+    "agencyId": "agency-default",
+    "accessStatus": "active",
+    "accessExpiresAt": "2099-12-31T23:59:59.000Z",
+    "id": "user-1782324454236",
+    "role": "agent",
+    "fullName": "Pedro Falconi",
+    "email": "pedrofalconi11@gmail.com",
+    "phone": "93982082640",
+    "passwordHash": "cb19a25c3b80e3c8604decbe2ec442a9:02029b9b113898f851683efa1e829db201e410969fbd55e66c95803446cb53f6"
+  }
+]

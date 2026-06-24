@@ -1,0 +1,12 @@
+[
+  {
+    "id": "agency-default",
+    "name": "Rumo",
+    "slug": "horizon-enterprise",
+    "logoUrl": "",
+    "plan": "business",
+    "subscriptionStatus": "active",
+    "accessExpiresAt": "2099-12-31T23:59:59.000Z",
+    "createdAt": "2026-06-24T18:19:04.127Z"
+  }
+]

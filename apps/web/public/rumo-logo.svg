@@ -1,0 +1,18 @@
+<svg width="360" height="104" viewBox="0 0 360 104" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(4 8) scale(.92)">
+    <circle cx="48" cy="48" r="42" fill="#002B5F"/>
+    <circle cx="48" cy="48" r="37" stroke="#6FA8DC" stroke-width="1.4" opacity=".6"/>
+    <path d="M49 15v8M49 73v8M15 48h8M73 48h8" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+    <path d="M46 51 26 78l31-21 20-39-31 33Z" fill="#BFD9FF"/>
+    <path d="m46 51-20 27 24-31 7 10-31 21 31-21-11-6Z" fill="#6FA8DC"/>
+    <path d="M50 47 77 18 57 57 50 47Z" fill="#FF6B4A"/>
+    <path d="M57 57 77 18 62 60 57 57Z" fill="#FF8A66"/>
+    <path d="M48 61c8.837 0 16-7.163 16-16s-7.163-16-16-16-16 7.163-16 16 7.163 16 16 16Z" fill="#fff"/>
+    <path d="M48 55c5.523 0 10-4.477 10-10s-4.477-10-10-10-10 4.477-10 10 4.477 10 10 10Z" fill="#002B5F"/>
+    <path d="M48 39c-4.418 0-8 3.445-8 7.693 0 5.956 8 13.307 8 13.307s8-7.351 8-13.307C56 42.445 52.418 39 48 39Z" fill="#FF6B4A"/>
+    <circle cx="48" cy="46" r="4" fill="#fff"/>
+  </g>
+  <text x="112" y="57" fill="#002B5F" font-family="Inter, Arial, sans-serif" font-size="52" font-weight="700">Rumo</text>
+  <path d="M114 72h126" stroke="#FF6B4A" stroke-width="4"/>
+  <text x="114" y="94" fill="#54565A" font-family="Inter, Arial, sans-serif" font-size="14" letter-spacing="8">RUMO, A SUA BUSSOLA</text>
+</svg>

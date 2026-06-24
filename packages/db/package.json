@@ -1,0 +1,10 @@
+{
+  "name": "@rumo/db",
+  "version": "1.0.0",
+  "private": true,
+  "main": "client.ts",
+  "types": "client.ts",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.43.0"
+  }
+}
