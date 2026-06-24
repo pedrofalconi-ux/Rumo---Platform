@@ -1,0 +1,477 @@
+<!DOCTYPE html><html lang="pt-BR" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Horizon Enterprise - Dashboard de Viagens</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "outline-variant": "#c2c6d2",
+                        "primary-container": "#185fa5",
+                        "surface-tint": "#1960a6",
+                        "tertiary-fixed": "#ffdcc4",
+                        "surface-dim": "#d9dae0",
+                        "primary": "#004782",
+                        "surface": "#f8f9ff",
+                        "on-secondary-fixed-variant": "#3f35a3",
+                        "tertiary": "#6f3800",
+                        "on-primary-container": "#c1d9ff",
+                        "primary-container-alt": "rgba(24, 95, 165, 0.1)",
+                        "on-surface": "#191c20",
+                        "on-background": "#191c20",
+                        "surface-container": "#ededf4",
+                        "surface-container-high": "#e7e8ee",
+                        "surface-container-highest": "#e1e2e9",
+                        "surface-container-low": "#f2f3fa",
+                        "surface-container-lowest": "#ffffff",
+                        "outline": "#727782",
+                        "status-confirmed": "#EAF3DE",
+                        "status-active": "#E1F5EE",
+                        "status-quoted": "#FBEAF0",
+                        "status-cancelled": "#FAECE7",
+                        "status-draft": "#E6F1FB",
+                        "success": "#0F6E56"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "sidebar-width": "260px",
+                        "gutter": "16px",
+                        "base": "4px",
+                        "container-max": "1440px",
+                        "margin": "24px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["Inter"],
+                        "label-md": ["Geist"],
+                        "headline-md": ["Geist"],
+                        "data-mono": ["Geist"],
+                        "body-lg": ["Inter"],
+                        "headline-sm": ["Geist"],
+                        "display-lg": ["Geist"],
+                        "body-md": ["Inter"],
+                        "headline-lg": ["Geist"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "data-mono": ["13px", {"lineHeight": "18px", "fontWeight": "500"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        body {
+            background-color: #f8f9ff;
+            color: #191c20;
+            overflow-x: hidden;
+        }
+        .sidebar-active {
+            background-color: rgba(24, 95, 165, 0.1);
+            color: #004782;
+            border-left: 4px solid #004782;
+        }
+        .table-row-hover:hover {
+            border-left: 2px solid #004782;
+            background-color: #f2f3fa;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md">
+<!-- SideNavBar Component -->
+<aside class="w-[260px] h-screen fixed left-0 top-0 bg-surface border-r border-outline-variant flex flex-col py-6 px-4 z-50">
+<!-- Brand Header -->
+<div class="flex flex-col mb-10 px-2">
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary">Horizon Enterprise</h1>
+<p class="font-label-md text-label-md text-on-surface-variant opacity-70">Agência de Viagens</p>
+</div>
+<!-- Main Navigation -->
+<nav class="flex-1 space-y-1 overflow-y-auto scrollbar-hide">
+<a class="flex items-center gap-3 py-3 px-4 rounded-sm text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 group" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-4 rounded-sm sidebar-active group scale-[0.98]" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">flight_takeoff</span>
+<span class="font-label-md text-label-md">Viagens</span>
+</a>
+<div class="relative group">
+<button class="w-full flex items-center justify-between py-3 px-4 rounded-sm text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined">local_library</span>
+<span class="font-label-md text-label-md">Biblioteca</span>
+</div>
+<span class="material-symbols-outlined text-[16px]">expand_more</span>
+</button>
+</div>
+<a class="flex items-center gap-3 py-3 px-4 rounded-sm text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md text-label-md">Usuários</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-4 rounded-sm text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Configurações</span>
+</a>
+<div class="relative group">
+<button class="w-full flex items-center justify-between py-3 px-4 rounded-sm text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined">security</span>
+<span class="font-label-md text-label-md">Segurança</span>
+</div>
+<span class="material-symbols-outlined text-[16px]">expand_more</span>
+</button>
+</div>
+<a class="flex items-center gap-3 py-3 px-4 rounded-sm text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">contact_support</span>
+<span class="font-label-md text-label-md">Suporte</span>
+</a>
+</nav>
+<!-- CTA & Footer -->
+<div class="mt-auto space-y-4 pt-6">
+<button class="w-full bg-primary text-on-primary py-3 px-4 rounded-sm font-label-md text-label-md flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all">
+<span class="material-symbols-outlined">add</span>
+                Nova Reserva
+            </button>
+<div class="border-t border-outline-variant pt-4">
+<a class="flex items-center gap-3 py-3 px-4 rounded-sm text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Log Out</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Shell -->
+<main class="ml-[260px] min-h-screen flex flex-col">
+<!-- TopAppBar Component -->
+<header class="h-16 sticky top-0 bg-surface border-b border-outline-variant flex justify-between items-center px-margin z-40">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative max-w-md w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-surface-container-low border border-outline rounded-lg py-2 pl-10 pr-4 font-body-md text-body-md focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" placeholder="Pesquisar viagens, IDs ou clientes..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="hover:bg-surface-container-low rounded-full p-2 text-on-surface-variant relative active:scale-95 transition-all">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+<button class="hover:bg-surface-container-low rounded-full p-2 text-on-surface-variant active:scale-95 transition-all">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<div class="h-8 w-[1px] bg-outline-variant mx-2"></div>
+<div class="flex items-center gap-3 cursor-pointer group">
+<div class="text-right hidden sm:block">
+<p class="font-label-md text-label-md text-on-surface">Digueira Rumo</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-wider">Agente Admin</p>
+</div>
+<div class="w-10 h-10 rounded-full border-2 border-primary overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A high-quality professional corporate headshot of a travel agent in a modern bright office setting. The lighting is soft and professional, highlighting a confident smile. The color palette is clean with blues and whites, consistent with the Horizon Enterprise brand identity. Professional portrait photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGyoMRqz2NBhIV6llC2M9Bj_WaoBWgk2Mhn-sQVm2BeQcpnGgDyEpGMQyCL1lwKx_sMn3pEKacbJQGsTd3ob5-PqTC0iuWAF931TYxPlUAUkWHqZNRmSVb9GZv1CFPzPQvPsafG_3oVjG68aEjwFmqEdlrCj7pZx5-BZwwKUsBBfpWJrdFryo1Br_jJJGAuPJaCGhdjr3m8YwY1vwMPKr543eBO4xkSgSWQv4z24U7IfFjknC3vrMUWNAHhjQo2fO5lGlDhS1elhyI">
+</div>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="p-margin flex-1">
+<!-- Header Section -->
+<div class="flex justify-between items-end mb-8">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary tracking-tight">TRIPS</h2>
+<p class="text-on-surface-variant mt-1">Gerencie e acompanhe todos os itinerários ativos da sua agência.</p>
+</div>
+<button class="bg-primary text-on-primary font-label-md text-label-md px-6 py-3 rounded-lg shadow-sm flex items-center gap-2 hover:shadow-md active:scale-95 transition-all">
+<span class="material-symbols-outlined">add_circle</span>
+                    CRIAR NOVA VIAGEM
+                </button>
+</div>
+<!-- Advanced Filters -->
+<div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6 bg-white p-4 rounded-xl border border-outline-variant shadow-sm">
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md text-on-surface-variant">Datas da viagem</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">calendar_today</span>
+<input class="w-full border border-outline-variant rounded-lg py-2 pl-10 pr-3 font-body-sm text-body-sm bg-surface-container-lowest focus:ring-1 focus:ring-primary" type="text" value="Todas as datas">
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md text-on-surface-variant">Contas</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">hub</span>
+<select class="w-full border border-outline-variant rounded-lg py-2 pl-10 pr-3 font-body-sm text-body-sm bg-surface-container-lowest appearance-none">
+<option>Todas Contas</option>
+<option>App Meu Agente</option>
+<option>ABC Viagens</option>
+</select>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md text-on-surface-variant">Nome da Viagem</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+<input class="w-full border border-outline-variant rounded-lg py-2 pl-10 pr-3 font-body-sm text-body-sm bg-surface-container-lowest focus:ring-1 focus:ring-primary" placeholder="Filtrar por nome..." type="text">
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-md text-label-md text-on-surface-variant">Estado</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">flag</span>
+<select class="w-full border border-outline-variant rounded-lg py-2 pl-10 pr-3 font-body-sm text-body-sm bg-surface-container-lowest appearance-none">
+<option>Publicado</option>
+<option>Pendente</option>
+<option>Cancelado</option>
+</select>
+</div>
+</div>
+<div class="flex items-end">
+<button class="w-full border border-outline text-primary font-label-md text-label-md py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">filter_list</span>
+                        Limpar Filtros
+                    </button>
+</div>
+</div>
+<!-- Robust Data Table -->
+<div class="bg-white rounded-xl border border-outline-variant overflow-hidden shadow-sm">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low border-b border-outline-variant">
+<tr>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">
+<div class="flex items-center gap-2 cursor-pointer hover:text-primary">
+                                        Data de Criação
+                                        <span class="material-symbols-outlined text-[14px]">arrow_downward</span>
+</div>
+</th>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">
+<div class="flex items-center gap-2 cursor-pointer hover:text-primary">
+                                        Nome da Viagem
+                                        <span class="material-symbols-outlined text-[14px]">swap_vert</span>
+</div>
+</th>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Destinos</th>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Datas</th>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Viajantes</th>
+<th class="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Estado</th>
+<th class="px-6 py-4"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<!-- Row 1 -->
+<tr class="table-row-hover transition-all duration-150">
+<td class="px-6 py-4 font-data-mono text-data-mono">29-05-2024</td>
+<td class="px-6 py-4">
+<div class="font-body-md text-on-surface font-semibold">Viagem Roma Premium</div>
+<div class="text-[10px] text-on-surface-variant uppercase font-bold mt-0.5">ID: HOR-9921</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-wrap gap-1">
+<span class="bg-surface-container px-2 py-0.5 rounded text-[11px] font-medium">Roma</span>
+</div>
+</td>
+<td class="px-6 py-4 text-body-sm">
+                                    24-07-2024 <span class="text-outline mx-1">•</span> 31-07-2024
+                                </td>
+<td class="px-6 py-4">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full border-2 border-white bg-primary-container text-white flex items-center justify-center text-[10px] font-bold">DR<br></div>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-slate-gray text-white flex items-center justify-center text-[10px] font-bold">+1</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col gap-1.5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-status-active text-success border border-success/20 uppercase">Publicado</span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-status-cancelled text-tertiary border border-tertiary/20 uppercase">Pendente</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="table-row-hover transition-all duration-150">
+<td class="px-6 py-4 font-data-mono text-data-mono">14-04-2024</td>
+<td class="px-6 py-4">
+<div class="font-body-md text-on-surface font-semibold">Grand Tour de l'Italie</div>
+<div class="text-[10px] text-on-surface-variant uppercase font-bold mt-0.5">ID: HOR-8842</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-wrap gap-1">
+<span class="bg-surface-container px-2 py-0.5 rounded text-[11px] font-medium">Milão</span>
+<span class="bg-surface-container px-2 py-0.5 rounded text-[11px] font-medium">Veneza</span>
+<span class="bg-surface-container px-2 py-0.5 rounded text-[11px] font-medium">Florença</span>
+</div>
+</td>
+<td class="px-6 py-4 text-body-sm">
+                                    01-04-2025 <span class="text-outline mx-1">•</span> 19-04-2025
+                                </td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="font-body-sm">Raquel Rasera</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col gap-1.5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-status-active text-success border border-success/20 uppercase">Publicado</span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-status-confirmed text-success border border-success/30 uppercase">Confirmado</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="table-row-hover transition-all duration-150">
+<td class="px-6 py-4 font-data-mono text-data-mono">22-02-2024</td>
+<td class="px-6 py-4">
+<div class="font-body-md text-on-surface font-semibold">Férias Disney - Família Silva</div>
+<div class="text-[10px] text-on-surface-variant uppercase font-bold mt-0.5">ID: HOR-7731</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-wrap gap-1">
+<span class="bg-surface-container px-2 py-0.5 rounded text-[11px] font-medium">Orlando</span>
+<span class="bg-surface-container px-2 py-0.5 rounded text-[11px] font-medium">Miami</span>
+</div>
+</td>
+<td class="px-6 py-4 text-body-sm">
+                                    03-04-2024 <span class="text-outline mx-1">•</span> 20-04-2024
+                                </td>
+<td class="px-6 py-4"><span class="font-body-sm">Rodriguera Rumo</span></td>
+<td class="px-6 py-4">
+<div class="flex flex-col gap-1.5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-status-active text-success border border-success/20 uppercase">Publicado</span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-status-confirmed text-success border border-success/30 uppercase">Confirmado</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="table-row-hover transition-all duration-150">
+<td class="px-6 py-4 font-data-mono text-data-mono">10-01-2024</td>
+<td class="px-6 py-4">
+<div class="font-body-md text-on-surface font-semibold">Worktrip São Paulo</div>
+<div class="text-[10px] text-on-surface-variant uppercase font-bold mt-0.5">ID: HOR-6621</div>
+</td>
+<td class="px-6 py-4">
+<span class="bg-surface-container px-2 py-0.5 rounded text-[11px] font-medium">São Paulo</span>
+</td>
+<td class="px-6 py-4 text-body-sm">
+                                    10-01-2024 <span class="text-outline mx-1">•</span> 31-01-2024
+                                </td>
+<td class="px-6 py-4">
+<span class="font-body-sm">André Negrini</span>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-status-active text-success border border-success/20 uppercase">Publicado</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="table-row-hover transition-all duration-150">
+<td class="px-6 py-4 font-data-mono text-data-mono">14-12-2023</td>
+<td class="px-6 py-4">
+<div class="font-body-md text-on-surface font-semibold">Espanha Cultural</div>
+<div class="text-[10px] text-on-surface-variant uppercase font-bold mt-0.5">ID: HOR-5510</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-wrap gap-1">
+<span class="bg-surface-container px-2 py-0.5 rounded text-[11px] font-medium">Madrid</span>
+<span class="bg-surface-container px-2 py-0.5 rounded text-[11px] font-medium">Barcelona</span>
+</div>
+</td>
+<td class="px-6 py-4 text-body-sm">
+                                    11-04-2024 <span class="text-outline mx-1">•</span> 18-04-2024
+                                </td>
+<td class="px-6 py-4">
+<span class="font-body-sm">John Smith</span>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-status-active text-success border border-success/20 uppercase">Publicado</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="px-6 py-4 bg-surface-container-low flex justify-between items-center border-t border-outline-variant">
+<p class="text-body-sm text-on-surface-variant">Mostrando 5 de 156 viagens</p>
+<div class="flex items-center gap-2">
+<button class="p-1 hover:bg-surface-container-high rounded border border-outline-variant transition-colors disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 rounded bg-primary text-on-primary text-body-sm font-bold">1</button>
+<button class="w-8 h-8 rounded hover:bg-surface-container-high text-body-sm">2</button>
+<button class="w-8 h-8 rounded hover:bg-surface-container-high text-body-sm">3</button>
+<span class="px-1 text-on-surface-variant">...</span>
+<button class="w-8 h-8 rounded hover:bg-surface-container-high text-body-sm">12</button>
+</div>
+<button class="p-1 hover:bg-surface-container-high rounded border border-outline-variant transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Action Background Blur (Simulation of High-End UI) -->
+<div class="fixed top-0 right-0 p-4 z-50 pointer-events-none">
+<div class="w-24 h-24 bg-primary/5 blur-3xl rounded-full"></div>
+</div>
+<!-- Script for dropdown interactions (Simulation) -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const dropdowns = document.querySelectorAll('button.flex.items-center.justify-between');
+            dropdowns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const icon = btn.querySelector('.material-symbols-outlined:last-child');
+                    icon.style.transform = icon.style.transform === 'rotate(180deg)' ? 'rotate(0deg)' : 'rotate(180deg)';
+                    icon.style.transition = 'transform 0.2s ease';
+                });
+            });
+        });
+    </script>
+
+
+</body></html>

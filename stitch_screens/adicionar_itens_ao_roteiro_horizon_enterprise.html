@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Geist:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-background": "#191c20",
+                        "tertiary-fixed-dim": "#ffb781",
+                        "tertiary-fixed": "#ffdcc4",
+                        "on-error": "#ffffff",
+                        "surface-bright": "#f8f9ff",
+                        "primary-fixed": "#d4e3ff",
+                        "on-error-container": "#93000a",
+                        "on-primary-fixed-variant": "#004883",
+                        "surface-container-low": "#f2f3fa",
+                        "surface-container": "#ededf4",
+                        "surface-container-highest": "#e1e2e9",
+                        "surface-tint": "#1960a6",
+                        "on-primary-container": "#c1d9ff",
+                        "on-tertiary-fixed": "#2f1400",
+                        "status-draft": "#E6F1FB",
+                        "on-secondary-fixed": "#140067",
+                        "inverse-surface": "#2e3035",
+                        "outline-variant": "#c2c6d2",
+                        "tertiary": "#6f3800",
+                        "primary-fixed-dim": "#a4c9ff",
+                        "on-tertiary-container": "#ffceac",
+                        "on-secondary": "#ffffff",
+                        "background": "#f8f9ff",
+                        "surface-container-high": "#e7e8ee",
+                        "secondary-fixed": "#e3dfff",
+                        "status-cancelled": "#FAECE7",
+                        "on-tertiary": "#ffffff",
+                        "on-surface": "#191c20",
+                        "on-primary": "#ffffff",
+                        "error": "#99241D",
+                        "secondary-container": "#958dff",
+                        "on-primary-fixed": "#001c39",
+                        "primary": "#004782",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-container": "#924b00",
+                        "surface-dim": "#d9dae0",
+                        "status-completed": "#E6F1FB",
+                        "primary-container": "#185fa5",
+                        "on-surface-variant": "#424751",
+                        "inverse-primary": "#a4c9ff",
+                        "surface": "#f8f9ff",
+                        "secondary-fixed-dim": "#c5c0ff",
+                        "warning": "#854F0B",
+                        "on-tertiary-fixed-variant": "#703800",
+                        "secondary": "#584fbc",
+                        "outline": "#727782",
+                        "status-active": "#E1F5EE",
+                        "surface-variant": "#e1e2e9",
+                        "on-secondary-fixed-variant": "#3f35a3",
+                        "status-quoted": "#FBEAF0",
+                        "error-container": "#ffdad6",
+                        "on-secondary-container": "#2b1c8f",
+                        "success": "#0F6E56",
+                        "status-confirmed": "#EAF3DE",
+                        "slate-gray": "#5F5E5A",
+                        "inverse-on-surface": "#eff0f7"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "base": "4px",
+                        "sidebar-width": "260px",
+                        "margin": "24px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Geist"],
+                        "data-mono": ["Geist"],
+                        "body-lg": ["Inter"],
+                        "headline-sm": ["Geist"],
+                        "headline-md": ["Geist"],
+                        "body-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg": ["Geist"],
+                        "label-md": ["Geist"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        .modal-overlay {
+            backdrop-filter: blur(4px);
+            background-color: rgba(25, 28, 32, 0.4);
+        }
+        .item-card-hover:hover {
+            border-color: #185fa5;
+            background-color: #f8f9ff;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen overflow-hidden">
+<!-- SIDEBAR ANCHOR -->
+<aside class="fixed left-0 top-0 h-full w-[260px] bg-surface-container-lowest border-r border-outline-variant flex flex-col py-margin gap-4 z-50">
+<div class="px-6 mb-4">
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary">Horizon Travel</h1>
+<p class="text-[10px] font-label-md uppercase tracking-widest text-on-surface-variant opacity-70">Enterprise Admin</p>
+</div>
+<nav class="flex-1 px-3 space-y-1">
+<div class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container transition-all duration-200 rounded cursor-pointer">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-md">Dashboard</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 text-primary font-bold border-l-2 border-primary bg-surface-container-low transition-all duration-200 cursor-pointer">
+<span class="material-symbols-outlined">route</span>
+<span class="font-body-md">Itineraries</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container transition-all duration-200 rounded cursor-pointer">
+<span class="material-symbols-outlined">event_available</span>
+<span class="font-body-md">Bookings</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container transition-all duration-200 rounded cursor-pointer">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-body-md">Clients</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container transition-all duration-200 rounded cursor-pointer">
+<span class="material-symbols-outlined">badge</span>
+<span class="font-body-md">Team</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container transition-all duration-200 rounded cursor-pointer">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-body-md">Financial</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container transition-all duration-200 rounded cursor-pointer">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md">Settings</span>
+</div>
+</nav>
+<div class="px-6 mt-auto">
+<button class="w-full bg-primary text-on-primary py-2.5 rounded-sm font-label-md hover:opacity-90 transition-opacity">
+                New Itinerary
+            </button>
+</div>
+</aside>
+<!-- TOP BAR ANCHOR -->
+<header class="fixed top-0 right-0 w-[calc(100%-260px)] h-16 bg-surface border-b border-outline-variant flex justify-between items-center px-margin z-40">
+<div class="flex items-center gap-8">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="pl-10 pr-4 py-1.5 bg-surface-container-low border border-outline-variant rounded-sm text-body-sm w-64 focus:ring-2 focus:ring-primary focus:outline-none" placeholder="Global Search" type="text"/>
+</div>
+<nav class="flex gap-6">
+<a class="text-on-surface-variant hover:text-primary font-label-md cursor-pointer transition-colors" href="#">Direct Flights</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">domain</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">help</span>
+</div>
+<div class="h-8 w-8 rounded-full bg-surface-container-highest overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="Close-up professional headshot of a travel agent in a modern corporate setting with soft natural lighting and a high-end business atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYok-J15pDysUil9ywjSBSKC1h_FAiJP6Qgdic9SnkKWZjf4bDm3Ti1Tl_hWwUKLmRmWJ7J5xV5yVA30JUJxyBen5sKidqO_oe1uzCDHPUkAm9Z_AIJVHIAlm4W3xTyrPnugt7i6lzX1X3YbXDImKVxQflCGpymGRi2sBVyleTMMtybQaXetDFfds7wEspdZ71rxzv8pzJLEOJD9zcKWA778P5PEG9OVb51nTOgoFXsK9fBXWe9W_uXP4xIXmOtBje2ZSY_TTWgeUM"/>
+</div>
+</div>
+</header>
+<!-- MAIN CONTENT (Background/Under Modal) -->
+<main class="ml-[260px] pt-16 h-screen overflow-hidden relative">
+<div class="p-8 h-full opacity-40 select-none pointer-events-none">
+<div class="flex justify-between items-end mb-8">
+<div>
+<div class="flex items-center gap-2 mb-2">
+<span class="text-on-surface-variant font-label-md">DASHBOARD /</span>
+<span class="text-primary font-label-md">ITINERARY EDITOR</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg">Luxury Escape: Swiss Alps &amp; Como</h2>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 border border-outline-variant rounded-sm text-label-md font-bold text-on-surface-variant">Save Draft</button>
+<button class="px-4 py-2 bg-primary text-on-primary rounded-sm text-label-md font-bold">Publish Itinerary</button>
+</div>
+</div>
+<!-- Fake Content -->
+<div class="grid grid-cols-12 gap-6">
+<div class="col-span-8 space-y-4">
+<div class="bg-surface-container-lowest border border-outline-variant p-6 rounded-lg">
+<div class="flex gap-6">
+<div class="w-48 h-32 bg-surface-container-high rounded-sm"></div>
+<div class="flex-1">
+<span class="bg-status-active text-success px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">Day 01 - Arrival</span>
+<h3 class="font-headline-sm mt-2">Arrival at Zurich &amp; Private Transfer</h3>
+<p class="text-body-sm text-on-surface-variant mt-2">Welcome to Switzerland! Your private chauffeur will meet you at the gate...</p>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant p-6 rounded-lg">
+<div class="flex gap-6">
+<div class="w-48 h-32 bg-surface-container-high rounded-sm"></div>
+<div class="flex-1">
+<span class="bg-status-active text-success px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">Day 02 - Exploration</span>
+<h3 class="font-headline-sm mt-2">Lucerne City Tour &amp; Boat Trip</h3>
+<p class="text-body-sm text-on-surface-variant mt-2">Discover the medieval architecture of Lucerne followed by a sunset cruise...</p>
+</div>
+</div>
+</div>
+</div>
+<div class="col-span-4 bg-surface-container-low border border-outline-variant rounded-lg p-6">
+<h4 class="font-label-md text-primary mb-4 uppercase tracking-widest">Client Information</h4>
+<div class="space-y-3">
+<div class="flex justify-between items-center py-2 border-b border-outline-variant">
+<span class="text-on-surface-variant text-body-sm">Main Traveler</span>
+<span class="font-bold text-body-sm">Alexander Sterling</span>
+</div>
+<div class="flex justify-between items-center py-2 border-b border-outline-variant">
+<span class="text-on-surface-variant text-body-sm">Group Size</span>
+<span class="font-bold text-body-sm">04 Persons</span>
+</div>
+<div class="flex justify-between items-center py-2">
+<span class="text-on-surface-variant text-body-sm">Status</span>
+<span class="bg-status-quoted text-error px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">Pending Deposit</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- MODAL OVERLAY -->
+<div class="fixed inset-0 z-[100] modal-overlay flex items-center justify-center p-4">
+<div class="bg-surface-container-lowest w-full max-w-[840px] shadow-2xl rounded-xl border border-outline-variant overflow-hidden flex flex-col max-h-[921px]">
+<!-- Modal Header -->
+<div class="px-8 py-6 border-b border-outline-variant flex justify-between items-center shrink-0">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Adicionar ao Roteiro</h2>
+<p class="text-on-surface-variant text-body-sm">Selecione o tipo de item que deseja incluir na trilha da viagem.</p>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Modal Body -->
+<div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
+<!-- Section 1: Elementos da Viagem -->
+<div class="mb-10">
+<h3 class="font-label-md text-primary uppercase tracking-[0.1em] mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">category</span>
+                            Elementos da Viagem
+                        </h3>
+<div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+<!-- Items -->
+<div class="flex items-center gap-4 p-3 border border-outline-variant rounded-sm item-card-hover transition-all cursor-pointer group">
+<div class="w-10 h-10 flex items-center justify-center rounded bg-surface-container-low text-primary group-hover:bg-primary-container group-hover:text-on-primary-container transition-colors">
+<span class="material-symbols-outlined">calendar_today</span>
+</div>
+<span class="text-body-md font-medium text-on-surface leading-tight">Título, imagem e resumo do dia</span>
+</div>
+<div class="flex items-center gap-4 p-3 border border-outline-variant rounded-sm item-card-hover transition-all cursor-pointer group">
+<div class="w-10 h-10 flex items-center justify-center rounded bg-surface-container-low text-secondary group-hover:bg-secondary-container group-hover:text-on-secondary-container transition-colors">
+<span class="material-symbols-outlined">description</span>
+</div>
+<span class="text-body-md font-medium text-on-surface">Descrição da viagem</span>
+</div>
+<div class="flex items-center gap-4 p-3 border border-outline-variant rounded-sm item-card-hover transition-all cursor-pointer group">
+<div class="w-10 h-10 flex items-center justify-center rounded bg-surface-container-low text-warning group-hover:bg-warning/20 transition-colors">
+<span class="material-symbols-outlined">history_edu</span>
+</div>
+<span class="text-body-md font-medium text-on-surface">Documentos de viagem</span>
+</div>
+<div class="flex items-center gap-4 p-3 border border-outline-variant rounded-sm item-card-hover transition-all cursor-pointer group">
+<div class="w-10 h-10 flex items-center justify-center rounded bg-surface-container-low text-tertiary group-hover:bg-tertiary-container group-hover:text-on-tertiary-container transition-colors">
+<span class="material-symbols-outlined">attach_file</span>
+</div>
+<span class="text-body-md font-medium text-on-surface">Anexos de viagem</span>
+</div>
+<div class="flex items-center gap-4 p-3 border border-outline-variant rounded-sm item-card-hover transition-all cursor-pointer group">
+<div class="w-10 h-10 flex items-center justify-center rounded bg-surface-container-low text-primary group-hover:bg-primary transition-colors group-hover:text-white">
+<span class="material-symbols-outlined">flight</span>
+</div>
+<span class="text-body-md font-medium text-on-surface">Voos</span>
+</div>
+<div class="flex items-center gap-4 p-3 border border-outline-variant rounded-sm item-card-hover transition-all cursor-pointer group">
+<div class="w-10 h-10 flex items-center justify-center rounded bg-surface-container-low text-status-completed text-on-secondary-fixed-variant group-hover:bg-secondary-fixed transition-colors">
+<span class="material-symbols-outlined">map</span>
+</div>
+<span class="text-body-md font-medium text-on-surface">Tours &amp; Atividades</span>
+</div>
+<div class="flex items-center gap-4 p-3 border border-outline-variant rounded-sm item-card-hover transition-all cursor-pointer group">
+<div class="w-10 h-10 flex items-center justify-center rounded bg-surface-container-low text-tertiary-container group-hover:bg-tertiary-fixed transition-colors">
+<span class="material-symbols-outlined">hotel</span>
+</div>
+<span class="text-body-md font-medium text-on-surface">Acomodação</span>
+</div>
+<div class="flex items-center gap-4 p-3 border border-outline-variant rounded-sm item-card-hover transition-all cursor-pointer group">
+<div class="w-10 h-10 flex items-center justify-center rounded bg-surface-container-low text-success group-hover:bg-status-active transition-colors">
+<span class="material-symbols-outlined">location_city</span>
+</div>
+<span class="text-body-md font-medium text-on-surface">Lugares</span>
+</div>
+<div class="flex items-center gap-4 p-3 border border-outline-variant rounded-sm item-card-hover transition-all cursor-pointer group">
+<div class="w-10 h-10 flex items-center justify-center rounded bg-surface-container-low text-primary-container group-hover:bg-primary-fixed transition-colors">
+<span class="material-symbols-outlined">stars</span>
+</div>
+<span class="text-body-md font-medium text-on-surface">Suggested places</span>
+</div>
+<div class="flex items-center gap-4 p-3 border border-outline-variant rounded-sm item-card-hover transition-all cursor-pointer group col-span-2">
+<div class="w-10 h-10 shrink-0 flex items-center justify-center rounded bg-surface-container-low text-on-background group-hover:bg-on-background group-hover:text-white transition-colors">
+<span class="material-symbols-outlined">directions_car</span>
+</div>
+<div class="flex flex-col">
+<span class="text-body-md font-medium text-on-surface">Transporte</span>
+<span class="text-[10px] text-on-surface-variant leading-none">carro, trem, transfer, aeroporto</span>
+</div>
+</div>
+<div class="flex items-center gap-4 p-3 border border-outline-variant rounded-sm item-card-hover transition-all cursor-pointer group">
+<div class="w-10 h-10 flex items-center justify-center rounded bg-surface-container-low text-slate-gray group-hover:bg-slate-gray group-hover:text-white transition-colors">
+<span class="material-symbols-outlined">subject</span>
+</div>
+<span class="text-body-md font-medium text-on-surface">Texto livre</span>
+</div>
+<div class="flex items-center gap-4 p-3 border border-outline-variant rounded-sm item-card-hover transition-all cursor-pointer group">
+<div class="w-10 h-10 flex items-center justify-center rounded bg-surface-container-low text-primary group-hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined">directions_boat</span>
+</div>
+<span class="text-body-md font-medium text-on-surface">Cruzeiro</span>
+</div>
+<div class="flex items-center gap-4 p-3 border border-outline-variant rounded-sm item-card-hover transition-all cursor-pointer group">
+<div class="w-10 h-10 flex items-center justify-center rounded bg-surface-container-low text-on-secondary-fixed-variant group-hover:bg-secondary-fixed-dim transition-colors">
+<span class="material-symbols-outlined">concierge</span>
+</div>
+<div class="flex flex-col">
+<span class="text-body-md font-medium text-on-surface">Serviços</span>
+<span class="text-[10px] text-on-surface-variant">Lounge, meet, etc.</span>
+</div>
+</div>
+<div class="flex items-center gap-4 p-3 border border-outline-variant rounded-sm item-card-hover transition-all cursor-pointer group">
+<div class="w-10 h-10 flex items-center justify-center rounded bg-surface-container-low text-error group-hover:bg-error-container transition-colors">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+</div>
+<span class="text-body-md font-medium text-on-surface">Quebra de página PDF</span>
+</div>
+<div class="flex items-center gap-4 p-3 border border-outline-variant rounded-sm item-card-hover transition-all cursor-pointer group">
+<div class="w-10 h-10 flex items-center justify-center rounded bg-surface-container-low text-success group-hover:bg-on-secondary-fixed transition-colors group-hover:text-white">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<span class="text-body-md font-medium text-on-surface">Preço</span>
+</div>
+</div>
+</div>
+<!-- Section 2: Importação e Automação -->
+<div>
+<h3 class="font-label-md text-primary uppercase tracking-[0.1em] mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">auto_fix_high</span>
+                            Importação e Automação
+                        </h3>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+<!-- AI Highlighted Item -->
+<div class="flex items-center gap-4 p-4 rounded-xl border-2 border-primary bg-primary-container/10 hover:bg-primary-container/20 transition-all cursor-pointer relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-2">
+<span class="material-symbols-outlined text-primary opacity-20 group-hover:opacity-40 transition-opacity text-4xl -mr-4 -mt-4">auto_awesome</span>
+</div>
+<div class="w-12 h-12 flex items-center justify-center rounded-full bg-primary text-on-primary shrink-0 shadow-lg group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div class="flex flex-col">
+<span class="text-body-md font-bold text-primary">Gerar com IA</span>
+<span class="text-body-sm text-primary/70">Inteligência Horizon</span>
+</div>
+</div>
+<!-- Regular Import Items -->
+<div class="flex items-center gap-4 p-3 border border-outline-variant rounded-sm item-card-hover transition-all cursor-pointer group">
+<div class="w-10 h-10 flex items-center justify-center rounded bg-surface-container-high text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined">library_books</span>
+</div>
+<span class="text-body-md font-medium text-on-surface">Modelo de itinerário</span>
+</div>
+<div class="flex items-center gap-4 p-3 border border-outline-variant rounded-sm item-card-hover transition-all cursor-pointer group">
+<div class="w-10 h-10 flex items-center justify-center rounded bg-green-50 text-green-700 group-hover:bg-green-100 transition-colors">
+<span class="material-symbols-outlined">table_chart</span>
+</div>
+<span class="text-body-md font-medium text-on-surface">Trips from Excel</span>
+</div>
+<div class="flex items-center gap-4 p-3 border border-outline-variant rounded-sm item-card-hover transition-all cursor-pointer group">
+<div class="w-10 h-10 flex items-center justify-center rounded bg-green-50 text-green-700 group-hover:bg-green-100 transition-colors">
+<span class="material-symbols-outlined">format_list_bulleted</span>
+</div>
+<span class="text-body-md font-medium text-on-surface">Atividades do Excel</span>
+</div>
+<div class="flex items-center gap-4 p-3 border border-outline-variant rounded-sm item-card-hover transition-all cursor-pointer group">
+<div class="w-10 h-10 flex items-center justify-center rounded bg-green-50 text-green-700 group-hover:bg-green-100 transition-colors">
+<span class="material-symbols-outlined">person_add</span>
+</div>
+<span class="text-body-md font-medium text-on-surface">Travelers from Excel</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Modal Footer (Optional but good for UX) -->
+<div class="px-8 py-4 bg-surface-container-low border-t border-outline-variant flex justify-end gap-3 shrink-0">
+<button class="px-6 py-2 text-label-md font-bold text-on-surface-variant hover:bg-surface-container-highest rounded-sm transition-colors uppercase tracking-widest">Cancelar</button>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Simple interactivity for demonstration
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.item-card-hover');
+            cards.forEach(card => {
+                card.addEventListener('click', () => {
+                    const label = card.querySelector('span:not(.material-symbols-outlined)').innerText;
+                    console.log('Selected action:', label);
+                    // Usually here you'd close the modal and open the specific form
+                });
+            });
+
+            // Close modal button logic
+            const closeBtn = document.querySelector('.modal-overlay button');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    document.querySelector('.modal-overlay').classList.add('hidden');
+                });
+            }
+        });
+    </script>
+</body></html>
