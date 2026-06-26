@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 
 interface SessionUser {
   fullName: string;
-  role: 'agency_admin' | 'agent' | 'traveler';
+  role: 'platform_admin' | 'agency_admin' | 'agent' | 'traveler';
   avatarUrl?: string;
 }
 
@@ -24,7 +24,14 @@ export default function Header() {
   }, []);
 
   const displayName = user?.fullName || 'Usuario';
-  const displayRole = user?.role === 'agency_admin' ? 'Agente Admin' : user?.role === 'traveler' ? 'Viajante' : 'Consultor';
+  const displayRole =
+    user?.role === 'platform_admin'
+      ? 'Admin SaaS'
+      : user?.role === 'agency_admin'
+        ? 'Agente Admin'
+        : user?.role === 'traveler'
+          ? 'Viajante'
+          : 'Consultor';
   const initials = displayName
     .split(' ')
     .filter(Boolean)

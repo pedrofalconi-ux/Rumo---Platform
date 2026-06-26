@@ -73,3 +73,104 @@ body {
     transform: translateY(0) scale(1);
   }
 }
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-outline-variant);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-outline);
+}
+
+/* Scroll Reveal Animations */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(20px) scale(0.99);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+.scroll-reveal.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.scroll-reveal-delay-50 {
+  transition-delay: 50ms;
+}
+
+.scroll-reveal-delay-100 {
+  transition-delay: 100ms;
+}
+
+.scroll-reveal-delay-150 {
+  transition-delay: 150ms;
+}
+
+.scroll-reveal-delay-200 {
+  transition-delay: 200ms;
+}
+
+.scroll-reveal-delay-250 {
+  transition-delay: 250ms;
+}
+
+.scroll-reveal-delay-300 {
+  transition-delay: 300ms;
+}
+
+.scroll-reveal-delay-400 {
+  transition-delay: 400ms;
+}
+
+/* Premium Button & Interactive Animations */
+.btn-interactive {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-interactive:hover {
+  transform: translateY(-1.5px) scale(1.02);
+  box-shadow: 0 6px 16px rgba(0, 43, 95, 0.1);
+}
+
+.btn-interactive:active {
+  transform: translateY(0) scale(0.975);
+  box-shadow: 0 2px 4px rgba(0, 43, 95, 0.05);
+}
+
+.input-interactive {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.input-interactive:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(0, 43, 95, 0.1);
+  outline: none;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-page-enter {
+  animation: pageEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+

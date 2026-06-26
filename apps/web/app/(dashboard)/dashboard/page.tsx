@@ -85,7 +85,7 @@ export default function DashboardPage() {
           {/* Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Active Trips */}
-            <div className="bg-white border border-outline-variant p-6 rounded-xl shadow-sm flex items-center gap-4">
+            <div className="scroll-reveal bg-white border border-outline-variant p-6 rounded-xl shadow-sm flex items-center gap-4">
               <div className="w-12 h-12 bg-primary-container-alt text-primary rounded-full flex items-center justify-center">
                 <span className="material-symbols-outlined text-[28px]">flight_takeoff</span>
               </div>
@@ -96,7 +96,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Total Trips */}
-            <div className="bg-white border border-outline-variant p-6 rounded-xl shadow-sm flex items-center gap-4">
+            <div className="scroll-reveal scroll-reveal-delay-100 bg-white border border-outline-variant p-6 rounded-xl shadow-sm flex items-center gap-4">
               <div className="w-12 h-12 bg-surface-container-high text-secondary rounded-full flex items-center justify-center">
                 <span className="material-symbols-outlined text-[28px]">route</span>
               </div>
@@ -107,7 +107,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Clients */}
-            <div className="bg-white border border-outline-variant p-6 rounded-xl shadow-sm flex items-center gap-4">
+            <div className="scroll-reveal scroll-reveal-delay-200 bg-white border border-outline-variant p-6 rounded-xl shadow-sm flex items-center gap-4">
               <div className="w-12 h-12 bg-status-active text-success rounded-full flex items-center justify-center">
                 <span className="material-symbols-outlined text-[28px]">groups</span>
               </div>
@@ -118,7 +118,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Users */}
-            <div className="bg-white border border-outline-variant p-6 rounded-xl shadow-sm flex items-center gap-4">
+            <div className="scroll-reveal scroll-reveal-delay-300 bg-white border border-outline-variant p-6 rounded-xl shadow-sm flex items-center gap-4">
               <div className="w-12 h-12 bg-status-quoted text-error rounded-full flex items-center justify-center">
                 <span className="material-symbols-outlined text-[28px]">shield</span>
               </div>
@@ -132,33 +132,33 @@ export default function DashboardPage() {
           {/* Quick Actions and Recent Activity */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Quick Actions */}
-            <div className="bg-white border border-outline-variant p-6 rounded-xl shadow-sm">
+            <div className="scroll-reveal scroll-reveal-delay-150 bg-white border border-outline-variant p-6 rounded-xl shadow-sm">
               <h3 className="font-bold text-sm text-primary uppercase tracking-wider mb-4">Ações Rápidas</h3>
               <div className="grid grid-cols-2 gap-3">
                 <Link
                   href="/trips/new"
-                  className="flex flex-col items-center justify-center p-4 border border-outline-variant rounded-xl hover:border-primary hover:bg-surface-container-low transition-all text-center gap-2 group"
+                  className="btn-interactive flex flex-col items-center justify-center p-4 border border-outline-variant rounded-xl hover:border-primary hover:bg-surface-container-low text-center gap-2 group"
                 >
                   <span className="material-symbols-outlined text-primary text-[28px] group-hover:scale-105 transition-transform">add_circle</span>
                   <span className="text-xs font-semibold text-on-surface">Novo Roteiro</span>
                 </Link>
                 <Link
                   href="/library"
-                  className="flex flex-col items-center justify-center p-4 border border-outline-variant rounded-xl hover:border-primary hover:bg-surface-container-low transition-all text-center gap-2 group"
+                  className="btn-interactive flex flex-col items-center justify-center p-4 border border-outline-variant rounded-xl hover:border-primary hover:bg-surface-container-low text-center gap-2 group"
                 >
                   <span className="material-symbols-outlined text-primary text-[28px] group-hover:scale-105 transition-transform">folder_open</span>
                   <span className="text-xs font-semibold text-on-surface">Biblioteca</span>
                 </Link>
                 <Link
                   href="/security"
-                  className="flex flex-col items-center justify-center p-4 border border-outline-variant rounded-xl hover:border-primary hover:bg-surface-container-low transition-all text-center gap-2 group"
+                  className="btn-interactive flex flex-col items-center justify-center p-4 border border-outline-variant rounded-xl hover:border-primary hover:bg-surface-container-low text-center gap-2 group"
                 >
                   <span className="material-symbols-outlined text-primary text-[28px] group-hover:scale-105 transition-transform">location_searching</span>
                   <span className="text-xs font-semibold text-on-surface">Rastrear Clientes</span>
                 </Link>
                 <Link
                   href="/users"
-                  className="flex flex-col items-center justify-center p-4 border border-outline-variant rounded-xl hover:border-primary hover:bg-surface-container-low transition-all text-center gap-2 group"
+                  className="btn-interactive flex flex-col items-center justify-center p-4 border border-outline-variant rounded-xl hover:border-primary hover:bg-surface-container-low text-center gap-2 group"
                 >
                   <span className="material-symbols-outlined text-primary text-[28px] group-hover:scale-105 transition-transform">badge</span>
                   <span className="text-xs font-semibold text-on-surface">Gerenciar Time</span>
@@ -167,7 +167,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Quick Summary / IA Agent status */}
-            <div className="bg-white border border-outline-variant p-6 rounded-xl shadow-sm flex flex-col justify-between">
+            <div className="scroll-reveal scroll-reveal-delay-250 bg-white border border-outline-variant p-6 rounded-xl shadow-sm flex flex-col justify-between">
               <div>
                 <h3 className="font-bold text-sm text-primary uppercase tracking-wider mb-4">Assistente IA</h3>
                 <div className="flex gap-4 items-start bg-surface-container-low p-4 rounded-lg">

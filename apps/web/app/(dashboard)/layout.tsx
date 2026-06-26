@@ -1,11 +1,21 @@
 import Sidebar from '../../components/sidebar';
 import Header from '../../components/header';
+import { redirect } from 'next/navigation';
+import { getCurrentUser } from '../../lib/server-auth';
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect('/login');
+  }
+  if (user.role === 'traveler') {
+    redirect('/app/trips');
+  }
+
   return (
     <div className="flex min-h-screen bg-surface">
       {/* Sidebar Navigation */}

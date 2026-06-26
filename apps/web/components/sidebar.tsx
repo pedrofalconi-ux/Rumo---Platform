@@ -8,19 +8,29 @@ interface AgencySettings {
   agencyName: string;
 }
 
+interface SessionUser {
+  role: 'platform_admin' | 'agency_admin' | 'agent' | 'traveler';
+}
+
 export default function Sidebar() {
   const pathname = usePathname();
   const [settings, setSettings] = useState<AgencySettings | null>(null);
+  const [user, setUser] = useState<SessionUser | null>(null);
 
   useEffect(() => {
-    const fetchSettings = async () => {
-      const response = await fetch('/api/settings');
-      if (response.ok) {
-        setSettings(await response.json());
+    const fetchSidebarData = async () => {
+      const [settingsResponse, meResponse] = await Promise.all([
+        fetch('/api/settings'),
+        fetch('/api/auth/me'),
+      ]);
+      if (settingsResponse.ok) setSettings(await settingsResponse.json());
+      if (meResponse.ok) {
+        const data = await meResponse.json();
+        setUser(data.user);
       }
     };
 
-    fetchSettings();
+    fetchSidebarData();
   }, []);
 
   const navItems = [
@@ -30,6 +40,9 @@ export default function Sidebar() {
     { name: 'Usuarios', icon: 'group', href: '/users' },
     { name: 'Configuracoes', icon: 'settings', href: '/settings' },
     { name: 'Seguranca', icon: 'security', href: '/security' },
+    ...(user?.role === 'platform_admin'
+      ? [{ name: 'Admin SaaS', icon: 'admin_panel_settings', href: '/admin/agencies', activeOn: ['/admin'] }]
+      : []),
     { name: 'Suporte', icon: 'contact_support', href: '/support' },
   ];
 
