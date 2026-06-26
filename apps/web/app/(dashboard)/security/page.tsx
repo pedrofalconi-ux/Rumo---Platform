@@ -3,14 +3,14 @@
 export default function SecurityPage() {
   return (
     <div className="flex-1 space-y-6">
-      <div>
+      <div className="scroll-reveal">
         <h2 className="font-headline-lg text-2xl font-bold text-primary tracking-tight">SEGURANCA & RASTREAMENTO</h2>
         <p className="text-on-surface opacity-75 text-sm mt-1">
           Modulo em construcao dentro da plataforma Rumo.
         </p>
       </div>
 
-      <section className="relative min-h-[650px] overflow-hidden rounded-xl border border-outline-variant bg-white shadow-sm">
+      <section className="scroll-reveal scroll-reveal-delay-100 relative min-h-[650px] overflow-hidden rounded-xl border border-outline-variant bg-white shadow-sm">
         <div className="absolute inset-0 blur-[5px] opacity-45 pointer-events-none select-none">
           <div className="grid grid-cols-12 gap-6 h-full p-6">
             <div className="col-span-12 lg:col-span-4 border border-outline-variant rounded-xl p-4 bg-surface-container-low">

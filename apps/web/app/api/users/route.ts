@@ -56,3 +56,32 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return NextResponse.json({ error: 'Nao autenticado' }, { status: 401 });
+    if (currentUser.role !== 'agency_admin') {
+      return NextResponse.json({ error: 'Apenas administradores podem remover usuarios' }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    if (!id) return NextResponse.json({ error: 'ID do usuario nao informado' }, { status: 400 });
+
+    const targetUser = db.users.findOne(id);
+    if (!targetUser || targetUser.agencyId !== currentUser.agencyId) {
+      return NextResponse.json({ error: 'Usuario nao encontrado' }, { status: 404 });
+    }
+
+    if (targetUser.id === currentUser.id) {
+      return NextResponse.json({ error: 'Voce nao pode remover seu proprio usuario' }, { status: 400 });
+    }
+
+    db.users.delete(id);
+    return NextResponse.json({ success: true });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Erro ao remover usuario';
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
+}

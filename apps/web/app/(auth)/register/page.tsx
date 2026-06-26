@@ -55,7 +55,7 @@ export default function RegisterPage() {
 
   return (
     <main className="min-h-screen bg-surface flex items-center justify-center p-6">
-      <section className="w-full max-w-md bg-white border border-outline-variant rounded-xl shadow-sm p-8">
+      <section className="animate-page-enter w-full max-w-md bg-white border border-outline-variant rounded-xl shadow-sm p-8">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
             <img src="/rumo-mark.svg" alt="Rumo" className="h-12 w-12 rounded-full shadow-sm" />
@@ -65,7 +65,9 @@ export default function RegisterPage() {
             </div>
           </div>
           <h1 className="font-headline-lg text-2xl font-bold text-on-surface mt-2">Criar conta</h1>
-          <p className="text-sm text-on-surface opacity-70 mt-1">Use a chave de acesso da agencia para liberar o cadastro.</p>
+          <p className="text-sm text-on-surface opacity-70 mt-1">
+            Cadastro operacional para agencias whitelabel. A agencia criada aqui isola viagens, usuarios e configuracoes.
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -76,7 +78,7 @@ export default function RegisterPage() {
               type="text"
               value={formData.fullName}
               onChange={(event) => setFormData((prev) => ({ ...prev, fullName: event.target.value }))}
-              className="border border-outline-variant rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+              className="input-interactive border border-outline-variant rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
             />
           </div>
 
@@ -87,7 +89,7 @@ export default function RegisterPage() {
               type="text"
               value={formData.agencyName}
               onChange={(event) => setFormData((prev) => ({ ...prev, agencyName: event.target.value }))}
-              className="border border-outline-variant rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+              className="input-interactive border border-outline-variant rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
             />
           </div>
 
@@ -98,7 +100,7 @@ export default function RegisterPage() {
               type="email"
               value={formData.email}
               onChange={(event) => setFormData((prev) => ({ ...prev, email: event.target.value }))}
-              className="border border-outline-variant rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+              className="input-interactive border border-outline-variant rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
             />
           </div>
 
@@ -109,7 +111,7 @@ export default function RegisterPage() {
               type="email"
               value={formData.emailConfirm}
               onChange={(event) => setFormData((prev) => ({ ...prev, emailConfirm: event.target.value }))}
-              className="border border-outline-variant rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+              className="input-interactive border border-outline-variant rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
             />
           </div>
 
@@ -119,7 +121,7 @@ export default function RegisterPage() {
               type="text"
               value={formData.phone}
               onChange={(event) => setFormData((prev) => ({ ...prev, phone: event.target.value }))}
-              className="border border-outline-variant rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+              className="input-interactive border border-outline-variant rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
             />
           </div>
 
@@ -132,7 +134,7 @@ export default function RegisterPage() {
                 minLength={6}
                 value={formData.password}
                 onChange={(event) => setFormData((prev) => ({ ...prev, password: event.target.value }))}
-                className="w-full border border-outline-variant rounded-lg p-3 pr-11 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                className="input-interactive w-full border border-outline-variant rounded-lg p-3 pr-11 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
               />
               <button
                 type="button"
@@ -155,7 +157,7 @@ export default function RegisterPage() {
                 type={showAccessKey ? 'text' : 'password'}
                 value={formData.accessKey}
                 onChange={(event) => setFormData((prev) => ({ ...prev, accessKey: event.target.value }))}
-                className="w-full border border-outline-variant rounded-lg p-3 pr-11 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                className="input-interactive w-full border border-outline-variant rounded-lg p-3 pr-11 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
               />
               <button
                 type="button"
@@ -175,7 +177,7 @@ export default function RegisterPage() {
           <button
             disabled={loading}
             type="submit"
-            className="w-full bg-primary text-on-primary rounded-lg py-3 text-xs font-bold hover:opacity-95 disabled:opacity-60 transition-all"
+            className="btn-interactive w-full bg-primary text-on-primary rounded-lg py-3 text-xs font-bold hover:opacity-95 disabled:opacity-60 transition-all"
           >
             {loading ? 'CRIANDO...' : 'CRIAR CONTA'}
           </button>
@@ -185,6 +187,12 @@ export default function RegisterPage() {
           Ja tem conta?{' '}
           <Link href="/login" className="font-bold text-primary hover:underline">
             Entrar
+          </Link>
+        </p>
+        <p className="text-xs text-center text-on-surface opacity-70 mt-3">
+          Sou cliente/viajante de uma agencia.{' '}
+          <Link href="/traveler/register" className="font-bold text-primary hover:underline">
+            Criar acesso do viajante
           </Link>
         </p>
       </section>

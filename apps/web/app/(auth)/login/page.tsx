@@ -32,7 +32,7 @@ export default function LoginPage() {
         return;
       }
 
-      router.push('/dashboard');
+      router.push(data.user?.role === 'traveler' ? '/app/trips' : '/dashboard');
       router.refresh();
     } catch {
       setError('Erro de conexao ao tentar entrar.');
@@ -43,7 +43,7 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen bg-surface flex items-center justify-center p-6">
-      <section className="w-full max-w-md bg-white border border-outline-variant rounded-xl shadow-sm p-8">
+      <section className="animate-page-enter w-full max-w-md bg-white border border-outline-variant rounded-xl shadow-sm p-8">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
             <img src="/rumo-mark.svg" alt="Rumo" className="h-12 w-12 rounded-full shadow-sm" />
@@ -64,7 +64,7 @@ export default function LoginPage() {
               type="email"
               value={formData.email}
               onChange={(event) => setFormData((prev) => ({ ...prev, email: event.target.value }))}
-              className="border border-outline-variant rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+              className="input-interactive border border-outline-variant rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
             />
           </div>
 
@@ -76,7 +76,7 @@ export default function LoginPage() {
                 type={showPassword ? 'text' : 'password'}
                 value={formData.password}
                 onChange={(event) => setFormData((prev) => ({ ...prev, password: event.target.value }))}
-                className="w-full border border-outline-variant rounded-lg p-3 pr-11 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                className="input-interactive w-full border border-outline-variant rounded-lg p-3 pr-11 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
               />
               <button
                 type="button"
@@ -96,7 +96,7 @@ export default function LoginPage() {
           <button
             disabled={loading}
             type="submit"
-            className="w-full bg-primary text-on-primary rounded-lg py-3 text-xs font-bold hover:opacity-95 disabled:opacity-60 transition-all"
+            className="btn-interactive w-full bg-primary text-on-primary rounded-lg py-3 text-xs font-bold hover:opacity-95 disabled:opacity-60 transition-all"
           >
             {loading ? 'ENTRANDO...' : 'ENTRAR'}
           </button>
@@ -105,7 +105,13 @@ export default function LoginPage() {
         <p className="text-xs text-center text-on-surface opacity-70 mt-6">
           Ainda nao tem conta?{' '}
           <Link href="/register" className="font-bold text-primary hover:underline">
-            Criar conta
+            Criar conta de agencia
+          </Link>
+        </p>
+        <p className="text-xs text-center text-on-surface opacity-70 mt-3">
+          Recebeu uma viagem de uma agencia?{' '}
+          <Link href="/traveler/register" className="font-bold text-primary hover:underline">
+            Criar conta de viajante
           </Link>
         </p>
       </section>
