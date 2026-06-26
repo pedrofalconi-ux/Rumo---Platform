@@ -35,12 +35,28 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: 'Titulo e mensagem sao obrigatorios' }, { status: 400 });
     }
 
+    const travelers = Array.isArray(trip.travelers) ? trip.travelers : [];
+    const targetMode = body.targetMode === 'specific' ? 'specific' : 'all';
+    const recipients =
+      targetMode === 'specific'
+        ? Array.isArray(body.recipients)
+          ? body.recipients.filter((recipient: unknown) => typeof recipient === 'string' && travelers.includes(recipient))
+          : []
+        : travelers;
+
+    if (targetMode === 'specific' && recipients.length === 0) {
+      return NextResponse.json({ error: 'Selecione ao menos um destinatario valido' }, { status: 400 });
+    }
+
     const notification = db.notifications.create({
       agencyId: user.agencyId,
       tripId: resolvedParams.id,
       title: body.title,
       message: body.message,
-      target: 'trip_travelers',
+      target: targetMode === 'specific' ? 'selected_travelers' : 'trip_travelers',
+      recipients,
+      priority: body.priority === 'high' ? 'high' : 'normal',
+      category: typeof body.category === 'string' ? body.category : 'general',
       createdBy: user.id,
     });
 

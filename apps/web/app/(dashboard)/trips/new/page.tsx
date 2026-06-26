@@ -3,35 +3,37 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { AMERICA_DESTINATIONS } from '../../../../lib/destinations/america-destinations';
 
-// Predefined list of popular and requested cities
-const CITIES = [
-  "Aalborg (DK)",
-  "Abbotsford (GB)",
-  "Abel Tasman National Park (NZ)",
-  "Aberaeron (GB)",
-  "Lisboa (PT)",
-  "Barcelona (ES)",
-  "Londres (GB)",
-  "Paris (FR)",
-  "Roma (IT)",
-  "Milão (IT)",
-  "Madrid (ES)",
-  "Veneza (IT)",
-  "Florença (IT)",
-  "Nova York (US)",
-  "Tóquio (JP)",
-  "Rio de Janeiro (BR)",
-  "São Paulo (BR)",
-  "Miami (US)",
-  "Orlando (US)"
-];
+// Predefined list of searchable cities and travel regions
+const CITIES = AMERICA_DESTINATIONS;
+
+const normalizeSearch = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
 
 interface DestinationEntry {
   city: string;
   startDate: string; // YYYY-MM-DD
   endDate: string; // YYYY-MM-DD
   allTravelers: boolean;
+}
+
+interface LibraryPhoto {
+  id: string;
+  folder: string;
+  name: string;
+  url: string;
+}
+
+interface MediaSearchResult {
+  id: string;
+  url: string;
+  previewUrl: string;
+  alt: string;
+  credit: string;
 }
 
 interface CalendarPickerProps {
@@ -294,6 +296,13 @@ const SearchableCitySelect: React.FC<SearchableCitySelectProps> = ({
   const [search, setSearch] = useState('');
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
+  // Sync input text with current value when dropdown closes/changes
+  useEffect(() => {
+    if (!isOpen) {
+      setSearch(value);
+    }
+  }, [value, isOpen]);
+
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -304,44 +313,45 @@ const SearchableCitySelect: React.FC<SearchableCitySelectProps> = ({
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
-  const filteredCities = CITIES.filter(c => 
-    c.toLowerCase().includes(search.toLowerCase())
+  const normalizedSearch = normalizeSearch(search);
+  const filteredCities = CITIES.filter((city) =>
+    normalizeSearch(city).includes(normalizedSearch)
   );
 
   return (
-    <div ref={dropdownRef} className="relative flex-1">
-      <div 
-        onClick={() => setIsOpen(true)}
-        className="border border-outline-variant rounded-lg p-2.5 text-xs flex justify-between items-center cursor-pointer bg-white"
-      >
-        <span className={value ? "text-on-surface font-semibold" : "text-on-surface opacity-50"}>
-          {value || placeholder}
-        </span>
-        <span className="material-symbols-outlined text-[16px] text-on-surface opacity-75">
+    <div ref={dropdownRef} className="relative flex-1 text-left">
+      <div className="relative">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            if (!isOpen) setIsOpen(true);
+          }}
+          onFocus={() => setIsOpen(true)}
+          placeholder={placeholder}
+          className="w-full border border-outline-variant rounded-lg p-2.5 pr-10 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white font-medium text-on-surface"
+        />
+        <span 
+          onClick={() => setIsOpen(!isOpen)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-[16px] text-on-surface opacity-75 cursor-pointer select-none"
+        >
           {isOpen ? 'expand_less' : 'expand_more'}
         </span>
       </div>
 
       {isOpen && (
-        <div className="absolute z-[100] mt-1 w-full bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden max-h-60 flex flex-col">
-          <input
-            type="text"
-            placeholder="Pesquisar cidade..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="p-2 border-b border-outline-variant text-[11px] outline-none focus:bg-surface-container-low"
-            autoFocus
-          />
+        <div className="absolute z-[100] mt-1 w-full bg-white border border-outline-variant rounded-lg shadow-lg overflow-hidden h-56 flex flex-col">
           <div className="overflow-y-auto flex-1 custom-scrollbar text-[11px]">
             {filteredCities.map(city => (
               <div
                 key={city}
                 onClick={() => {
                   onChange(city);
-                  setSearch('');
+                  setSearch(city);
                   setIsOpen(false);
                 }}
-                className={`p-2 hover:bg-surface-container cursor-pointer transition-colors ${
+                className={`p-2.5 hover:bg-surface-container cursor-pointer transition-colors ${
                   value === city ? 'bg-primary/10 text-primary font-bold' : ''
                 }`}
               >
@@ -373,6 +383,7 @@ export default function NewTripPage() {
     profile: 'lazer',
     budget: '',
     preferences: '',
+    coverImage: '',
   });
 
   const [destinations, setDestinations] = useState<DestinationEntry[]>([
@@ -381,6 +392,71 @@ export default function NewTripPage() {
 
   const [showGlobalCalendar, setShowGlobalCalendar] = useState(false);
   const [activeDestCalendarIndex, setActiveDestCalendarIndex] = useState<number | null>(null);
+  const [libraryPhotos, setLibraryPhotos] = useState<LibraryPhoto[]>([]);
+  const [folders, setFolders] = useState<string[]>([]);
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const [searchPhoto, setSearchPhoto] = useState('');
+  const [coverPickerTab, setCoverPickerTab] = useState<'browse' | 'upload' | 'search'>('browse');
+  const [coverSearchTerm, setCoverSearchTerm] = useState('');
+  const [coverSearchResults, setCoverSearchResults] = useState<string[]>([]);
+  const [isCoverSearching, setIsCoverSearching] = useState(false);
+  const [coverSearchError, setCoverSearchError] = useState('');
+
+  useEffect(() => {
+    const fetchLibraryData = async () => {
+      try {
+        const response = await fetch('/api/library');
+        if (response.ok) {
+          const data = await response.json();
+          setLibraryPhotos(data.photos || []);
+          setFolders(data.folders || []);
+          if (data.folders?.length) setSelectedFolder(data.folders[0]);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchLibraryData();
+  }, []);
+
+  const filteredPhotos = libraryPhotos.filter((photo) => {
+    const matchesFolder = !selectedFolder || photo.folder === selectedFolder;
+    const matchesSearch = photo.name.toLowerCase().includes(searchPhoto.toLowerCase());
+    return matchesFolder && matchesSearch;
+  });
+
+  const handleCoverFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData((prev) => ({ ...prev, coverImage: reader.result as string }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCoverSearchSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!coverSearchTerm.trim()) return;
+
+    setIsCoverSearching(true);
+    setCoverSearchError('');
+    try {
+      const response = await fetch(`/api/media/search?q=${encodeURIComponent(coverSearchTerm)}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Erro ao buscar imagens');
+      const results = (data.results || []).map((image: MediaSearchResult) => image.url);
+      setCoverSearchResults(results);
+      if (!results.length) setCoverSearchError('Nenhuma imagem encontrada para este termo.');
+    } catch (error) {
+      console.error(error);
+      setCoverSearchError('Nao foi possivel buscar imagens agora.');
+    } finally {
+      setIsCoverSearching(false);
+    }
+  };
 
   // Date conversion helper
   const toDateString = (date: Date) => {
@@ -537,6 +613,7 @@ export default function NewTripPage() {
           preferences: formData.preferences,
           profile: formData.profile,
           origin: formData.origin,
+          coverImage: formData.coverImage,
         }),
       });
 
@@ -557,7 +634,7 @@ export default function NewTripPage() {
   return (
     <div className="max-w-2xl mx-auto py-8">
       {/* Breadcrumbs */}
-      <div className="flex items-center gap-2 mb-2 text-xs font-semibold uppercase tracking-wider text-on-surface opacity-75">
+      <div className="scroll-reveal flex items-center gap-2 mb-2 text-xs font-semibold uppercase tracking-wider text-on-surface opacity-75">
         <Link href="/trips" className="hover:text-primary transition-colors">
           Viagens
         </Link>
@@ -565,7 +642,7 @@ export default function NewTripPage() {
         <span className="text-primary">Novo Roteiro</span>
       </div>
 
-      <div className="bg-white rounded-xl border border-outline-variant p-8 shadow-sm">
+      <div className="scroll-reveal scroll-reveal-delay-100 bg-white rounded-xl border border-outline-variant p-8 shadow-sm">
         <h2 className="font-headline-lg text-2xl font-bold text-primary mb-2">Criar Novo Roteiro com Múltiplos Destinos</h2>
         <p className="text-on-surface opacity-75 text-sm mb-6">
           Preencha os dados abaixo. As informações serão salvas permanentemente no banco local.
@@ -583,7 +660,7 @@ export default function NewTripPage() {
                 value={formData.title}
                 onChange={handleChange}
                 placeholder="Ex: Férias de Verão Europa"
-                className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                className="input-interactive border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
               />
             </div>
             <div className="flex flex-col gap-1">
@@ -591,8 +668,137 @@ export default function NewTripPage() {
               <SearchableCitySelect
                 value={formData.origin}
                 onChange={(val) => setFormData(prev => ({ ...prev, origin: val }))}
-                placeholder="Selecione a cidade de origem..."
+                placeholder="Selecione a origem..."
               />
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-outline-variant overflow-hidden">
+            <div className="relative h-52 bg-surface-container-low">
+              {formData.coverImage ? (
+                <img src={formData.coverImage} alt="Capa da viagem" className="absolute inset-0 h-full w-full object-cover" />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
+                  <span className="material-symbols-outlined text-4xl text-primary opacity-70">add_photo_alternate</span>
+                  <p className="text-sm font-black text-on-surface mt-2">Foto de capa da viagem</p>
+                  <p className="text-[11px] text-on-surface opacity-60 mt-1">
+                    Essa imagem aparece grande no feed do cliente final.
+                  </p>
+                </div>
+              )}
+              {formData.coverImage && (
+                <button
+                  type="button"
+                  onClick={() => setFormData((prev) => ({ ...prev, coverImage: '' }))}
+                  className="absolute right-3 top-3 h-8 w-8 rounded-full bg-white/95 text-red-600 shadow-sm flex items-center justify-center hover:bg-white"
+                  title="Remover capa"
+                >
+                  <span className="material-symbols-outlined text-[16px]">delete</span>
+                </button>
+              )}
+            </div>
+
+            <div className="p-4 space-y-4">
+              <div className="flex text-xs font-bold border-b border-outline-variant">
+                {(['browse', 'upload', 'search'] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => setCoverPickerTab(tab)}
+                    className={`flex-1 pb-2 border-b-2 transition-colors ${
+                      coverPickerTab === tab ? 'border-primary text-primary' : 'border-transparent opacity-60'
+                    }`}
+                  >
+                    {tab === 'browse' ? 'Biblioteca' : tab === 'upload' ? 'Upload' : 'Pixabay'}
+                  </button>
+                ))}
+              </div>
+
+              {coverPickerTab === 'browse' && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-[180px_1fr] gap-2">
+                    <select
+                      value={selectedFolder || ''}
+                      onChange={(event) => setSelectedFolder(event.target.value || null)}
+                      className="border border-outline-variant rounded-lg p-2.5 text-xs bg-white focus:ring-1 focus:ring-primary outline-none"
+                    >
+                      <option value="">Todas as pastas</option>
+                      {folders.map((folder) => (
+                        <option key={folder} value={folder}>{folder}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      placeholder="Buscar foto na biblioteca..."
+                      value={searchPhoto}
+                      onChange={(event) => setSearchPhoto(event.target.value)}
+                      className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-primary outline-none"
+                    />
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 max-h-44 overflow-y-auto custom-scrollbar pr-1">
+                    {filteredPhotos.map((photo) => (
+                      <button
+                        key={photo.id}
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, coverImage: photo.url }))}
+                        className="relative aspect-[16/9] rounded-lg overflow-hidden border border-outline-variant bg-surface-container-low"
+                        title={photo.name}
+                      >
+                        <img src={photo.url} alt={photo.name} className="h-full w-full object-cover" />
+                      </button>
+                    ))}
+                    {filteredPhotos.length === 0 && (
+                      <div className="col-span-3 rounded-lg border border-dashed border-outline-variant p-4 text-center text-[11px] text-on-surface opacity-60">
+                        Nenhuma foto encontrada na biblioteca.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {coverPickerTab === 'upload' && (
+                <div className="rounded-lg border border-dashed border-outline-variant p-5 text-center bg-surface-container-low">
+                  <label className="inline-flex items-center gap-2 rounded-lg bg-primary text-on-primary px-4 py-2.5 text-xs font-bold cursor-pointer hover:opacity-95">
+                    <span className="material-symbols-outlined text-[16px]">upload</span>
+                    Fazer upload da capa
+                    <input type="file" accept="image/*" className="hidden" onChange={handleCoverFileUpload} />
+                  </label>
+                </div>
+              )}
+
+              {coverPickerTab === 'search' && (
+                <div className="space-y-3">
+                  <form onSubmit={handleCoverSearchSubmit} className="flex gap-2">
+                    <input
+                      type="text"
+                      value={coverSearchTerm}
+                      onChange={(event) => setCoverSearchTerm(event.target.value)}
+                      placeholder="Ex: Joao Pessoa beach sunset"
+                      className="flex-1 border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-primary outline-none"
+                    />
+                    <button
+                      type="submit"
+                      disabled={isCoverSearching}
+                      className="px-4 py-2.5 rounded-lg bg-primary text-on-primary text-xs font-bold disabled:opacity-60"
+                    >
+                      {isCoverSearching ? 'Buscando...' : 'Buscar'}
+                    </button>
+                  </form>
+                  {coverSearchError && <p className="text-xs font-semibold text-error">{coverSearchError}</p>}
+                  <div className="grid grid-cols-3 gap-2 max-h-44 overflow-y-auto custom-scrollbar pr-1">
+                    {coverSearchResults.map((url) => (
+                      <button
+                        key={url}
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, coverImage: url }))}
+                        className="relative aspect-[16/9] rounded-lg overflow-hidden border border-outline-variant bg-surface-container-low"
+                      >
+                        <img src={url} alt="Resultado Pixabay" className="h-full w-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -655,7 +861,7 @@ export default function NewTripPage() {
                       <SearchableCitySelect
                         value={dest.city}
                         onChange={(val) => handleDestinationCityChange(idx, val)}
-                        placeholder="Ex: Lisboa (PT), Barcelona (ES)..."
+                        placeholder="Ex: Rio de Janeiro, Buenos Aires, Atacama..."
                       />
                     </div>
 
@@ -733,7 +939,7 @@ export default function NewTripPage() {
                       <button
                         type="button"
                         onClick={() => handleRemoveDestination(idx)}
-                        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-error/10 text-error transition-colors"
+                        className="btn-interactive w-8 h-8 flex items-center justify-center rounded-full hover:bg-error/10 text-error transition-colors"
                       >
                         <span className="material-symbols-outlined text-[18px]">delete</span>
                       </button>
@@ -752,7 +958,7 @@ export default function NewTripPage() {
                 name="travelers"
                 value={formData.travelers}
                 onChange={handleChange}
-                className="border border-outline-variant rounded-lg p-2.5 text-xs bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                className="input-interactive border border-outline-variant rounded-lg p-2.5 text-xs bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
               >
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
                   <option key={num} value={num}>
@@ -769,7 +975,7 @@ export default function NewTripPage() {
                 value={formData.travelerNames}
                 onChange={handleChange}
                 placeholder="Ex: Raquel Rasera, Daniel Turbox"
-                className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                className="input-interactive border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
               />
             </div>
           </div>
@@ -782,7 +988,7 @@ export default function NewTripPage() {
                 name="profile"
                 value={formData.profile}
                 onChange={handleChange}
-                className="border border-outline-variant rounded-lg p-2.5 text-xs bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                className="input-interactive border border-outline-variant rounded-lg p-2.5 text-xs bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
               >
                 <option value="lazer">Lazer / Férias</option>
                 <option value="lua_de_mel">Lua de Mel</option>
@@ -799,7 +1005,7 @@ export default function NewTripPage() {
                 value={formData.budget}
                 onChange={handleChange}
                 placeholder="Ex: 25000"
-                className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                className="input-interactive border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
               />
             </div>
           </div>
@@ -815,7 +1021,7 @@ export default function NewTripPage() {
               onChange={handleChange}
               rows={3}
               placeholder="Ex: Alimentação vegana, preferência por hotéis boutique, sem escadas."
-              className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all resize-none"
+              className="input-interactive border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all resize-none"
             />
           </div>
 
@@ -823,14 +1029,14 @@ export default function NewTripPage() {
           <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant">
             <Link
               href="/trips"
-              className="px-6 py-2.5 border border-outline rounded-lg text-xs font-semibold hover:bg-surface-container transition-colors"
+              className="btn-interactive px-6 py-2.5 border border-outline rounded-lg text-xs font-semibold hover:bg-surface-container transition-colors"
             >
               Cancelar
             </Link>
             <button
               disabled={loading}
               type="submit"
-              className="px-6 py-2.5 bg-primary text-on-primary font-semibold text-xs rounded-lg hover:opacity-95 active:scale-[0.98] transition-all flex items-center gap-2 disabled:opacity-50"
+              className="btn-interactive px-6 py-2.5 bg-primary text-on-primary font-semibold text-xs rounded-lg hover:opacity-95 active:scale-[0.98] transition-all flex items-center gap-2 disabled:opacity-50"
             >
               {loading ? (
                 <>

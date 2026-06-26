@@ -103,7 +103,7 @@ export default function TripsPage() {
   return (
     <div className="flex-1">
       {/* Header Section */}
-      <div className="flex justify-between items-end mb-8">
+      <div className="scroll-reveal flex justify-between items-end mb-8">
         <div>
           <h2 className="font-headline-lg text-2xl font-bold text-primary tracking-tight">VIAGENS</h2>
           <p className="text-on-surface opacity-75 text-sm mt-1">
@@ -112,7 +112,7 @@ export default function TripsPage() {
         </div>
         <Link
           href="/trips/new"
-          className="bg-primary text-on-primary font-semibold text-xs px-6 py-3 rounded-lg shadow-sm flex items-center gap-2 hover:shadow-md active:scale-95 transition-all"
+          className="btn-interactive bg-primary text-on-primary font-semibold text-xs px-6 py-3 rounded-lg shadow-sm flex items-center gap-2 hover:shadow-md active:scale-95 transition-all"
         >
           <span className="material-symbols-outlined text-sm">add_circle</span>
           CRIAR NOVA VIAGEM
@@ -120,7 +120,7 @@ export default function TripsPage() {
       </div>
 
       {/* Advanced Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6 bg-white p-4 rounded-xl border border-outline-variant shadow-sm">
+      <div className="scroll-reveal scroll-reveal-delay-50 grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6 bg-white p-4 rounded-xl border border-outline-variant shadow-sm">
         <div className="flex flex-col gap-1">
           <label className="font-semibold text-xs text-on-surface opacity-75">Datas da viagem</label>
           <div className="relative">
@@ -193,7 +193,7 @@ export default function TripsPage() {
         <div className="flex items-end">
           <button
             onClick={clearFilters}
-            className="w-full border border-outline text-primary font-semibold text-xs py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-surface-container transition-colors"
+            className="btn-interactive w-full border border-outline text-primary font-semibold text-xs py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-surface-container transition-colors"
           >
             <span className="material-symbols-outlined text-[18px]">filter_list</span>
             Limpar Filtros
@@ -202,7 +202,7 @@ export default function TripsPage() {
       </div>
 
       {/* Robust Data Table */}
-      <div className="bg-white rounded-xl border border-outline-variant overflow-hidden shadow-sm">
+      <div className="scroll-reveal scroll-reveal-delay-100 bg-white rounded-xl border border-outline-variant overflow-hidden shadow-sm">
         {loading ? (
           <div className="px-6 py-12 text-center text-on-surface opacity-65 text-sm flex items-center justify-center gap-2">
             <span className="material-symbols-outlined animate-spin">sync</span>
@@ -302,14 +302,14 @@ export default function TripsPage() {
                     <td className="px-6 py-4 text-right flex gap-1 justify-end items-center">
                       <button
                         onClick={() => handleDeleteTrip(trip.id)}
-                        className="p-1.5 hover:bg-surface-container-high rounded-full transition-colors text-error"
+                        className="btn-interactive p-1.5 hover:bg-surface-container-high rounded-full transition-colors text-error"
                         title="Excluir"
                       >
                         <span className="material-symbols-outlined text-[18px]">delete</span>
                       </button>
                       <Link
                         href={`/trips/${trip.id}/edit`}
-                        className="p-1.5 hover:bg-surface-container-high rounded-full transition-colors text-primary"
+                        className="btn-interactive p-1.5 hover:bg-surface-container-high rounded-full transition-colors text-primary"
                         title="Editar"
                       >
                         <span className="material-symbols-outlined text-[18px]">edit</span>
@@ -336,19 +336,19 @@ export default function TripsPage() {
           </p>
           <div className="flex items-center gap-2">
             <button
-              className="p-1 hover:bg-surface-container-high rounded border border-outline-variant transition-colors disabled:opacity-30"
+              className="btn-interactive p-1 hover:bg-surface-container-high rounded border border-outline-variant transition-colors disabled:opacity-30"
               disabled
             >
               <span className="material-symbols-outlined">chevron_left</span>
             </button>
             <div className="flex items-center gap-1">
-              <button className="w-8 h-8 rounded bg-primary text-on-primary text-xs font-bold">1</button>
-              <button className="w-8 h-8 rounded hover:bg-surface-container-high text-xs">2</button>
-              <button className="w-8 h-8 rounded hover:bg-surface-container-high text-xs">3</button>
+              <button className="btn-interactive w-8 h-8 rounded bg-primary text-on-primary text-xs font-bold">1</button>
+              <button className="btn-interactive w-8 h-8 rounded hover:bg-surface-container-high text-xs">2</button>
+              <button className="btn-interactive w-8 h-8 rounded hover:bg-surface-container-high text-xs">3</button>
               <span className="px-1 text-on-surface opacity-60">...</span>
-              <button className="w-8 h-8 rounded hover:bg-surface-container-high text-xs">12</button>
+              <button className="btn-interactive w-8 h-8 rounded hover:bg-surface-container-high text-xs">12</button>
             </div>
-            <button className="p-1 hover:bg-surface-container-high rounded border border-outline-variant transition-colors">
+            <button className="btn-interactive p-1 hover:bg-surface-container-high rounded border border-outline-variant transition-colors">
               <span className="material-symbols-outlined">chevron_right</span>
             </button>
           </div>

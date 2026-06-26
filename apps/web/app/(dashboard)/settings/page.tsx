@@ -6,9 +6,6 @@ interface SettingsForm {
   agencyName: string;
   logoUrl: string;
   defaultCurrency: string;
-  plan: string;
-  subscriptionStatus: string;
-  accessExpiresAt: string;
   amadeusKey: string;
   tboKey: string;
   claudeKey: string;
@@ -20,9 +17,6 @@ const emptySettings: SettingsForm = {
   agencyName: '',
   logoUrl: '',
   defaultCurrency: 'BRL',
-  plan: '',
-  subscriptionStatus: 'active',
-  accessExpiresAt: '',
   amadeusKey: '',
   tboKey: '',
   claudeKey: '',
@@ -34,6 +28,39 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [formData, setFormData] = useState<SettingsForm>(emptySettings);
+  const [uploading, setUploading] = useState(false);
+
+  const handleLogoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    const uData = new FormData();
+    uData.append('logo', file);
+
+    try {
+      const response = await fetch('/api/settings/upload', {
+        method: 'POST',
+        body: uData,
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setFormData((prev) => ({
+          ...prev,
+          logoUrl: result.logoUrl,
+        }));
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Erro ao enviar a imagem.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Erro de conexão ao enviar a imagem.');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -81,14 +108,14 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-2xl mx-auto py-8 space-y-6">
-      <div>
+      <div className="scroll-reveal">
         <h2 className="font-headline-lg text-2xl font-bold text-primary tracking-tight">CONFIGURACOES</h2>
         <p className="text-on-surface opacity-75 text-sm mt-1">
-          Gerencie as preferencias da agencia e configure credenciais operacionais.
+          Gerencie preferencias da agencia e credenciais operacionais do seu tenant.
         </p>
       </div>
 
-      <div className="bg-white rounded-xl border border-outline-variant p-8 shadow-sm">
+      <div className="scroll-reveal scroll-reveal-delay-100 bg-white rounded-xl border border-outline-variant p-8 shadow-sm">
         {loadingSettings ? (
           <div className="py-12 flex items-center justify-center gap-2 text-sm font-semibold">
             <span className="material-symbols-outlined animate-spin text-primary">sync</span>
@@ -107,19 +134,51 @@ export default function SettingsPage() {
                     name="agencyName"
                     value={formData.agencyName}
                     onChange={handleChange}
-                    className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-primary outline-none"
+                    className="input-interactive border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-primary outline-none"
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-semibold">Logo URL</label>
-                  <input
-                    type="text"
-                    name="logoUrl"
-                    placeholder="https://..."
-                    value={formData.logoUrl}
-                    onChange={handleChange}
-                    className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-primary outline-none"
-                  />
+                  <label className="text-xs font-semibold text-on-surface opacity-85">Logo da Agência</label>
+                  <div className="flex items-center gap-3 mt-0.5">
+                    <div className="w-11 h-11 bg-white border border-outline-variant rounded-lg overflow-hidden flex items-center justify-center shadow-sm relative shrink-0">
+                      {formData.logoUrl ? (
+                        <img 
+                          src={formData.logoUrl} 
+                          alt="Logo" 
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <span className="material-symbols-outlined text-xl text-outline">image</span>
+                      )}
+                    </div>
+                    <div className="flex-1 flex gap-2">
+                      <label 
+                        htmlFor="logo-upload-input"
+                        className="btn-interactive flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 border border-outline rounded-lg text-xs font-semibold hover:bg-surface-container transition-colors cursor-pointer select-none active:scale-[0.98] duration-150 text-center"
+                      >
+                        <span className="material-symbols-outlined text-base">cloud_upload</span>
+                        <span>{uploading ? 'Enviando...' : formData.logoUrl ? 'Alterar' : 'Upload'}</span>
+                      </label>
+                      <input
+                        id="logo-upload-input"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleLogoFileChange}
+                        disabled={uploading}
+                      />
+                      {formData.logoUrl && (
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, logoUrl: '' }))}
+                          className="btn-interactive px-3 py-2.5 border border-red-200 text-red-500 hover:bg-red-50 font-bold rounded-lg text-xs active:scale-[0.98] transition-colors duration-150"
+                          title="Remover logo"
+                        >
+                          <span className="material-symbols-outlined text-base">delete</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -131,7 +190,7 @@ export default function SettingsPage() {
                     name="notificationEmail"
                     value={formData.notificationEmail}
                     onChange={handleChange}
-                    className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-primary outline-none"
+                    className="input-interactive border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-primary outline-none"
                   />
                 </div>
                 <div className="flex flex-col gap-1">
@@ -140,44 +199,12 @@ export default function SettingsPage() {
                     name="defaultCurrency"
                     value={formData.defaultCurrency}
                     onChange={handleChange}
-                    className="border border-outline-variant rounded-lg p-2.5 text-xs bg-white focus:ring-1 focus:ring-primary outline-none"
+                    className="input-interactive border border-outline-variant rounded-lg p-2.5 text-xs bg-white focus:ring-1 focus:ring-primary outline-none"
                   >
                     <option value="BRL">Real Brasileiro (BRL)</option>
                     <option value="USD">Dolar Americano (USD)</option>
                     <option value="EUR">Euro (EUR)</option>
                   </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-semibold">Status da assinatura</label>
-                  <select
-                    name="subscriptionStatus"
-                    value={formData.subscriptionStatus}
-                    onChange={handleChange}
-                    className="border border-outline-variant rounded-lg p-2.5 text-xs bg-white focus:ring-1 focus:ring-primary outline-none"
-                  >
-                    <option value="active">Ativa</option>
-                    <option value="past_due">Pagamento pendente</option>
-                    <option value="paused">Pausada</option>
-                    <option value="cancelled">Cancelada</option>
-                  </select>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-semibold">Acesso da agencia ate</label>
-                  <input
-                    type="date"
-                    name="accessExpiresAt"
-                    value={formData.accessExpiresAt ? formData.accessExpiresAt.slice(0, 10) : ''}
-                    onChange={(event) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        accessExpiresAt: event.target.value ? new Date(`${event.target.value}T23:59:59`).toISOString() : '',
-                      }))
-                    }
-                    className="border border-outline-variant rounded-lg p-2.5 text-xs bg-white focus:ring-1 focus:ring-primary outline-none"
-                  />
                 </div>
               </div>
             </div>
@@ -192,7 +219,7 @@ export default function SettingsPage() {
                   name="amadeusKey"
                   value={formData.amadeusKey}
                   onChange={handleChange}
-                  className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-primary outline-none"
+                  className="input-interactive border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-primary outline-none"
                 />
               </div>
 
@@ -203,7 +230,7 @@ export default function SettingsPage() {
                   name="tboKey"
                   value={formData.tboKey}
                   onChange={handleChange}
-                  className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-primary outline-none"
+                  className="input-interactive border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-primary outline-none"
                 />
               </div>
 
@@ -214,7 +241,7 @@ export default function SettingsPage() {
                   name="claudeKey"
                   value={formData.claudeKey}
                   onChange={handleChange}
-                  className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-primary outline-none"
+                  className="input-interactive border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-primary outline-none"
                 />
               </div>
 
@@ -224,7 +251,7 @@ export default function SettingsPage() {
               <button
                 disabled={loading}
                 type="submit"
-                className="px-6 py-2.5 bg-primary text-on-primary font-semibold text-xs rounded-lg hover:opacity-95 active:scale-[0.98] transition-all flex items-center gap-2 disabled:opacity-50"
+                className="btn-interactive px-6 py-2.5 bg-primary text-on-primary font-semibold text-xs rounded-lg hover:opacity-95 active:scale-[0.98] transition-all flex items-center gap-2 disabled:opacity-50"
               >
                 {loading ? 'SALVANDO...' : 'SALVAR PREFERENCIAS'}
               </button>
