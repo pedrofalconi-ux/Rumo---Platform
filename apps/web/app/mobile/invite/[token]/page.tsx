@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { db } from '@rumo/db';
+import Link from 'next/link';
 
 export default async function MobileInvitePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -42,7 +43,7 @@ export default async function MobileInvitePage({ params }: { params: Promise<{ t
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">{data.agency.name}</p>
         <h1 className="font-headline-lg text-2xl font-bold text-on-surface mt-2">{data.trip.title}</h1>
         <p className="text-sm text-on-surface opacity-70 mt-2">
-          Convite liberado para {data.invite.travelerName}. Abra este convite no app mobile para acessar a trilha da viagem.
+          Convite liberado para {data.invite.travelerName}. Crie sua conta de viajante ou entre na area web para importar esta viagem.
         </p>
         <div className="mt-6 rounded-lg bg-surface-container-low p-4 text-left">
           <p className="text-xs font-bold text-on-surface">Destino</p>
@@ -51,6 +52,17 @@ export default async function MobileInvitePage({ params }: { params: Promise<{ t
             {data.trip.startDate} a {data.trip.endDate}
           </p>
         </div>
+        <div className="mt-6 grid grid-cols-1 gap-2">
+          <Link href={`/traveler/register?invite=${encodeURIComponent(token)}`} className="rounded-lg bg-primary text-on-primary px-4 py-3 text-xs font-bold hover:opacity-95">
+            Criar conta de viajante
+          </Link>
+          <Link href={`/app/trips?invite=${encodeURIComponent(token)}`} className="rounded-lg border border-outline-variant px-4 py-3 text-xs font-bold text-primary hover:bg-surface-container-low">
+            Ja tenho conta, importar no portal
+          </Link>
+        </div>
+        <p className="mt-4 text-[10px] text-on-surface opacity-55 break-all">
+          Codigo do convite: {token}
+        </p>
       </section>
     </main>
   );
