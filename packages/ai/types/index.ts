@@ -65,6 +65,13 @@ export interface ItineraryItem {
   meta?: Record<string, unknown>;
 }
 
+export interface AiGeoPoint {
+  name: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
 export interface TokenUsage {
   tokensIn: number;
   tokensOut: number;
@@ -97,12 +104,18 @@ export interface DayBlocks {
     title: string;
     subTitle?: string;
     details: string;
+    imageSearchQuery?: string;
   };
   blocks: Array<{
     type: AiBlockType;
     title: string;
     subTitle?: string;
     details?: string;
+    image?: string;
+    imageSearchQuery?: string;
+    location?: AiGeoPoint;
+    estimatedDurationMinutes?: number;
+    recommendedStartTime?: string;
     customSymbol?: string;
     meta?: Record<string, unknown>;
   }>;
@@ -116,6 +129,7 @@ export interface AiGenerationMeta {
   totalTokensOut: number;
   latencyMs: number;
   daysGenerated: number;
+  failedDays?: Array<{ day: number; error: string }>;
 }
 
 export interface AiGenerationLog {
@@ -145,6 +159,7 @@ export interface RuleContext {
 export interface AiOrchestratorConfig {
   provider: string;
   model: string;
+  fallbackModels?: string[];
   apiKey?: string;
   temperature?: number;
   maxTokens?: number;

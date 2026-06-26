@@ -14,6 +14,8 @@ export function buildRuleContext(input: TripInput): RuleContext {
     'Responda exclusivamente em português do Brasil.',
     'Nunca invente voos emitidos, hotéis reservados, PNR ou confirmações de reserva.',
     'Não use os tipos de bloco: flight, hotel, attachments, page_break.',
+    'Use nomes reais de lugares e experiencias; nunca use placeholders ou titulos genericos.',
+    'Todo dia deve formar uma trilha viavel por proximidade geografica, com horarios e pausas realistas.',
     `Perfil da viagem: ${PROFILE_LABELS[input.profile]}.`,
     `Orçamento total aproximado: R$ ${input.budget.toLocaleString('pt-BR')}.`,
   ];

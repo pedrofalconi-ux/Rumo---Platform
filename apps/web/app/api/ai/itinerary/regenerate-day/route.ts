@@ -3,6 +3,7 @@ import { db } from '@rumo/db';
 import { mergeDayIntoItinerary, tripRecordToInput } from '@rumo/ai';
 import { getCurrentUser } from '../../../../../lib/server-auth';
 import { createTripAiOrchestrator } from '../../../../../lib/ai/create-orchestrator';
+import { selectImagesForItinerary } from '../../../../../lib/media/select-itinerary-images';
 
 export async function POST(request: Request) {
   try {
@@ -32,7 +33,10 @@ export async function POST(request: Request) {
     });
 
     const existingItinerary = trip.itinerary || [];
-    const mergedItinerary = mergeDayIntoItinerary(existingItinerary, day, dayBlocks);
+    const mergedItinerary = await selectImagesForItinerary(
+      mergeDayIntoItinerary(existingItinerary, day, dayBlocks),
+      user.agencyId
+    );
 
     const updated = db.trips.update(tripId, {
       itinerary: mergedItinerary,

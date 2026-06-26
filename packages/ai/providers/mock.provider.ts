@@ -69,6 +69,8 @@ function buildMockPlan(input: TripInput): TripPlan {
 
 function buildMockDayBlocks(input: TripInput, dayPlan: TripPlan['days'][0]): DayBlocks {
   const city = dayPlan.destination;
+  const baseLat = 41.8902;
+  const baseLon = 12.4922;
 
   return {
     day: dayPlan.day,
@@ -76,6 +78,7 @@ function buildMockDayBlocks(input: TripInput, dayPlan: TripPlan['days'][0]): Day
       title: dayPlan.day === 1 ? `Chegada em ${city}` : `Dia ${dayPlan.day} — ${dayPlan.theme}`,
       subTitle: city,
       details: `Programação sugerida em ${city} com foco em ${dayPlan.focus.join(', ') || 'experiências locais'}.`,
+      imageSearchQuery: `${city} travel skyline`,
     },
     blocks: [
       {
@@ -83,6 +86,15 @@ function buildMockDayBlocks(input: TripInput, dayPlan: TripPlan['days'][0]): Day
         title: dayPlan.day === 1 ? `Centro histórico de ${city}` : `Ponto emblemático de ${city}`,
         subTitle: 'Passeio a pé',
         details: `Explore os principais cartões-postais de ${city} no seu ritmo.`,
+        imageSearchQuery: `${city} historic center`,
+        location: {
+          name: dayPlan.day === 1 ? `Centro historico de ${city}` : `Ponto emblematico de ${city}`,
+          address: city,
+          latitude: baseLat + dayPlan.day * 0.002,
+          longitude: baseLon + dayPlan.day * 0.002,
+        },
+        estimatedDurationMinutes: 90,
+        recommendedStartTime: '09:30',
         customSymbol: 'museum',
       },
       {
@@ -90,18 +102,31 @@ function buildMockDayBlocks(input: TripInput, dayPlan: TripPlan['days'][0]): Day
         title: dayPlan.day === 1 ? 'Tour introdutório guiado' : 'Experiência cultural recomendada',
         subTitle: 'Meio período',
         details: 'Visita guiada com contexto histórico e dicas do consultor Rumo.',
+        imageSearchQuery: `${city} guided walking tour`,
+        location: {
+          name: 'Ponto de encontro do tour',
+          address: city,
+          latitude: baseLat + dayPlan.day * 0.002 + 0.006,
+          longitude: baseLon + dayPlan.day * 0.002 + 0.004,
+        },
+        estimatedDurationMinutes: 150,
+        recommendedStartTime: '11:00',
         customSymbol: 'explore',
       },
       {
         type: 'transport',
         title: dayPlan.day === 1 ? 'Transfer aeroporto → região central' : 'Deslocamento entre bairros',
         details: 'Sugestão: metrô, táxi oficial ou transfer privado conforme conforto do cliente.',
+        imageSearchQuery: `${city} taxi street`,
+        estimatedDurationMinutes: 35,
+        recommendedStartTime: dayPlan.day === 1 ? '08:30' : '14:30',
         customSymbol: 'directions_car',
       },
       {
         type: 'text',
         title: 'Dica Rumo',
         details: `Reserve tempo para ${dayPlan.focus[0] || 'pausas'} e confirme horários de funcionamento com antecedência.`,
+        imageSearchQuery: `${city} cafe street`,
         customSymbol: 'description',
       },
       {
@@ -109,6 +134,15 @@ function buildMockDayBlocks(input: TripInput, dayPlan: TripPlan['days'][0]): Day
         title: `Sugestões extras em ${city}`,
         subTitle: 'Opcional',
         details: 'Restaurantes locais, mirantes e bairros adjacentes para tempo livre.',
+        imageSearchQuery: `${city} viewpoint restaurant`,
+        location: {
+          name: `Area complementar em ${city}`,
+          address: city,
+          latitude: baseLat + dayPlan.day * 0.002 + 0.012,
+          longitude: baseLon + dayPlan.day * 0.002 + 0.01,
+        },
+        estimatedDurationMinutes: 90,
+        recommendedStartTime: '16:00',
         customSymbol: 'star',
       },
     ],
@@ -125,8 +159,8 @@ export class MockProvider implements LLMProvider {
     await new Promise((r) => setTimeout(r, 120));
 
     const userPayload = params.user;
-    const tripMatch = userPayload.match(/Título: (.+)/);
-    const periodMatch = userPayload.match(/Período: (\d{4}-\d{2}-\d{2}) a (\d{4}-\d{2}-\d{2})/);
+    const tripMatch = userPayload.match(/T[ií]tulo: (.+)/);
+    const periodMatch = userPayload.match(/Per[ií]odo: (\d{4}-\d{2}-\d{2}) a (\d{4}-\d{2}-\d{2})/);
     const travelersMatch = userPayload.match(/Viajantes: (\d+)/);
 
     const mockInput: TripInput = {
@@ -151,7 +185,7 @@ export class MockProvider implements LLMProvider {
     if (userPayload.includes('planejamento macro')) {
       raw = buildMockPlan(mockInput);
       TripPlanSchema.parse(raw);
-    } else if (userPayload.includes('blocos de conteúdo')) {
+    } else if (userPayload.includes('blocos de conteúdo') || userPayload.includes('blocos de conteudo')) {
       const dayMatch = userPayload.match(/Dia (\d+)/);
       const dayNum = Number(dayMatch?.[1] || 1);
       const plan = buildMockPlan(mockInput);

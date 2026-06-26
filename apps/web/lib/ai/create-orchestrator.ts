@@ -11,12 +11,14 @@ export function createTripAiOrchestrator(
   overrides?: Partial<AiOrchestratorConfig>
 ) {
   const settings = db.settings.get(agencyId);
-  const provider = overrides?.provider || process.env.LLM_PROVIDER || 'mock';
+  const provider = overrides?.provider || process.env.LLM_PROVIDER || 'gemini';
   const apiKey =
     overrides?.apiKey ||
     (provider === 'anthropic'
       ? process.env.ANTHROPIC_API_KEY || settings.claudeKey
-      : process.env.OPENAI_API_KEY || '');
+      : provider === 'gemini'
+        ? process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || settings.geminiKey || ''
+        : process.env.OPENAI_API_KEY || '');
 
   const logger: GenerationLogger = {
     log: (entry) => {
@@ -28,6 +30,7 @@ export function createTripAiOrchestrator(
     {
       provider,
       model: overrides?.model || process.env.LLM_MODEL,
+      fallbackModels: overrides?.fallbackModels,
       apiKey: apiKey || undefined,
       temperature: overrides?.temperature,
       maxTokens: overrides?.maxTokens,

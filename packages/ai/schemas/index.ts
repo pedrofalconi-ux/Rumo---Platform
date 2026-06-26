@@ -63,6 +63,7 @@ export const DayBlocksSchema = z.object({
     title: z.string().min(1),
     subTitle: z.string().optional(),
     details: z.string().min(1),
+    imageSearchQuery: z.string().optional(),
   }),
   blocks: z.array(
     z.object({
@@ -70,6 +71,18 @@ export const DayBlocksSchema = z.object({
       title: z.string().min(1),
       subTitle: z.string().optional(),
       details: z.string().optional(),
+      image: z.string().url().optional(),
+      imageSearchQuery: z.string().optional(),
+      location: z
+        .object({
+          name: z.string().min(1),
+          address: z.string().optional(),
+          latitude: z.number().min(-90).max(90).optional(),
+          longitude: z.number().min(-180).max(180).optional(),
+        })
+        .optional(),
+      estimatedDurationMinutes: z.number().int().min(0).max(1440).optional(),
+      recommendedStartTime: z.string().optional(),
       customSymbol: z.string().optional(),
       meta: z.record(z.unknown()).optional(),
     })

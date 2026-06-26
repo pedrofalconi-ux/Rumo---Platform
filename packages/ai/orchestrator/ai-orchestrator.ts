@@ -60,7 +60,19 @@ export class AiOrchestrator {
 
   async generateFullItinerary(
     rawInput: TripInput,
-    context?: { userId?: string }
+    context?: {
+      userId?: string;
+      onDayGenerated?: (progress: {
+        plan: TripPlan;
+        dayBlocks: DayBlocks;
+        dayResults: DayBlocks[];
+        failedDays: Array<{ day: number; error: string }>;
+        generationId: string;
+        tokensIn: number;
+        tokensOut: number;
+        startedAt: number;
+      }) => void | Promise<void>;
+    }
   ): Promise<GenerateResult> {
     const input = normalizeTripInput(rawInput);
     const ruleCtx = buildRuleContext(input);
@@ -101,37 +113,77 @@ export class AiOrchestrator {
 
     const plan = planResult.data as TripPlan;
     const dayResults: DayBlocks[] = [];
+    const failedDays: Array<{ day: number; error: string }> = [];
 
     for (const dayPlan of plan.days) {
       const dayPrompt = buildGenerateDayPrompt(input, dayPlan, ruleCtx.constraints);
 
-      const dayResult = await this.provider.generate({
-        system: SYSTEM_BASE,
-        user: dayPrompt,
-        schema: DayBlocksSchema,
-      });
+      try {
+        const dayResult = await this.provider.generate({
+          system: SYSTEM_BASE,
+          user: dayPrompt,
+          schema: DayBlocksSchema,
+        });
 
-      assertAllowedBlocks(dayResult.data.blocks, ruleCtx.blockedTypes);
-      dayResults.push(dayResult.data as DayBlocks);
+        assertAllowedBlocks(dayResult.data.blocks, ruleCtx.blockedTypes);
+        dayResults.push(dayResult.data as DayBlocks);
 
-      tokensIn += dayResult.usage.tokensIn;
-      tokensOut += dayResult.usage.tokensOut;
+        tokensIn += dayResult.usage.tokensIn;
+        tokensOut += dayResult.usage.tokensOut;
 
-      this.logger.log({
-        stage: 'day',
-        tripId: input.tripId,
-        agencyId: input.agencyId,
-        userId: context?.userId || this.logContext?.userId || 'system',
-        provider: this.provider.name,
-        model: this.provider.model,
-        promptHash: hashPrompt(dayPrompt),
-        promptSnapshot: { prompt: dayPrompt, day: dayPlan.day },
-        responseSnapshot: dayResult.data,
-        tokensIn: dayResult.usage.tokensIn,
-        tokensOut: dayResult.usage.tokensOut,
-        latencyMs: dayResult.latencyMs,
-        success: true,
-      });
+        this.logger.log({
+          stage: 'day',
+          tripId: input.tripId,
+          agencyId: input.agencyId,
+          userId: context?.userId || this.logContext?.userId || 'system',
+          provider: this.provider.name,
+          model: this.provider.model,
+          promptHash: hashPrompt(dayPrompt),
+          promptSnapshot: { prompt: dayPrompt, day: dayPlan.day },
+          responseSnapshot: dayResult.data,
+          tokensIn: dayResult.usage.tokensIn,
+          tokensOut: dayResult.usage.tokensOut,
+          latencyMs: dayResult.latencyMs,
+          success: true,
+        });
+
+        await context?.onDayGenerated?.({
+          plan,
+          dayBlocks: dayResult.data as DayBlocks,
+          dayResults: [...dayResults],
+          failedDays: [...failedDays],
+          generationId,
+          tokensIn,
+          tokensOut,
+          startedAt: started,
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        failedDays.push({ day: dayPlan.day, error: message });
+
+        this.logger.log({
+          stage: 'day',
+          tripId: input.tripId,
+          agencyId: input.agencyId,
+          userId: context?.userId || this.logContext?.userId || 'system',
+          provider: this.provider.name,
+          model: this.provider.model,
+          promptHash: hashPrompt(dayPrompt),
+          promptSnapshot: { prompt: dayPrompt, day: dayPlan.day },
+          responseSnapshot: null,
+          tokensIn: 0,
+          tokensOut: 0,
+          latencyMs: 0,
+          success: false,
+          error: message,
+        });
+      }
+    }
+
+    if (dayResults.length === 0) {
+      throw new Error(
+        failedDays[0]?.error || 'Nenhum dia do roteiro foi gerado pela IA'
+      );
     }
 
     const itinerary = composeItinerary(plan, dayResults);
@@ -145,7 +197,7 @@ export class AiOrchestrator {
       model: this.provider.model,
       promptHash: generationId,
       promptSnapshot: input,
-      responseSnapshot: { itineraryCount: itinerary.length },
+      responseSnapshot: { itineraryCount: itinerary.length, failedDays },
       tokensIn,
       tokensOut,
       latencyMs: Date.now() - started,
@@ -162,7 +214,8 @@ export class AiOrchestrator {
         totalTokensIn: tokensIn,
         totalTokensOut: tokensOut,
         latencyMs: Date.now() - started,
-        daysGenerated: plan.days.length,
+        daysGenerated: dayResults.length,
+        failedDays: failedDays.length ? failedDays : undefined,
       },
     };
   }
