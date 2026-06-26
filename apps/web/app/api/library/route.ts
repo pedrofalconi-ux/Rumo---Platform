@@ -7,6 +7,50 @@ export async function GET() {
     const folders = db.folders.findMany();
     const orders = (db as any).libraryOrder ? (db as any).libraryOrder.get() : {};
     const folderCovers = (db as any).folderCovers ? (db as any).folderCovers.get() : {};
+
+    // Auto-populate missing covers using Pixabay
+    let hasChanges = false;
+    const foldersWithoutCover = folders.filter(f => !folderCovers[f]);
+    if (foldersWithoutCover.length > 0) {
+      const pixabayKey = '56439289-7031ef2f0e888cf1c7ab9501e';
+      await Promise.all(
+        foldersWithoutCover.map(async (folderPath) => {
+          const folderName = folderPath.split('/').pop() || '';
+          try {
+            const pixabayUrl = new URL('https://pixabay.com/api/');
+            pixabayUrl.searchParams.set('key', pixabayKey);
+            pixabayUrl.searchParams.set('q', folderName);
+            pixabayUrl.searchParams.set('image_type', 'photo');
+            pixabayUrl.searchParams.set('per_page', '3');
+
+            const response = await fetch(pixabayUrl);
+            if (response.ok) {
+              const data = await response.json();
+              if (data.hits && data.hits.length > 0) {
+                folderCovers[folderPath] = data.hits[0].largeImageURL || data.hits[0].webformatURL;
+                hasChanges = true;
+              } else {
+                // Fallback to Picsum
+                folderCovers[folderPath] = `https://picsum.photos/600/400?sig=${Math.floor(Math.random() * 1000)}`;
+                hasChanges = true;
+              }
+            } else {
+              folderCovers[folderPath] = `https://picsum.photos/600/400?sig=${Math.floor(Math.random() * 1000)}`;
+              hasChanges = true;
+            }
+          } catch (e) {
+            console.error(`Erro ao buscar capa automática para ${folderPath}:`, e);
+            folderCovers[folderPath] = `https://picsum.photos/600/400?sig=${Math.floor(Math.random() * 1000)}`;
+            hasChanges = true;
+          }
+        })
+      );
+
+      if (hasChanges && (db as any).folderCovers) {
+        (db as any).folderCovers.save(folderCovers);
+      }
+    }
+
     return NextResponse.json({ photos, folders, orders, folderCovers });
   } catch (error) {
     return NextResponse.json({ error: 'Erro ao buscar biblioteca' }, { status: 500 });

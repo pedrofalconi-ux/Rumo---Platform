@@ -116,6 +116,19 @@ const verifyPasswordHash = (password: string, passwordHash?: string) => {
 
 const initialUsers = [
   {
+    id: 'user-platform-admin',
+    fullName: 'Administrador Rumo',
+    email: 'platform@rumo.com',
+    role: 'platform_admin',
+    agencyId: 'platform',
+    phone: '',
+    avatarUrl: '',
+    accessStatus: 'active',
+    accessExpiresAt: '2099-12-31T23:59:59.000Z',
+    passwordHash: createPasswordHash('rumo123'),
+    createdAt: new Date().toISOString(),
+  },
+  {
     id: 'user-1',
     fullName: 'Digueira Rumo',
     email: 'admin@rumo.com',
@@ -165,6 +178,7 @@ const initialFolderCovers: Record<string, string> = {};
 const initialSessions: any[] = [];
 const initialNotifications: any[] = [];
 const initialTravelerInvites: any[] = [];
+const initialTravelerTripAccess: any[] = [];
 
 const initialSettings = {
   agencyName: 'Horizon Enterprise',
@@ -204,6 +218,7 @@ const SETTINGS_FILE = ensureDbFile('settings.json', initialSettings);
 const AGENCIES_FILE = ensureDbFile('agencies.json', initialAgencies);
 const NOTIFICATIONS_FILE = ensureDbFile('notifications.json', initialNotifications);
 const TRAVELER_INVITES_FILE = ensureDbFile('traveler-invites.json', initialTravelerInvites);
+const TRAVELER_TRIP_ACCESS_FILE = ensureDbFile('traveler-trip-access.json', initialTravelerTripAccess);
 const AI_GENERATIONS_FILE = ensureDbFile('ai-generations.json', []);
 
 const existingUsers = readData<any[]>(USERS_FILE);
@@ -220,6 +235,26 @@ if (existingUsers.some((user) => !user.passwordHash || !user.agencyId || !user.a
       passwordHash: user.passwordHash || createPasswordHash('rumo123'),
     }))
   );
+}
+
+const usersAfterNormalization = readData<any[]>(USERS_FILE);
+if (!usersAfterNormalization.some((user) => user.role === 'platform_admin')) {
+  writeData(USERS_FILE, [
+    {
+      id: 'user-platform-admin',
+      fullName: 'Administrador Rumo',
+      email: 'platform@rumo.com',
+      role: 'platform_admin',
+      agencyId: 'platform',
+      phone: '',
+      avatarUrl: '',
+      accessStatus: 'active',
+      accessExpiresAt: '2099-12-31T23:59:59.000Z',
+      passwordHash: createPasswordHash('rumo123'),
+      createdAt: new Date().toISOString(),
+    },
+    ...usersAfterNormalization,
+  ]);
 }
 
 const existingTrips = readData<any[]>(TRIPS_FILE);
@@ -396,6 +431,12 @@ export const db = {
       writeData(USERS_FILE, users);
       return sanitizeUser(users[index]);
     },
+    delete: (id: string) => {
+      const users = readData<any[]>(USERS_FILE);
+      const filtered = users.filter((u) => u.id !== id);
+      writeData(USERS_FILE, filtered);
+      return true;
+    },
   },
   sessions: {
     create: (userId: string) => {
@@ -447,6 +488,44 @@ export const db = {
         password: data.password,
       });
     },
+    registerTraveler: (data: any) => {
+      if (!data.fullName || !data.email || !data.password) {
+        throw new Error('Dados obrigatorios ausentes');
+      }
+      if (data.emailConfirm && data.email !== data.emailConfirm) {
+        throw new Error('Os e-mails informados nao conferem');
+      }
+
+      const inviteToken = data.inviteToken || data.linkOrToken || '';
+      const normalizedToken = String(inviteToken).trim().split('/').filter(Boolean).pop() || '';
+      const invite = normalizedToken ? db.travelerInvites.findByToken(normalizedToken) : null;
+      if (!invite || invite.status !== 'active' || new Date(invite.expiresAt) < new Date()) {
+        throw new Error('Cadastro de viajante exige um convite valido de uma agencia');
+      }
+
+      const trip = db.trips.findOne(invite.tripId);
+      if (!trip || trip.agencyId !== invite.agencyId) {
+        throw new Error('Viagem do convite nao encontrada');
+      }
+
+      const existingUser = db.users.findByEmail(data.email);
+      if (existingUser && existingUser.agencyId !== invite.agencyId) {
+        throw new Error('Este e-mail ja pertence a outro tenant/agencia');
+      }
+
+      const traveler = db.users.create({
+        fullName: data.fullName,
+        agencyId: invite.agencyId,
+        email: data.email,
+        phone: data.phone || '',
+        role: 'traveler',
+        accessStatus: 'active',
+        accessExpiresAt: '2099-12-31T23:59:59.000Z',
+        password: data.password,
+      });
+      db.travelerTrips.importByInviteToken(traveler.id, normalizedToken);
+      return traveler;
+    },
     login: (email: string, password: string) => {
       const user = db.users.findByEmail(email);
       if (!user || !verifyPasswordHash(password, user.passwordHash)) {
@@ -456,7 +535,12 @@ export const db = {
       const now = new Date();
       const userExpired = user.accessExpiresAt && new Date(user.accessExpiresAt) < now;
       const agencyExpired = agency?.accessExpiresAt && new Date(agency.accessExpiresAt) < now;
-      if (user.accessStatus !== 'active' || userExpired || agency?.subscriptionStatus !== 'active' || agencyExpired) {
+      const requiresAgencyAccess = user.role !== 'traveler' && user.role !== 'platform_admin';
+      if (
+        user.accessStatus !== 'active' ||
+        userExpired ||
+        (requiresAgencyAccess && (!agency || agency.subscriptionStatus !== 'active' || agencyExpired))
+      ) {
         throw new Error('Acesso expirado ou desativado');
       }
 
@@ -471,6 +555,71 @@ export const db = {
       const session = db.sessions.findOne(sessionId);
       if (!session) return null;
       return db.users.findOne(session.userId);
+    },
+  },
+  travelerTrips: {
+    findManyForUser: (userId: string) => {
+      const user = db.users.findOne(userId);
+      if (!user || user.role !== 'traveler') return [];
+      const accessRows = readData<any[]>(TRAVELER_TRIP_ACCESS_FILE).filter(
+        (access) => access.userId === userId && access.agencyId === user.agencyId
+      );
+      return accessRows
+        .map((access) => db.trips.findOne(access.tripId))
+        .filter(Boolean)
+        .filter((trip: any) => trip.agencyId === user.agencyId)
+        .map((trip: any) => {
+          const agency = db.agencies.findOne(trip.agencyId);
+          return {
+            ...trip,
+            agency: agency
+              ? {
+                  id: agency.id,
+                  name: agency.name,
+                  logoUrl: agency.logoUrl,
+                  plan: agency.plan,
+                }
+              : null,
+          };
+        });
+    },
+    importByInviteToken: (userId: string, token: string) => {
+      const user = db.users.findOne(userId);
+      if (!user || user.role !== 'traveler') {
+        throw new Error('Acesso permitido apenas para viajantes');
+      }
+
+      const normalizedToken = token.trim().split('/').filter(Boolean).pop() || token.trim();
+      const invite = db.travelerInvites.findByToken(normalizedToken);
+      if (!invite || invite.status !== 'active' || new Date(invite.expiresAt) < new Date()) {
+        throw new Error('Convite invalido ou expirado');
+      }
+
+      const trip = db.trips.findOne(invite.tripId);
+      if (!trip || trip.agencyId !== invite.agencyId) {
+        throw new Error('Viagem nao encontrada');
+      }
+      if (user.agencyId !== invite.agencyId) {
+        throw new Error('Este convite pertence a outra agencia');
+      }
+
+      const accessRows = readData<any[]>(TRAVELER_TRIP_ACCESS_FILE);
+      const existing = accessRows.find(
+        (access) => access.userId === userId && access.tripId === trip.id && access.agencyId === invite.agencyId
+      );
+      if (!existing) {
+        accessRows.push({
+          id: `traveler-access-${Date.now()}`,
+          agencyId: invite.agencyId,
+          userId,
+          tripId: trip.id,
+          inviteId: invite.id,
+          travelerName: invite.travelerName,
+          createdAt: new Date().toISOString(),
+        });
+        writeData(TRAVELER_TRIP_ACCESS_FILE, accessRows);
+      }
+      return trip;
     },
   },
   photos: {
@@ -547,13 +696,14 @@ export const db = {
       const updated = { ...current, ...data };
       writeData(SETTINGS_FILE, updated);
       if (data.agencyId) {
-        db.agencies.update(data.agencyId, {
+        const agencyPatch: Record<string, unknown> = {
           name: data.agencyName,
           logoUrl: data.logoUrl,
-          plan: data.plan,
-          subscriptionStatus: data.subscriptionStatus,
-          accessExpiresAt: data.accessExpiresAt,
-        });
+        };
+        if (typeof data.plan !== 'undefined') agencyPatch.plan = data.plan;
+        if (typeof data.subscriptionStatus !== 'undefined') agencyPatch.subscriptionStatus = data.subscriptionStatus;
+        if (typeof data.accessExpiresAt !== 'undefined') agencyPatch.accessExpiresAt = data.accessExpiresAt;
+        db.agencies.update(data.agencyId, agencyPatch);
       }
       return db.settings.get(data.agencyId);
     }

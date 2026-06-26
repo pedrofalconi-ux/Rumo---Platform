@@ -1,9 +1,22 @@
 [
   {
+    "id": "user-platform-admin",
+    "fullName": "Administrador Rumo",
+    "email": "platform@rumo.com",
+    "role": "platform_admin",
+    "agencyId": "platform",
+    "phone": "",
+    "avatarUrl": "",
+    "accessStatus": "active",
+    "accessExpiresAt": "2099-12-31T23:59:59.000Z",
+    "passwordHash": "86e08b339ed6d6f0527612e27c9276af:835f15b19e9e197493a55e0d6cb382df914a49352a596e32fb3a0e45ca870121",
+    "createdAt": "2026-06-25T22:48:57.697Z"
+  },
+  {
     "avatarUrl": "",
     "createdAt": "2026-06-24T16:50:28.148Z",
     "agencyId": "agency-default",
-    "accessStatus": "blocked",
+    "accessStatus": "active",
     "accessExpiresAt": "2099-12-31T23:59:59.000Z",
     "id": "user-1",
     "fullName": "Digueira Rumo",
@@ -16,7 +29,7 @@
     "avatarUrl": "",
     "createdAt": "2026-06-24T16:50:28.148Z",
     "agencyId": "agency-default",
-    "accessStatus": "blocked",
+    "accessStatus": "active",
     "accessExpiresAt": "2099-12-31T23:59:59.000Z",
     "id": "user-2",
     "fullName": "Rodriguera Rumo",
@@ -37,5 +50,18 @@
     "email": "pedrofalconi11@gmail.com",
     "phone": "93982082640",
     "passwordHash": "cb19a25c3b80e3c8604decbe2ec442a9:02029b9b113898f851683efa1e829db201e410969fbd55e66c95803446cb53f6"
+  },
+  {
+    "id": "user-1782427549771",
+    "role": "agency_admin",
+    "avatarUrl": "",
+    "createdAt": "2026-06-25T22:45:49.771Z",
+    "accessStatus": "active",
+    "accessExpiresAt": "2026-07-25T22:45:49.770Z",
+    "fullName": "Ingrid Falconi ",
+    "agencyId": "agency-1782427549770",
+    "email": "pedrofalconi2205@gmail.com",
+    "phone": "83982082640",
+    "passwordHash": "be9f33533101e7c96506c4a79a8e3908:39cac8263bf028637b7dd4549a3eb7ad3ba358371affb20853f700d272788a6d"
   }
 ]

@@ -745,7 +745,7 @@ export default function LibraryPage() {
   return (
     <div className="flex-1 space-y-6">
       {/* Header bar */}
-      <div className="flex justify-between items-end">
+      <div className="scroll-reveal flex justify-between items-end">
         <div>
           <h2 className="font-headline-lg text-2xl font-bold text-primary tracking-tight">BIBLIOTECA</h2>
           <p className="text-on-surface opacity-75 text-sm mt-1">
@@ -755,7 +755,7 @@ export default function LibraryPage() {
         <div className="flex gap-2">
           <button
             onClick={openFolderModal}
-            className="flex items-center gap-1.5 px-4 py-2 border border-outline rounded-lg text-xs font-bold hover:bg-surface-container transition-colors"
+            className="btn-interactive flex items-center gap-1.5 px-4 py-2 border border-outline rounded-lg text-xs font-bold hover:bg-surface-container transition-colors"
           >
             <span className="material-symbols-outlined text-sm">create_new_folder</span>
             <span>Nova Pasta</span>
@@ -765,7 +765,7 @@ export default function LibraryPage() {
               setPhotoSourceTab('upload');
               setShowPhotoModal(true);
             }}
-            className="flex items-center gap-1.5 px-4 py-2 bg-primary text-on-primary rounded-lg text-xs font-bold hover:opacity-95 active:scale-[0.98] transition-all disabled:opacity-50"
+            className="btn-interactive flex items-center gap-1.5 px-4 py-2 bg-primary text-on-primary rounded-lg text-xs font-bold hover:opacity-95 active:scale-[0.98] transition-all disabled:opacity-50"
           >
             <span className="material-symbols-outlined text-sm">add_photo_alternate</span>
             <span>Adicionar Foto</span>
@@ -781,7 +781,7 @@ export default function LibraryPage() {
       ) : (
         <div className="grid grid-cols-12 gap-6 items-start">
           {/* Folders List Sidebar */}
-          <div className="col-span-12 md:col-span-4 lg:col-span-3 bg-white border border-outline-variant rounded-xl p-4 space-y-4 shadow-sm min-h-[300px]">
+          <div className="scroll-reveal scroll-reveal-delay-100 col-span-12 md:col-span-4 lg:col-span-3 bg-white border border-outline-variant rounded-xl p-4 space-y-4 shadow-sm min-h-[300px]">
             <h3 className="text-xs font-bold text-primary uppercase tracking-wider">Pastas de Destinos</h3>
             <div className="space-y-1 max-h-[500px] overflow-y-auto custom-scrollbar pr-1">
               {/* Root Library Node */}
@@ -883,7 +883,7 @@ export default function LibraryPage() {
           </div>
 
           {/* Photo Gallery Canvas */}
-          <div className="col-span-12 md:col-span-8 lg:col-span-9 bg-white border border-outline-variant rounded-xl p-6 shadow-sm space-y-6">
+          <div className="scroll-reveal scroll-reveal-delay-150 col-span-12 md:col-span-8 lg:col-span-9 bg-white border border-outline-variant rounded-xl p-6 shadow-sm space-y-6">
             {/* Gallery Top bar */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-outline-variant">
               <div className="space-y-1">
@@ -947,7 +947,7 @@ export default function LibraryPage() {
                   placeholder="Pesquisar itens..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-outline-variant rounded-lg text-xs outline-none focus:ring-1 focus:ring-primary"
+                  className="input-interactive w-full pl-10 pr-4 py-2 border border-outline-variant rounded-lg text-xs outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
             </div>
@@ -993,9 +993,9 @@ export default function LibraryPage() {
                     {/* Top Content Area */}
                     {isFolder ? (
                       <div className="flex-1 flex flex-col items-center justify-center bg-gradient-to-br from-surface-container-low to-surface-container-high relative select-none overflow-hidden">
-                        {item.path && folderCovers[item.path] && (
+                        {item.path && (
                           <img
-                            src={folderCovers[item.path]}
+                            src={folderCovers[item.path] || `https://picsum.photos/600/400?sig=${idx}`}
                             alt={item.name}
                             className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                           />
@@ -1022,7 +1022,7 @@ export default function LibraryPage() {
                             e.stopPropagation();
                             if (item.path) handleDeleteFolder(item.path);
                           }}
-                          className="absolute top-2 right-2 p-1.5 bg-white/95 text-error rounded-full shadow-sm opacity-0 group-hover:opacity-100 hover:bg-error hover:text-white transition-all transform hover:scale-105"
+                          className="btn-interactive absolute top-2 right-2 p-1.5 bg-white/95 text-error rounded-full shadow-sm opacity-0 group-hover:opacity-100 hover:bg-error hover:text-white transition-all transform hover:scale-105"
                           title="Excluir Pasta"
                         >
                           <span className="material-symbols-outlined text-[16px]">delete</span>
@@ -1044,7 +1044,7 @@ export default function LibraryPage() {
                             e.stopPropagation();
                             if (item.photo) handleDeletePhoto(item.photo.id);
                           }}
-                          className="absolute top-2 right-2 p-1.5 bg-white/95 text-error rounded-full shadow-sm opacity-0 group-hover:opacity-100 hover:bg-error hover:text-white transition-all transform hover:scale-105"
+                          className="btn-interactive absolute top-2 right-2 p-1.5 bg-white/95 text-error rounded-full shadow-sm opacity-0 group-hover:opacity-100 hover:bg-error hover:text-white transition-all transform hover:scale-105"
                           title="Excluir Foto"
                         >
                           <span className="material-symbols-outlined text-[16px]">delete</span>
@@ -1180,13 +1180,20 @@ export default function LibraryPage() {
                       placeholder="Ex: Toscana, praia em Noronha, hotel em Lisboa..."
                       value={onlineSearchTerm}
                       onChange={(e) => setOnlineSearchTerm(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleOnlineSearchSubmit(e);
+                        }
+                      }}
                       className="flex-1 border border-outline-variant rounded-lg p-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                     <button
                       type="button"
                       disabled={isSearching}
                       onClick={handleOnlineSearchSubmit}
-                      className="px-4 py-2 bg-secondary text-white text-xs font-bold rounded-lg hover:opacity-90 disabled:opacity-50"
+                      className="px-4 py-2 bg-primary text-on-primary text-xs font-bold rounded-lg hover:opacity-90 disabled:opacity-50 transition-all active:scale-[0.98]"
                     >
                       {isSearching ? 'Buscando...' : 'Buscar'}
                     </button>
@@ -1228,11 +1235,18 @@ export default function LibraryPage() {
                 </div>
               )}
 
-              {coverUrl && (
-                <div className="h-36 border border-outline-variant rounded-xl overflow-hidden bg-surface-container">
-                  <img src={coverUrl} className="w-full h-full object-cover" alt="Prévia da capa" />
-                </div>
-              )}
+              <div className="h-36 border border-outline-variant rounded-xl overflow-hidden bg-surface-container relative">
+                <img 
+                  src={coverUrl || folderCovers[coverFolderPath] || `https://picsum.photos/600/400?sig=1`} 
+                  className="w-full h-full object-cover" 
+                  alt="Prévia da capa" 
+                />
+                {!coverUrl && (
+                  <div className="absolute top-2 left-2 bg-black/60 text-white text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-wider z-10">
+                    Capa Automática
+                  </div>
+                )}
+              </div>
 
               <div className="flex justify-between gap-2 pt-4 border-t border-outline-variant">
                 <button
@@ -1403,13 +1417,20 @@ export default function LibraryPage() {
                       placeholder="Ex: Roma Coliseu, Veneza canais, hotel em Paris..."
                       value={onlineSearchTerm}
                       onChange={(e) => setOnlineSearchTerm(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleOnlineSearchSubmit(e);
+                        }
+                      }}
                       className="flex-1 border border-outline-variant rounded-lg p-2 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                     <button
                       type="button"
                       disabled={isSearching}
                       onClick={handleOnlineSearchSubmit}
-                      className="px-4 py-2 bg-secondary text-white text-xs font-bold rounded-lg hover:opacity-90 flex items-center gap-1.5 disabled:opacity-50"
+                      className="px-4 py-2 bg-primary text-on-primary text-xs font-bold rounded-lg hover:opacity-90 flex items-center gap-1.5 disabled:opacity-50 transition-all active:scale-[0.98]"
                     >
                       {isSearching ? 'Buscando...' : 'Buscar'}
                     </button>

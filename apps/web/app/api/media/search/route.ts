@@ -26,12 +26,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ results: [] });
     }
 
-    const settings = db.settings.get(user.agencyId);
-    const pixabayKey =
-      process.env.PIXABAY_API_KEY ||
-      process.env.NEXT_PUBLIC_PIXABAY_API_KEY ||
-      settings.pixabayKey ||
-      FALLBACK_PIXABAY_KEY;
+    const pixabayKey = '56439289-7031ef2f0e888cf1c7ab9501e';
 
     const pixabayUrl = new URL('https://pixabay.com/api/');
     pixabayUrl.searchParams.set('key', pixabayKey);

@@ -1,101 +1,3243 @@
 [
   {
-    "agencyId": "agency-default",
-    "documents": [],
-    "id": "HOR-9921",
-    "createdDate": "29-05-2024",
-    "name": "Viagem Roma Premium",
-    "destinations": [
-      "Roma"
-    ],
-    "startDate": "2024-07-24",
-    "endDate": "2024-07-31",
-    "travelers": [
-      "DR",
-      "+1"
-    ],
-    "status": "Publicado",
-    "clientName": "Digueira Rumo",
+    "id": "HOR-7802",
+    "createdDate": "25-06-2026",
+    "status": "Pendente",
     "itinerary": [
       {
-        "id": "item-1",
+        "id": "ai-15bfcaa4-47fb-4447-ac01-3de57893902b",
         "day": 1,
-        "type": "flight",
-        "title": "Voo ITA Airways",
-        "subTitle": "AZ 673",
-        "details": "Voo direto de São Paulo (GRU) para Roma (FCO)",
-        "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuByVbq23E6OnSqiaWYWht_8Baa9X5GgtucaFmgzZY6ToYLGjTPsAmpieIfEh3-ppopeJYwKzu4fAeAxnUYL07EklM_Ww_OSFKCZVESBQliejmPsC0WN9f3emDyFvsMT9HNSS9zi9pizmHOAoG7OM_vsmzl2X9nSUCNbBOaa_ECdF-O-B6cBjvH4RbcC52EPyW1rPFKQmzvk8phVG9TL_VmGtPtPQwLjanyPbZwBzCk3a2R6pHxc1dPMBikHxV1L0q9kDmCw_PFSTIW5",
+        "type": "trip_desc",
+        "title": "Paris 2026: A Primeira Aventura Solo de Pedro",
+        "details": "Um roteiro cuidadosamente elaborado para Pedro, que embarca em sua primeira viagem solo a Paris. Com foco em tecnologia, futebol e natureza, esta jornada oferece uma imersão na cultura parisiense, combinando pontos turísticos icônicos com experiências autênticas e momentos de lazer. O planejamento prioriza deslocamentos eficientes e um ritmo tranquilo para aproveitar cada momento.",
+        "customSymbol": "description",
         "meta": {
-          "airline": "ITA Airways",
-          "flightNumber": "AZ 673",
-          "origin": "São Paulo (GRU)",
-          "destination": "Roma (FCO)",
-          "departureTime": "14:25",
-          "arrivalTime": "06:45 (+1 dia)",
-          "duration": "11h 20m"
+          "highlights": [
+            "Exploração dos principais marcos de Paris com foco em interesses específicos.",
+            "Imersão na cultura e gastronomia local, com tempo para descobertas pessoais.",
+            "Experiências ligadas a tecnologia e futebol, alinhadas às preferências de Pedro.",
+            "Momentos de contato com a natureza em parques e jardins emblemáticos.",
+            "Ritmo tranquilo e flexível para desfrutar da primeira viagem solo."
+          ],
+          "aiGenerated": true
         }
       },
       {
-        "id": "item-1782316920907",
+        "id": "ai-5c73deee-1b4e-4710-8bbb-b653ca72f119",
+        "day": 1,
+        "type": "day_summary",
+        "title": "Chegada em Paris e o Ícone da Cidade",
+        "subTitle": "Paris, França",
+        "details": "Este primeiro dia em Paris é dedicado à sua chegada e a uma imersão imediata no símbolo mais famoso da cidade. A trilha foi otimizada para explorar a região da Torre Eiffel e seus arredores, permitindo uma aclimatação tranquila e vistas espetaculares.",
+        "customSymbol": "calendar_today",
+        "meta": {
+          "aiGenerated": true,
+          "imageSearchQuery": "Torre Eiffel Paris dia e noite Chegada em Paris e o Ícone da Cidade",
+          "image": "https://pixabay.com/get/g2d3ddc2b40b15561524eb78c983548ab2ede857c35c6c972666e6c238b0ccd7cf2db2e58175a007af283bf2ccdae890e79583fff473e3d27645d9accf23a5e67_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "warpmike"
+        },
+        "image": "https://pixabay.com/get/g2d3ddc2b40b15561524eb78c983548ab2ede857c35c6c972666e6c238b0ccd7cf2db2e58175a007af283bf2ccdae890e79583fff473e3d27645d9accf23a5e67_1280.jpg"
+      },
+      {
+        "id": "ai-f98a7adc-1d69-4c16-9711-28990b779129",
+        "day": 1,
+        "type": "text",
+        "title": "09:00 - Chegada e Acomodação",
+        "subTitle": "Início da Aventura Parisiense | 3h",
+        "details": "Horario sugerido: 09:00, com permanencia de 3h.\n\nApós a sua chegada em Paris, o foco principal é se deslocar até a sua acomodação, fazer o check-in e descansar um pouco. Este momento é crucial para se aclimatar ao fuso horário e começar a sentir a energia da cidade. Aproveite para desempacotar o essencial e se preparar para o dia.",
+        "image": "https://pixabay.com/get/gb42c80e071747b30ee1e304d1ec7e79a37d91a777afef202a9c3bf6a5b5ef79afb511866d13a95d6915b01704332f8bc0e0f699bad9b9da26469c2db7e449ace_1280.jpg",
+        "customSymbol": "description",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 1,
+          "originalTitle": "Chegada e Acomodação",
+          "imageSearchQuery": "Chegada e Acomodação Paris",
+          "estimatedDurationMinutes": 180,
+          "recommendedStartTime": "09:00",
+          "image": "https://pixabay.com/get/gb42c80e071747b30ee1e304d1ec7e79a37d91a777afef202a9c3bf6a5b5ef79afb511866d13a95d6915b01704332f8bc0e0f699bad9b9da26469c2db7e449ace_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "Pexels"
+        }
+      },
+      {
+        "id": "ai-1f91b596-01ea-4edd-b4ae-34e20c722628",
+        "day": 1,
+        "type": "transport",
+        "title": "12:00 - Deslocamento para a Torre Eiffel (Trocadéro)",
+        "subTitle": "Primeiro Contato com a Cidade | 30 min",
+        "details": "Horario sugerido: 12:00, com permanencia de 30 min.\n\nApós se instalar, dirija-se à região do Trocadéro, que oferece a vista mais icônica da Torre Eiffel. Utilize o metrô (linhas 6 ou 9, estação Trocadéro) ou o RER (linha C, estação Champ de Mars - Tour Eiffel) para um deslocamento eficiente e rápido. Este trajeto já será uma pequena amostra da vida parisiense.",
+        "customSymbol": "directions_car",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 2,
+          "originalTitle": "Deslocamento para a Torre Eiffel (Trocadéro)",
+          "imageSearchQuery": "metrô Paris",
+          "estimatedDurationMinutes": 30,
+          "recommendedStartTime": "12:00"
+        }
+      },
+      {
+        "id": "ai-149e91ec-680b-4dc2-a523-05f15dbcc84f",
+        "day": 1,
+        "type": "places",
+        "title": "12:30 - Le Café du Trocadéro",
+        "subTitle": "Almoço com Vista Panorâmica | 1h30",
+        "details": "Horario sugerido: 12:30, com permanencia de 1h30.\n\nDesfrute de um almoço leve e saboroso com uma vista privilegiada da Torre Eiffel. O Le Café du Trocadéro é uma excelente opção para sua primeira refeição em Paris, oferecendo pratos clássicos franceses em um ambiente charmoso. Verifique os horários de funcionamento e a possibilidade de reserva, especialmente se for um dia de semana movimentado.",
+        "image": "https://pixabay.com/get/gcbb78dbb3d6b65afe737a350f7f45dae8db4cf6faf3d1341b528cf0118e2e5770da0184bab476c884f7b03ddedd7139ed70f864aa312ebb69017c91982a3a197_1280.jpg",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 3,
+          "originalTitle": "Le Café du Trocadéro",
+          "imageSearchQuery": "Le Café du Trocadéro vista Torre Eiffel Le Café du Trocadéro Place du Trocadéro et du 11 Novembre, 7",
+          "location": {
+            "name": "Le Café du Trocadéro",
+            "address": "Place du Trocadéro et du 11 Novembre, 75016 Paris",
+            "latitude": 48.8625,
+            "longitude": 2.2907
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "12:30",
+          "image": "https://pixabay.com/get/gcbb78dbb3d6b65afe737a350f7f45dae8db4cf6faf3d1341b528cf0118e2e5770da0184bab476c884f7b03ddedd7139ed70f864aa312ebb69017c91982a3a197_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "Konevi"
+        }
+      },
+      {
+        "id": "ai-e5919dc4-07cf-4133-ba36-ac8525d20a75",
+        "day": 1,
+        "type": "places",
+        "title": "14:00 - Jardins du Trocadéro",
+        "subTitle": "Vista Clássica da Torre Eiffel | 1h",
+        "details": "Deslocamento desde Le Café du Trocadéro: 0 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 14:00, com permanencia de 1h.\n\nApós o almoço, explore os Jardins du Trocadéro. Este é o local perfeito para tirar fotos memoráveis da Torre Eiffel e admirar a arquitetura circundante. Caminhe pelos jardins, observe as fontes e sinta a atmosfera vibrante, preparando-se para a visita ao monumento.",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 4,
+          "originalTitle": "Jardins du Trocadéro",
+          "imageSearchQuery": "Jardins du Trocadéro",
+          "location": {
+            "name": "Jardins du Trocadéro",
+            "address": "Place du Trocadéro et du 11 Novembre, 75016 Paris",
+            "latitude": 48.8625,
+            "longitude": 2.2907
+          },
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "14:00",
+          "routeFromPrevious": {
+            "fromTitle": "Le Café du Trocadéro",
+            "toTitle": "Jardins du Trocadéro",
+            "from": "Le Café du Trocadéro",
+            "to": "Jardins du Trocadéro",
+            "distanceKm": 0,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-89bfa02a-0176-4333-8919-4026f2705ae0",
         "day": 1,
         "type": "activity",
-        "title": "Tour Guiado na Catedral",
-        "subTitle": "Catedral Duomo",
-        "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuAOQiAieOx5qVQtY3TDB2WMJsJDEoi69xdHwHXJiA9BAPXRGTCt33ocGTKv4ruztp7PjotVhrQnwVcQKg1NhDYeB8PYCUrDOZiRIChPoRUxGidQ0fknumzwFh3VJ2_F0Di-bBK-y-Iv8aBatLJx1OcIv8aUhkTdJL8wcPH64UmiCU9OPRFbvEQMgmKjuNG2I2F2lUisTokdPU6J3cfTVJ1MDOLLoAljUHn6TGSCDjNb5VjTyvd6GDvpycoH9JMoPJw6JAIZBSztv5tW",
+        "title": "15:00 - Torre Eiffel",
+        "subTitle": "O Ícone de Paris | 3h",
+        "details": "Deslocamento desde Jardins du Trocadéro: 0,5 km, 7 min estimados, recomendado a pe.\n\nHorario sugerido: 15:00, com permanencia de 3h.\n\nChegou o momento de visitar o monumento mais famoso de Paris. Recomenda-se comprar os ingressos online com antecedência para evitar longas filas, escolhendo a opção que melhor se adapta ao seu interesse (até o segundo andar ou até o topo). Reserve tempo suficiente para a segurança, a subida e para apreciar as vistas deslumbrantes da cidade.",
+        "customSymbol": "explore",
         "meta": {
-          "type": "Tour",
-          "duration": "2 horas"
+          "aiGenerated": true,
+          "sequence": 5,
+          "originalTitle": "Torre Eiffel",
+          "imageSearchQuery": "Torre Eiffel por dentro",
+          "location": {
+            "name": "Torre Eiffel",
+            "address": "Champ de Mars, 5 Av. Anatole France, 75007 Paris",
+            "latitude": 48.8584,
+            "longitude": 2.2945
+          },
+          "estimatedDurationMinutes": 180,
+          "recommendedStartTime": "15:00",
+          "routeFromPrevious": {
+            "fromTitle": "Jardins du Trocadéro",
+            "toTitle": "Torre Eiffel",
+            "from": "Jardins du Trocadéro",
+            "to": "Torre Eiffel",
+            "distanceKm": 0.5,
+            "estimatedMinutes": 7,
+            "mode": "walk",
+            "requiresLookup": false
+          }
         }
       },
       {
-        "id": "item-1782317926919",
+        "id": "ai-6fbc2ca7-a8c4-408f-a27d-25acbb02291f",
         "day": 1,
-        "type": "hotel",
-        "title": "Hotel Ibis ",
-        "subTitle": "G4-203",
-        "details": "Um dos melhoresn hoteis da localidade, vista da suite para a torre eiffel",
-        "customSymbol": "hotel",
+        "type": "places",
+        "title": "18:00 - Campo de Marte",
+        "subTitle": "Relaxamento aos Pés da Dama de Ferro | 1h",
+        "details": "Deslocamento desde Torre Eiffel: 0,2 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 18:00, com permanencia de 1h.\n\nApós a visita à Torre Eiffel, desça e relaxe no Campo de Marte, o vasto gramado que se estende aos pés da torre. É o local ideal para uma caminhada tranquila, observar o movimento e apreciar a imponência da estrutura de ferro de um ângulo diferente. Muitos parisienses e turistas fazem piqueniques aqui, aproveitando o fim de tarde.",
+        "customSymbol": "museum",
         "meta": {
-          "address": "Endereço do hotel",
-          "rooms": "1 Quarto",
-          "checkin": "15:00"
+          "aiGenerated": true,
+          "sequence": 6,
+          "originalTitle": "Campo de Marte",
+          "imageSearchQuery": "Campo de Marte Paris",
+          "location": {
+            "name": "Campo de Marte",
+            "address": "2 Allée Adrienne Lecouvreur, 75007 Paris",
+            "latitude": 48.8566,
+            "longitude": 2.2933
+          },
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "18:00",
+          "routeFromPrevious": {
+            "fromTitle": "Torre Eiffel",
+            "toTitle": "Campo de Marte",
+            "from": "Torre Eiffel",
+            "to": "Campo de Marte",
+            "distanceKm": 0.2,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-a808d71b-f521-493e-999c-1e3c1281eba2",
+        "day": 1,
+        "type": "activity",
+        "title": "19:30 - Jantar no 7ème Arrondissement",
+        "subTitle": "Gastronomia Parisiense | 1h30",
+        "details": "Deslocamento desde Campo de Marte: 1,4 km, 19 min estimados, recomendado a pe.\n\nHorario sugerido: 19:30, com permanencia de 1h30.\n\nExplore as charmosas ruas do 7º arrondissement, que fica nas proximidades da Torre Eiffel, para encontrar um restaurante para o jantar. A região é conhecida por seus bistrôs e restaurantes que oferecem desde culinária tradicional francesa até opções mais contemporâneas. Sugira um local que sirva pratos clássicos como confit de canard ou steak frites. Verifique os horários de funcionamento e a necessidade de reserva.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 7,
+          "originalTitle": "Jantar no 7ème Arrondissement",
+          "imageSearchQuery": "restaurante 7ème arrondissement Paris",
+          "location": {
+            "name": "7ème Arrondissement",
+            "address": "75007 Paris, França",
+            "latitude": 48.8566,
+            "longitude": 2.3121
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "19:30",
+          "routeFromPrevious": {
+            "fromTitle": "Campo de Marte",
+            "toTitle": "Jantar no 7ème Arrondissement",
+            "from": "Campo de Marte",
+            "to": "7ème Arrondissement",
+            "distanceKm": 1.4,
+            "estimatedMinutes": 19,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-76c61b48-8b87-470b-9394-b71248c21114",
+        "day": 1,
+        "type": "activity",
+        "title": "21:00 - Torre Eiffel Iluminada e Cintilante",
+        "subTitle": "Espetáculo Noturno Inesquecível | 1h",
+        "details": "Deslocamento desde Jantar no 7ème Arrondissement: 1,3 km, 17 min estimados, recomendado a pe.\n\nHorario sugerido: 21:00, com permanencia de 1h.\n\nPara encerrar seu primeiro dia em Paris, retorne ao Campo de Marte ou aos Jardins du Trocadéro para assistir ao espetáculo de luzes da Torre Eiffel. A cada hora, após o pôr do sol, a torre cintila por cinco minutos, criando um momento mágico e inesquecível. É a maneira perfeita de se despedir do seu primeiro dia na Cidade Luz.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 8,
+          "originalTitle": "Torre Eiffel Iluminada e Cintilante",
+          "imageSearchQuery": "Torre Eiffel cintilante",
+          "location": {
+            "name": "Torre Eiffel",
+            "address": "Champ de Mars, 5 Av. Anatole France, 75007 Paris",
+            "latitude": 48.8584,
+            "longitude": 2.2945
+          },
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "21:00",
+          "routeFromPrevious": {
+            "fromTitle": "Jantar no 7ème Arrondissement",
+            "toTitle": "Torre Eiffel Iluminada e Cintilante",
+            "from": "7ème Arrondissement",
+            "to": "Torre Eiffel",
+            "distanceKm": 1.3,
+            "estimatedMinutes": 17,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-6656d36f-5914-4e37-970e-f959c618adab",
+        "day": 2,
+        "type": "day_summary",
+        "title": "Coração Histórico e Inovação: Do Louvre ao Charme do Marais",
+        "subTitle": "Paris, França",
+        "details": "Este dia combina a grandiosidade artística do Museu do Louvre com a efervescência cultural e histórica do bairro Le Marais, otimizando os deslocamentos para uma experiência rica e imersiva no coração de Paris, com toques de arquitetura inovadora e momentos de natureza.",
+        "customSymbol": "calendar_today",
+        "meta": {
+          "aiGenerated": true,
+          "imageSearchQuery": "Museu do Louvre e Le Marais Paris"
+        }
+      },
+      {
+        "id": "ai-c7a58e45-cdd6-4ae8-88c1-ec631822bed7",
+        "day": 2,
+        "type": "places",
+        "title": "09:00 - Museu do Louvre",
+        "subTitle": "Visita Essencial de Arte e História | 4h",
+        "details": "Horario sugerido: 09:00, com permanencia de 4h.\n\nComece o dia explorando um dos maiores e mais famosos museus do mundo. Concentre-se nas obras-primas como a Mona Lisa, Vênus de Milo e as Antiguidades Egípcias. Recomenda-se comprar o ingresso online com antecedência para evitar longas filas e planejar as seções que mais lhe interessam, dada a imensidão do museu.",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 1,
+          "originalTitle": "Museu do Louvre",
+          "imageSearchQuery": "Museu do Louvre Paris",
+          "location": {
+            "name": "Musée du Louvre",
+            "address": "Rue de Rivoli, 75001 Paris, França",
+            "latitude": 48.8606,
+            "longitude": 2.3376
+          },
+          "estimatedDurationMinutes": 240,
+          "recommendedStartTime": "09:00"
+        }
+      },
+      {
+        "id": "ai-88c8f74f-d802-4bba-9bd9-d923922a18a3",
+        "day": 2,
+        "type": "transport",
+        "title": "13:00 - Deslocamento para Le Marais",
+        "subTitle": "Caminhada Histórica | 20 min",
+        "details": "Horario sugerido: 13:00, com permanencia de 20 min.\n\nApós a visita ao Louvre, faça uma agradável caminhada de aproximadamente 15-20 minutos em direção ao bairro Le Marais, passando por ruas charmosas e sentindo a atmosfera parisiense. É uma ótima oportunidade para observar a arquitetura local e se ambientar com a cidade.",
+        "customSymbol": "directions_car",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 2,
+          "originalTitle": "Deslocamento para Le Marais",
+          "imageSearchQuery": "Deslocamento para Le Marais Paris",
+          "estimatedDurationMinutes": 20,
+          "recommendedStartTime": "13:00"
+        }
+      },
+      {
+        "id": "ai-3c834e2e-23f2-4ecf-84ac-e194269b8522",
+        "day": 2,
+        "type": "places",
+        "title": "13:30 - L'As du Fallafel",
+        "subTitle": "Almoço Rápido e Autêntico no Marais | 1h",
+        "details": "Deslocamento desde Museu do Louvre: 1,5 km, 20 min estimados, recomendado a pe.\n\nHorario sugerido: 13:30, com permanencia de 1h.\n\nExperimente um dos falafels mais famosos de Paris neste icônico restaurante de rua em Le Marais. É uma opção deliciosa, econômica e perfeita para um almoço rápido que permite continuar explorando o bairro. Espere filas, mas o serviço é eficiente e a experiência vale a pena.",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 3,
+          "originalTitle": "L'As du Fallafel",
+          "imageSearchQuery": "L'As du Fallafel Paris",
+          "location": {
+            "name": "L'As du Fallafel",
+            "address": "34 Rue des Rosiers, 75004 Paris, França",
+            "latitude": 48.8579,
+            "longitude": 2.3571
+          },
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "13:30",
+          "routeFromPrevious": {
+            "fromTitle": "Museu do Louvre",
+            "toTitle": "L'As du Fallafel",
+            "from": "Musée du Louvre",
+            "to": "L'As du Fallafel",
+            "distanceKm": 1.5,
+            "estimatedMinutes": 20,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-af9a5c38-0d1c-4df3-af5b-8ef4421639b5",
+        "day": 2,
+        "type": "places",
+        "title": "14:30 - Place des Vosges",
+        "subTitle": "Pausa Relaxante e Arquitetura Renascentista | 1h",
+        "details": "Deslocamento desde L'As du Fallafel: 0,6 km, 8 min estimados, recomendado a pe.\n\nHorario sugerido: 14:30, com permanencia de 1h.\n\nApós o almoço, dirija-se à Place des Vosges, a praça mais antiga de Paris. Aproveite para relaxar nos gramados, admirar a arquitetura simétrica e os arcos de tijolos vermelhos. É um local perfeito para uma pausa tranquila e para apreciar a beleza da natureza urbana e a história da cidade.",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 4,
+          "originalTitle": "Place des Vosges",
+          "imageSearchQuery": "Place des Vosges Paris",
+          "location": {
+            "name": "Place des Vosges",
+            "address": "Place des Vosges, 75004 Paris, França",
+            "latitude": 48.8554,
+            "longitude": 2.3636
+          },
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "14:30",
+          "routeFromPrevious": {
+            "fromTitle": "L'As du Fallafel",
+            "toTitle": "Place des Vosges",
+            "from": "L'As du Fallafel",
+            "to": "Place des Vosges",
+            "distanceKm": 0.6,
+            "estimatedMinutes": 8,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-cf47394a-abfc-4361-9396-b7042f263cb1",
+        "day": 2,
+        "type": "activity",
+        "title": "15:30 - Caminhada pelas Ruas de Le Marais",
+        "subTitle": "Descobrindo o Charme e as Boutiques | 1h30",
+        "details": "Deslocamento desde Place des Vosges: 0,6 km, 8 min estimados, recomendado a pe.\n\nHorario sugerido: 15:30, com permanencia de 1h30.\n\nPasseie pelas ruas estreitas e charmosas de Le Marais, descobrindo suas galerias de arte, boutiques de moda, lojas de design e cafés escondidos. Esta é uma área vibrante, ideal para explorar sem pressa e absorver a atmosfera única do bairro. Preste atenção aos detalhes arquitetônicos e aos pátios internos que revelam surpresas.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 5,
+          "originalTitle": "Caminhada pelas Ruas de Le Marais",
+          "imageSearchQuery": "Ruas de Le Marais Paris",
+          "location": {
+            "name": "Le Marais",
+            "address": "4º arrondissement, Paris",
+            "latitude": 48.859,
+            "longitude": 2.358
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "15:30",
+          "routeFromPrevious": {
+            "fromTitle": "Place des Vosges",
+            "toTitle": "Caminhada pelas Ruas de Le Marais",
+            "from": "Place des Vosges",
+            "to": "Le Marais",
+            "distanceKm": 0.6,
+            "estimatedMinutes": 8,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-7d84320f-823a-4311-a743-f4c1277b90bf",
+        "day": 2,
+        "type": "places",
+        "title": "17:00 - Centre Pompidou",
+        "subTitle": "Arquitetura Inovadora e Vista Panorâmica | 1h",
+        "details": "Deslocamento desde Caminhada pelas Ruas de Le Marais: 0,5 km, 7 min estimados, recomendado a pe.\n\nHorario sugerido: 17:00, com permanencia de 1h.\n\nCaminhe até o Centre Pompidou para admirar sua arquitetura 'por dentro para fora', um ícone da tecnologia e inovação. Mesmo sem entrar no museu, a praça em frente é vibrante e oferece uma vista interessante. Para uma vista panorâmica de Paris, considere subir ao último andar (acesso pago), que oferece uma perspectiva única da cidade.",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 6,
+          "originalTitle": "Centre Pompidou",
+          "imageSearchQuery": "Centre Pompidou Paris",
+          "location": {
+            "name": "Centre Pompidou",
+            "address": "Place Georges-Pompidou, 75004 Paris, França",
+            "latitude": 48.8609,
+            "longitude": 2.3523
+          },
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "17:00",
+          "routeFromPrevious": {
+            "fromTitle": "Caminhada pelas Ruas de Le Marais",
+            "toTitle": "Centre Pompidou",
+            "from": "Le Marais",
+            "to": "Centre Pompidou",
+            "distanceKm": 0.5,
+            "estimatedMinutes": 7,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-ebcb41b1-bc81-45fc-bf22-1ce7a753d82c",
+        "day": 2,
+        "type": "places",
+        "title": "19:30 - Chez Julien",
+        "subTitle": "Jantar Clássico Francês | 1h30",
+        "details": "Deslocamento desde Centre Pompidou: 0,6 km, 8 min estimados, recomendado a pe.\n\nHorario sugerido: 19:30, com permanencia de 1h30.\n\nDesfrute de um jantar em um restaurante charmoso em Le Marais. O Chez Julien oferece um ambiente clássico parisiense com pratos franceses tradicionais, perfeito para uma experiência gastronômica autêntica. É uma excelente opção para uma refeição mais sofisticada. Recomenda-se fazer reserva, especialmente se for um dia de semana ou fim de semana.",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 7,
+          "originalTitle": "Chez Julien",
+          "imageSearchQuery": "Chez Julien Paris restaurante",
+          "location": {
+            "name": "Chez Julien",
+            "address": "1 Rue du Pont Louis-Philippe, 75004 Paris, França",
+            "latitude": 48.8556,
+            "longitude": 2.3553
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "19:30",
+          "routeFromPrevious": {
+            "fromTitle": "Centre Pompidou",
+            "toTitle": "Chez Julien",
+            "from": "Centre Pompidou",
+            "to": "Chez Julien",
+            "distanceKm": 0.6,
+            "estimatedMinutes": 8,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-496b4acb-c518-4d88-9c0b-b71116bbc184",
+        "day": 2,
+        "type": "activity",
+        "title": "21:00 - Passeio Noturno pela Île Saint-Louis",
+        "subTitle": "Caminhada Romântica e Vista da Catedral | 1h",
+        "details": "Deslocamento desde Chez Julien: 0,5 km, 7 min estimados, recomendado a pe.\n\nHorario sugerido: 21:00, com permanencia de 1h.\n\nApós o jantar, faça uma caminhada tranquila pela Île Saint-Louis, que fica próxima a Le Marais. Admire as pontes iluminadas e as vistas da Catedral de Notre-Dame (mesmo em reconstrução, sua silhueta é imponente e bela à noite). É um final de dia relaxante e pitoresco, ideal para absorver a magia noturna de Paris.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 8,
+          "originalTitle": "Passeio Noturno pela Île Saint-Louis",
+          "imageSearchQuery": "Île Saint-Louis noite Paris",
+          "location": {
+            "name": "Île Saint-Louis",
+            "address": "75004 Paris, França",
+            "latitude": 48.8509,
+            "longitude": 2.3551
+          },
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "21:00",
+          "routeFromPrevious": {
+            "fromTitle": "Chez Julien",
+            "toTitle": "Passeio Noturno pela Île Saint-Louis",
+            "from": "Chez Julien",
+            "to": "Île Saint-Louis",
+            "distanceKm": 0.5,
+            "estimatedMinutes": 7,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-6638bbe2-c0d8-4a7e-90fa-540df0a17674",
+        "day": 3,
+        "type": "day_summary",
+        "title": "Charme Boêmio e Verdes Refúgios no Quartier Latin e Ilhas do Sena",
+        "subTitle": "Paris, França",
+        "details": "Este dia é dedicado a explorar a atmosfera intelectual e verdejante do Quartier Latin, começando pelos Jardins de Luxemburgo e culminando nas charmosas ilhas do Sena, Île de la Cité e Île Saint-Louis, com um ritmo relaxado e muitas descobertas. A trilha é otimizada para minimizar deslocamentos, permitindo uma imersão profunda na cultura e beleza local.",
+        "customSymbol": "calendar_today",
+        "meta": {
+          "aiGenerated": true,
+          "imageSearchQuery": "Jardin du Luxembourg e Quartier Latin Paris Charme Boêmio e Verdes Refúgios no Quartier Latin e Ilha",
+          "image": "https://pixabay.com/get/gf6f0881301e6057a17dca2905c9055386989629d53af20b1bdf130667d2aeac44637440c35d3b9b2a675ec4f571838af1a0b9f2de371848a600af4cc824413a0_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "Pexels"
+        },
+        "image": "https://pixabay.com/get/gf6f0881301e6057a17dca2905c9055386989629d53af20b1bdf130667d2aeac44637440c35d3b9b2a675ec4f571838af1a0b9f2de371848a600af4cc824413a0_1280.jpg"
+      },
+      {
+        "id": "ai-9d54c8fb-8cb2-47c5-a873-7970a4bbc553",
+        "day": 3,
+        "type": "places",
+        "title": "08:30 - Jardin du Luxembourg",
+        "subTitle": "Passeio matinal e relaxamento | 2h",
+        "details": "Horario sugerido: 08:30, com permanencia de 2h.\n\nComece o dia com um passeio tranquilo por este magnífico jardim, um dos mais belos de Paris. Admire a Fonte de Médici, os canteiros de flores, e observe os parisienses desfrutando do local. É perfeito para amantes da natureza e para um início de dia relaxante, com muitas cadeiras disponíveis para sentar e apreciar a paisagem.",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 1,
+          "originalTitle": "Jardin du Luxembourg",
+          "imageSearchQuery": "Jardin du Luxembourg Paris",
+          "location": {
+            "name": "Jardin du Luxembourg",
+            "address": "Rue de Médicis - Rue de Vaugirard, 75006 Paris",
+            "latitude": 48.8462,
+            "longitude": 2.3372
+          },
+          "estimatedDurationMinutes": 120,
+          "recommendedStartTime": "08:30"
+        }
+      },
+      {
+        "id": "ai-394213de-f8da-4ab2-bdba-f2bfb9bda2d3",
+        "day": 3,
+        "type": "places",
+        "title": "10:45 - Panthéon",
+        "subTitle": "Visita cultural e arquitetônica | 1h30",
+        "details": "Deslocamento desde Jardin du Luxembourg: 0,7 km, 9 min estimados, recomendado a pe.\n\nHorario sugerido: 10:45, com permanencia de 1h30.\n\nA poucos passos do Jardin du Luxembourg, visite o Panthéon, um monumento neoclássico que abriga os restos mortais de grandes figuras francesas. A arquitetura é impressionante e, se disponível, subir ao domo oferece uma vista panorâmica espetacular de Paris. Verifique os horários de visita e a necessidade de ingresso antecipado.",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 2,
+          "originalTitle": "Panthéon",
+          "imageSearchQuery": "Panthéon Paris",
+          "location": {
+            "name": "Panthéon",
+            "address": "Place du Panthéon, 75005 Paris",
+            "latitude": 48.8462,
+            "longitude": 2.3461
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "10:45",
+          "routeFromPrevious": {
+            "fromTitle": "Jardin du Luxembourg",
+            "toTitle": "Panthéon",
+            "from": "Jardin du Luxembourg",
+            "to": "Panthéon",
+            "distanceKm": 0.7,
+            "estimatedMinutes": 9,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-4f8cd5c6-d3e9-4bda-80a8-9372fde54eb6",
+        "day": 3,
+        "type": "activity",
+        "title": "12:45 - Almoço no coração do Quartier Latin",
+        "subTitle": "Gastronomia francesa em ambiente boêmio | 1h30",
+        "details": "Deslocamento desde Panthéon: 0,3 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 12:45, com permanencia de 1h30.\n\nExplore as ruas charmosas do Quartier Latin, como a Rue de la Huchette ou a Rue Saint-Séverin, e escolha um dos muitos restaurantes que oferecem pratos franceses tradicionais. A região é conhecida por sua atmosfera animada e opções variadas, desde bistrôs clássicos a creperias. Não é necessário reserva, mas chegue um pouco antes do horário de pico para garantir uma mesa.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 3,
+          "originalTitle": "Almoço no coração do Quartier Latin",
+          "imageSearchQuery": "Restaurante Quartier Latin Paris",
+          "location": {
+            "name": "Quartier Latin",
+            "address": "Região da Rue de la Huchette, 75005 Paris",
+            "latitude": 48.849,
+            "longitude": 2.344
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "12:45",
+          "routeFromPrevious": {
+            "fromTitle": "Panthéon",
+            "toTitle": "Almoço no coração do Quartier Latin",
+            "from": "Panthéon",
+            "to": "Quartier Latin",
+            "distanceKm": 0.3,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-6dc8020b-ed36-4ea1-a48c-2d88ea5fc866",
+        "day": 3,
+        "type": "places",
+        "title": "14:30 - Shakespeare and Company",
+        "subTitle": "Livraria histórica e charmosa | 1h",
+        "details": "Deslocamento desde Almoço no coração do Quartier Latin: 0,5 km, 7 min estimados, recomendado a pe.\n\nHorario sugerido: 14:30, com permanencia de 1h.\n\nApós o almoço, caminhe até esta icônica livraria anglófona, um verdadeiro refúgio para escritores e leitores desde 1951. É um lugar com muita história, um ambiente acolhedor e pilhas de livros. Perfeito para amantes da literatura e para quem busca um cantinho especial em Paris. Fica em frente ao Sena, com vista para a Notre-Dame.",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 4,
+          "originalTitle": "Shakespeare and Company",
+          "imageSearchQuery": "Shakespeare and Company Paris",
+          "location": {
+            "name": "Shakespeare and Company",
+            "address": "37 Rue de la Bûcherie, 75005 Paris",
+            "latitude": 48.8527,
+            "longitude": 2.347
+          },
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "14:30",
+          "routeFromPrevious": {
+            "fromTitle": "Almoço no coração do Quartier Latin",
+            "toTitle": "Shakespeare and Company",
+            "from": "Quartier Latin",
+            "to": "Shakespeare and Company",
+            "distanceKm": 0.5,
+            "estimatedMinutes": 7,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-f4dcba05-a5bf-45d9-b696-fad8a8d09f6e",
+        "day": 3,
+        "type": "activity",
+        "title": "15:45 - Caminhada pela Île de la Cité e vista da Notre-Dame",
+        "subTitle": "Ícone de Paris e paisagens fluviais | 1h",
+        "details": "Deslocamento desde Shakespeare and Company: 0,4 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 15:45, com permanencia de 1h.\n\nAtravesse a ponte e explore a Île de la Cité, o berço de Paris. Admire a Catedral de Notre-Dame de Paris de fora, observando os trabalhos de reconstrução e a resiliência deste monumento histórico. A ilha também oferece vistas encantadoras do Sena e de outras pontes famosas, sendo um ótimo local para fotos.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 5,
+          "originalTitle": "Caminhada pela Île de la Cité e vista da Notre-Dame",
+          "imageSearchQuery": "Notre-Dame de Paris e Île de la Cité",
+          "location": {
+            "name": "Île de la Cité",
+            "address": "Île de la Cité, 75004 Paris",
+            "latitude": 48.856,
+            "longitude": 2.347
+          },
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "15:45",
+          "routeFromPrevious": {
+            "fromTitle": "Shakespeare and Company",
+            "toTitle": "Caminhada pela Île de la Cité e vista da Notre-Dame",
+            "from": "Shakespeare and Company",
+            "to": "Île de la Cité",
+            "distanceKm": 0.4,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-10c9fa16-3bcd-4b97-9a62-cd9122cc34ce",
+        "day": 3,
+        "type": "activity",
+        "title": "17:00 - Café e relaxamento no Le Flore en l'Île",
+        "subTitle": "Pausa relaxante com vista para o Sena | 1h",
+        "details": "Deslocamento desde Caminhada pela Île de la Cité e vista da Notre-Dame: 0,7 km, 9 min estimados, recomendado a pe.\n\nHorario sugerido: 17:00, com permanencia de 1h.\n\nSiga para a charmosa Île Saint-Louis e desfrute de um café ou um doce nesta cafeteria com uma vista privilegiada para o Sena e a parte de trás da Notre-Dame. É um local perfeito para observar o movimento dos barcos e pedestres, recarregar as energias e saborear um momento de tranquilidade parisiense. Experimente um dos famosos sorvetes Berthillon, se for do seu agrado.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 6,
+          "originalTitle": "Café e relaxamento no Le Flore en l'Île",
+          "imageSearchQuery": "Le Flore en l'Île Paris",
+          "location": {
+            "name": "Le Flore en l'Île",
+            "address": "42 Quai d'Orléans, 75004 Paris",
+            "latitude": 48.8509,
+            "longitude": 2.3524
+          },
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "17:00",
+          "routeFromPrevious": {
+            "fromTitle": "Caminhada pela Île de la Cité e vista da Notre-Dame",
+            "toTitle": "Café e relaxamento no Le Flore en l'Île",
+            "from": "Île de la Cité",
+            "to": "Le Flore en l'Île",
+            "distanceKm": 0.7,
+            "estimatedMinutes": 9,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-07878839-bc13-4531-b2ef-fbc9afa9c227",
+        "day": 3,
+        "type": "activity",
+        "title": "19:30 - Jantar na Île Saint-Louis",
+        "subTitle": "Noite tranquila em um bairro charmoso | 1h30",
+        "details": "Deslocamento desde Café e relaxamento no Le Flore en l'Île: 0,2 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 19:30, com permanencia de 1h30.\n\nA Île Saint-Louis oferece uma atmosfera mais tranquila e diversos restaurantes charmosos, ideais para um jantar relaxante. Escolha um local que sirva a culinária francesa de sua preferência, como o 'Le Saint-Régis' ou um dos bistrôs acolhedores da ilha. É uma excelente oportunidade para desfrutar de uma refeição deliciosa em um ambiente mais intimista.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 7,
+          "originalTitle": "Jantar na Île Saint-Louis",
+          "imageSearchQuery": "Restaurante Île Saint-Louis Paris",
+          "location": {
+            "name": "Île Saint-Louis",
+            "address": "Île Saint-Louis, 75004 Paris",
+            "latitude": 48.85,
+            "longitude": 2.355
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "19:30",
+          "routeFromPrevious": {
+            "fromTitle": "Café e relaxamento no Le Flore en l'Île",
+            "toTitle": "Jantar na Île Saint-Louis",
+            "from": "Le Flore en l'Île",
+            "to": "Île Saint-Louis",
+            "distanceKm": 0.2,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-c081fc99-69b8-4dea-a6aa-746ab1bf53e8",
+        "day": 3,
+        "type": "activity",
+        "title": "21:00 - Caminhada noturna pelas margens do Sena",
+        "subTitle": "Vistas iluminadas e atmosfera romântica | 1h",
+        "details": "Deslocamento desde Jantar na Île Saint-Louis: 0,4 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 21:00, com permanencia de 1h.\n\nTermine o dia com uma caminhada relaxante pelas margens do Rio Sena, observando os monumentos iluminados. As pontes e edifícios ganham um charme especial à noite, proporcionando um final de dia memorável e romântico. É uma forma perfeita de absorver a magia de Paris antes de retornar ao hotel.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 8,
+          "originalTitle": "Caminhada noturna pelas margens do Sena",
+          "imageSearchQuery": "Sena iluminado Paris",
+          "location": {
+            "name": "Margens do Rio Sena",
+            "address": "Próximo à Île Saint-Louis, 75004 Paris",
+            "latitude": 48.852,
+            "longitude": 2.35
+          },
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "21:00",
+          "routeFromPrevious": {
+            "fromTitle": "Jantar na Île Saint-Louis",
+            "toTitle": "Caminhada noturna pelas margens do Sena",
+            "from": "Île Saint-Louis",
+            "to": "Margens do Rio Sena",
+            "distanceKm": 0.4,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-e6a72a7a-8404-4eeb-8769-35d1941df993",
+        "day": 4,
+        "type": "day_summary",
+        "title": "Paixão Esportiva e Arte Boêmia em Montmartre e Auteuil",
+        "subTitle": "Paris, França",
+        "details": "Este dia combina a paixão pelo futebol no icônico Parc des Princes com a atmosfera artística e as vistas deslumbrantes de Montmartre. A trilha é otimizada para explorar esses dois eixos distintos de Paris, começando pelo sudoeste e subindo para o norte da cidade, ideal para quem busca experiências culturais e esportivas.",
+        "customSymbol": "calendar_today",
+        "meta": {
+          "aiGenerated": true,
+          "imageSearchQuery": "Parc des Princes Montmartre Paris Paixão Esportiva e Arte Boêmia em Montmartre e Auteuil",
+          "image": "https://pixabay.com/get/gb96aa5a609e0b53f5c008bdda51c7dee945b945414599233a7100213546b78823be9669dd5f562b5d959604a51ef7f0580a09a09051d03aa425d91014523ba4e_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "OudsidEscape"
+        },
+        "image": "https://pixabay.com/get/gb96aa5a609e0b53f5c008bdda51c7dee945b945414599233a7100213546b78823be9669dd5f562b5d959604a51ef7f0580a09a09051d03aa425d91014523ba4e_1280.jpg"
+      },
+      {
+        "id": "ai-043f3ea0-3c7b-49c6-af4d-a58e55299290",
+        "day": 4,
+        "type": "activity",
+        "title": "09:00 - Parc des Princes - Visita ao Estádio e Loja Oficial do PSG",
+        "subTitle": "Manhã Esportiva | 2h",
+        "details": "Horario sugerido: 09:00, com permanencia de 2h.\n\nComece o dia imerso no mundo do futebol, visitando o lendário Parc des Princes, casa do Paris Saint-Germain. Faça o tour guiado (se disponível e de interesse) ou explore a loja oficial para encontrar produtos exclusivos. É uma ótima oportunidade para o viajante interessado em futebol e tecnologia, observando a infraestrutura moderna do estádio. Verifique os horários dos tours com antecedência, pois podem variar.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 1,
+          "originalTitle": "Parc des Princes - Visita ao Estádio e Loja Oficial do PSG",
+          "imageSearchQuery": "Parc des Princes Paris",
+          "location": {
+            "name": "Parc des Princes",
+            "address": "24 Rue du Commandant Guilbaud, 75016 Paris, França",
+            "latitude": 48.8413,
+            "longitude": 2.253
+          },
+          "estimatedDurationMinutes": 120,
+          "recommendedStartTime": "09:00"
+        }
+      },
+      {
+        "id": "ai-1fdeb8a6-cf23-4a4a-9c64-489f39c14cb9",
+        "day": 4,
+        "type": "transport",
+        "title": "11:00 - Deslocamento para Montmartre",
+        "subTitle": "Viagem de Metrô | 1h",
+        "details": "Deslocamento desde Parc des Princes - Visita ao Estádio e Loja Oficial do PSG: 7,8 km, 104 min estimados, recomendado carro, taxi ou transporte publico.\n\nHorario sugerido: 11:00, com permanencia de 1h.\n\nApós a visita ao estádio, siga para Montmartre, o charmoso bairro boêmio. A forma mais eficiente é utilizar o metrô: pegue a Linha 9 na estação Porte de Saint-Cloud até Saint-Augustin, depois a Linha 14 até Saint-Lazare, e então a Linha 12 até Abbesses. Prepare-se para uma viagem de aproximadamente 45-60 minutos, dependendo das conexões.",
+        "customSymbol": "directions_car",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 2,
+          "originalTitle": "Deslocamento para Montmartre",
+          "imageSearchQuery": "Metro Paris",
+          "location": {
+            "name": "Estação Abbesses",
+            "address": "Place des Abbesses, 75018 Paris, França",
+            "latitude": 48.8824,
+            "longitude": 2.3386
+          },
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "11:00",
+          "routeFromPrevious": {
+            "fromTitle": "Parc des Princes - Visita ao Estádio e Loja Oficial do PSG",
+            "toTitle": "Deslocamento para Montmartre",
+            "from": "Parc des Princes",
+            "to": "Estação Abbesses",
+            "distanceKm": 7.8,
+            "estimatedMinutes": 104,
+            "mode": "car_or_transit",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-8a35dc8d-4571-40ad-8f92-470aee8cb0bb",
+        "day": 4,
+        "type": "places",
+        "title": "12:30 - Almoço no Le Consulat",
+        "subTitle": "Pausa Gastronômica Boêmia | 1h30",
+        "details": "Deslocamento desde Deslocamento para Montmartre: 0,7 km, 9 min estimados, recomendado a pe.\n\nHorario sugerido: 12:30, com permanencia de 1h30.\n\nDesfrute de um almoço clássico francês em um dos restaurantes mais icônicos de Montmartre. O Le Consulat oferece pratos tradicionais em um ambiente histórico e charmoso, perfeito para observar o movimento da Place du Tertre. Chegue cedo para garantir uma mesa, especialmente se for um dia de maior movimento. Há muitas opções na região, caso prefira explorar outras culinárias.",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 3,
+          "originalTitle": "Almoço no Le Consulat",
+          "imageSearchQuery": "Le Consulat Montmartre Paris",
+          "location": {
+            "name": "Le Consulat",
+            "address": "18 Rue Norvins, 75018 Paris, França",
+            "latitude": 48.8867,
+            "longitude": 2.346
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "12:30",
+          "routeFromPrevious": {
+            "fromTitle": "Deslocamento para Montmartre",
+            "toTitle": "Almoço no Le Consulat",
+            "from": "Estação Abbesses",
+            "to": "Le Consulat",
+            "distanceKm": 0.7,
+            "estimatedMinutes": 9,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-ad36e239-419b-4ccd-9eae-779a25a4fc60",
+        "day": 4,
+        "type": "places",
+        "title": "14:00 - Basílica de Sacré-Cœur",
+        "subTitle": "Vista Panorâmica e Arquitetura | 1h30",
+        "details": "Deslocamento desde Almoço no Le Consulat: 0,2 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 14:00, com permanencia de 1h30.\n\nSuba até a magnífica Basílica de Sacré-Cœur, um dos marcos mais famosos de Paris. Admire a arquitetura romano-bizantina e, mais importante, desfrute de uma das vistas panorâmicas mais espetaculares da cidade. É um local de paz e beleza, ideal para contemplar a paisagem urbana. A subida pode ser feita a pé ou pelo Funicular de Montmartre.",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 4,
+          "originalTitle": "Basílica de Sacré-Cœur",
+          "imageSearchQuery": "Sacré-Cœur Paris",
+          "location": {
+            "name": "Basílica de Sacré-Cœur",
+            "address": "35 Rue du Chevalier de la Barre, 75018 Paris, França",
+            "latitude": 48.8867,
+            "longitude": 2.3431
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "14:00",
+          "routeFromPrevious": {
+            "fromTitle": "Almoço no Le Consulat",
+            "toTitle": "Basílica de Sacré-Cœur",
+            "from": "Le Consulat",
+            "to": "Basílica de Sacré-Cœur",
+            "distanceKm": 0.2,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-b5dd6154-2a7b-4c94-bbc1-1425f89554b3",
+        "day": 4,
+        "type": "activity",
+        "title": "15:30 - Exploração da Place du Tertre e Ruas Boêmias",
+        "subTitle": "Caminhada Artística | 1h30",
+        "details": "Deslocamento desde Basílica de Sacré-Cœur: 0,2 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 15:30, com permanencia de 1h30.\n\nPerca-se nas charmosas ruas de Montmartre, começando pela vibrante Place du Tertre, onde artistas locais expõem e pintam ao ar livre. Observe os retratistas e caricaturistas, e sinta a atmosfera boêmia que inspirou tantos artistas. Explore as lojinhas de souvenirs e galerias de arte escondidas nas ruelas ao redor. Uma caminhada relaxante e inspiradora.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 5,
+          "originalTitle": "Exploração da Place du Tertre e Ruas Boêmias",
+          "imageSearchQuery": "Place du Tertre Montmartre Paris",
+          "location": {
+            "name": "Place du Tertre",
+            "address": "Place du Tertre, 75018 Paris, França",
+            "latitude": 48.8866,
+            "longitude": 2.346
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "15:30",
+          "routeFromPrevious": {
+            "fromTitle": "Basílica de Sacré-Cœur",
+            "toTitle": "Exploração da Place du Tertre e Ruas Boêmias",
+            "from": "Basílica de Sacré-Cœur",
+            "to": "Place du Tertre",
+            "distanceKm": 0.2,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-62d568a4-9540-4c51-94d4-34696c8546b9",
+        "day": 4,
+        "type": "places",
+        "title": "17:00 - Museu de Montmartre e Jardins Renoir",
+        "subTitle": "Arte, História e Natureza | 1h15",
+        "details": "Deslocamento desde Exploração da Place du Tertre e Ruas Boêmias: 0,3 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 17:00, com permanencia de 1h15.\n\nVisite o Museu de Montmartre, localizado em uma das casas mais antigas do bairro, que abrigou artistas como Renoir e Utrillo. O museu conta a história de Montmartre e sua efervescência artística. Os Jardins Renoir, anexos ao museu, oferecem um refúgio de paz e uma vista encantadora sobre as vinhas de Montmartre e Paris. Ideal para quem aprecia arte e natureza.",
+        "image": "https://pixabay.com/get/gbc6ae5a9b953a061a28eaacfc97882ef5377916b19064fd1e08ab96af0d30efdbc6dc293e8d8fa156d82c1a453de9eca7c7631cec3d0813c44836e1a559b0435_1280.jpg",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 6,
+          "originalTitle": "Museu de Montmartre e Jardins Renoir",
+          "imageSearchQuery": "Museu de Montmartre Jardins Renoir Musée de Montmartre et Jardins Renoir 12 Rue Cortot, 75018 Paris,",
+          "location": {
+            "name": "Musée de Montmartre et Jardins Renoir",
+            "address": "12 Rue Cortot, 75018 Paris, França",
+            "latitude": 48.8876,
+            "longitude": 2.3418
+          },
+          "estimatedDurationMinutes": 75,
+          "recommendedStartTime": "17:00",
+          "routeFromPrevious": {
+            "fromTitle": "Exploração da Place du Tertre e Ruas Boêmias",
+            "toTitle": "Museu de Montmartre e Jardins Renoir",
+            "from": "Place du Tertre",
+            "to": "Musée de Montmartre et Jardins Renoir",
+            "distanceKm": 0.3,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          },
+          "image": "https://pixabay.com/get/gbc6ae5a9b953a061a28eaacfc97882ef5377916b19064fd1e08ab96af0d30efdbc6dc293e8d8fa156d82c1a453de9eca7c7631cec3d0813c44836e1a559b0435_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "OudsidEscape"
+        }
+      },
+      {
+        "id": "ai-5a6866a5-1111-4e0d-aae3-635f52b9d00e",
+        "day": 4,
+        "type": "places",
+        "title": "18:30 - Jantar no Le Relais Gascon",
+        "subTitle": "Experiência Gastronômica Francesa | 1h30",
+        "details": "Deslocamento desde Museu de Montmartre e Jardins Renoir: 0,7 km, 9 min estimados, recomendado a pe.\n\nHorario sugerido: 18:30, com permanencia de 1h30.\n\nPara o jantar, experimente o Le Relais Gascon, conhecido por seus pratos generosos e saborosos, especialmente as batatas fritas servidas à vontade. É um restaurante com ambiente acolhedor e comida reconfortante, perfeito para encerrar o dia em Montmartre. Recomenda-se chegar cedo ou fazer reserva, pois é um local popular entre locais e turistas.",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 7,
+          "originalTitle": "Jantar no Le Relais Gascon",
+          "imageSearchQuery": "Le Relais Gascon Montmartre Paris",
+          "location": {
+            "name": "Le Relais Gascon",
+            "address": "6 Rue des Abbesses, 75018 Paris, França",
+            "latitude": 48.8823,
+            "longitude": 2.3379
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "18:30",
+          "routeFromPrevious": {
+            "fromTitle": "Museu de Montmartre e Jardins Renoir",
+            "toTitle": "Jantar no Le Relais Gascon",
+            "from": "Musée de Montmartre et Jardins Renoir",
+            "to": "Le Relais Gascon",
+            "distanceKm": 0.7,
+            "estimatedMinutes": 9,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-565d5b02-3381-41c5-bfbe-bb592ccb2a26",
+        "day": 4,
+        "type": "activity",
+        "title": "20:00 - Vista Noturna de Paris ou Moulin Rouge",
+        "subTitle": "Encerramento do Dia | 1h",
+        "details": "Deslocamento desde Jantar no Le Relais Gascon: 0,6 km, 8 min estimados, recomendado a pe.\n\nHorario sugerido: 20:00, com permanencia de 1h.\n\nPara finalizar o dia, você pode retornar à Basílica de Sacré-Cœur para apreciar a vista de Paris iluminada, que é ainda mais mágica à noite. Alternativamente, desça até a área de Pigalle para ver o famoso Moulin Rouge por fora, com suas luzes vibrantes, um ícone da vida noturna parisiense. Ambas as opções oferecem um encerramento memorável para o dia.",
+        "image": "https://pixabay.com/get/g8d0eeb2b41ce276aae5024af39a9dbf291e875212023fa694d28455ca52af9777d9988e28cabca5f9d5a3834caa554ceed2cc28bdef91c3a3ac7cc58d478a6b7_1280.jpg",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 8,
+          "originalTitle": "Vista Noturna de Paris ou Moulin Rouge",
+          "imageSearchQuery": "Sacré-Cœur noite Paris Basílica de Sacré-Cœur ou Moulin Rouge 35 Rue du Chevalier de la Barre, 75018",
+          "location": {
+            "name": "Basílica de Sacré-Cœur ou Moulin Rouge",
+            "address": "35 Rue du Chevalier de la Barre, 75018 Paris ou 82 Boulevard de Clichy, 75018 Paris",
+            "latitude": 48.8867,
+            "longitude": 2.3431
+          },
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "20:00",
+          "routeFromPrevious": {
+            "fromTitle": "Jantar no Le Relais Gascon",
+            "toTitle": "Vista Noturna de Paris ou Moulin Rouge",
+            "from": "Le Relais Gascon",
+            "to": "Basílica de Sacré-Cœur ou Moulin Rouge",
+            "distanceKm": 0.6,
+            "estimatedMinutes": 8,
+            "mode": "walk",
+            "requiresLookup": false
+          },
+          "image": "https://pixabay.com/get/g8d0eeb2b41ce276aae5024af39a9dbf291e875212023fa694d28455ca52af9777d9988e28cabca5f9d5a3834caa554ceed2cc28bdef91c3a3ac7cc58d478a6b7_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "lynettelhm"
+        }
+      },
+      {
+        "id": "ai-ddc5351e-450e-4e5a-987b-db691a1048c3",
+        "day": 5,
+        "type": "day_summary",
+        "title": "Dia 5: Inovação e Charme Urbano na Villette e Canal Saint-Martin",
+        "subTitle": "Paris, 19º e 10º Arrondissements",
+        "details": "Este dia combina a exploração da tecnologia e ciência na Cité des Sciences et de l'Industrie com o charme boêmio e a natureza urbana do Canal Saint-Martin. A trilha é otimizada para uma experiência fluida entre o Parc de la Villette e as margens do canal, ideal para quem busca lazer e novas descobertas.",
+        "customSymbol": "calendar_today",
+        "meta": {
+          "aiGenerated": true,
+          "imageSearchQuery": "Cité des Sciences et de l'Industrie Canal Saint-Martin Paris"
+        }
+      },
+      {
+        "id": "ai-728acaff-13c1-41e3-a811-fd6fb4838224",
+        "day": 5,
+        "type": "places",
+        "title": "09:30 - Cité des Sciences et de l'Industrie",
+        "subTitle": "Visita ao maior museu de ciência da Europa | 3h",
+        "details": "Horario sugerido: 09:30, com permanencia de 3h.\n\nComece o dia imerso no mundo da tecnologia e ciência. A Cité des Sciences oferece exposições interativas e fascinantes, perfeitas para quem tem interesse em inovação e descobertas. Chegue cedo para aproveitar as atrações mais populares com menos filas. Verifique o site oficial para horários e compra de ingressos antecipada, garantindo sua entrada.",
+        "image": "https://pixabay.com/get/g57e0afb9530311fcb1186c4727d90515558eb7c293db0a0b6aca77c845de1546a585fdb464f1152ad9a94fee093b5a901b07e43a7bc4e83ce7e8b44bad17d3b9_1280.jpg",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 1,
+          "originalTitle": "Cité des Sciences et de l'Industrie",
+          "imageSearchQuery": "Cité des Sciences et de l'Industrie Paris Cité des Sciences et de l'Industrie 30 Av. Corentin Cariou",
+          "location": {
+            "name": "Cité des Sciences et de l'Industrie",
+            "address": "30 Av. Corentin Cariou, 75019 Paris",
+            "latitude": 48.8959,
+            "longitude": 2.3881
+          },
+          "estimatedDurationMinutes": 180,
+          "recommendedStartTime": "09:30",
+          "image": "https://pixabay.com/get/g57e0afb9530311fcb1186c4727d90515558eb7c293db0a0b6aca77c845de1546a585fdb464f1152ad9a94fee093b5a901b07e43a7bc4e83ce7e8b44bad17d3b9_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "jackmac34"
+        }
+      },
+      {
+        "id": "ai-8a3b38f2-6822-48a5-9c68-51cc531e5ddf",
+        "day": 5,
+        "type": "places",
+        "title": "12:30 - Parc de la Villette",
+        "subTitle": "Passeio e relaxamento em um parque moderno | 1h",
+        "details": "Deslocamento desde Cité des Sciences et de l'Industrie: 0,3 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 12:30, com permanencia de 1h.\n\nApós a visita à Cité des Sciences, aproveite para explorar o Parc de la Villette, um dos maiores parques de Paris. Com seus jardins temáticos, arquitetura moderna e amplos espaços abertos, é ideal para uma caminhada relaxante e para apreciar a natureza urbana. O parque abriga diversas atrações e é um ótimo local para observar a vida parisiense.",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 2,
+          "originalTitle": "Parc de la Villette",
+          "imageSearchQuery": "Parc de la Villette Paris",
+          "location": {
+            "name": "Parc de la Villette",
+            "address": "221 Av. Jean Jaurès, 75019 Paris",
+            "latitude": 48.8931,
+            "longitude": 2.3891
+          },
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "12:30",
+          "routeFromPrevious": {
+            "fromTitle": "Cité des Sciences et de l'Industrie",
+            "toTitle": "Parc de la Villette",
+            "from": "Cité des Sciences et de l'Industrie",
+            "to": "Parc de la Villette",
+            "distanceKm": 0.3,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-fd8481a3-243d-4c69-86d9-b1aa20b3a685",
+        "day": 5,
+        "type": "transport",
+        "title": "13:30 - De La Villette ao Canal Saint-Martin",
+        "subTitle": "Deslocamento de metrô | 20 min",
+        "details": "Deslocamento desde Parc de la Villette: 1,8 km, 24 min estimados, recomendado a pe.\n\nHorario sugerido: 13:30, com permanencia de 20 min.\n\nPegue o metrô da estação Porte de la Villette (linha 7) até a estação Jaurès ou Louis Blanc (linha 7 ou 2) para chegar à charmosa área do Canal Saint-Martin. A viagem é rápida e eficiente, permitindo que você aproveite ao máximo o tempo. Consulte um aplicativo de transporte para as melhores rotas e horários em tempo real.",
+        "customSymbol": "directions_car",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 3,
+          "originalTitle": "De La Villette ao Canal Saint-Martin",
+          "imageSearchQuery": "Metrô Paris",
+          "location": {
+            "name": "Estação Jaurès",
+            "address": "Place de la Bataille de Stalingrad, 75019 Paris",
+            "latitude": 48.8821,
+            "longitude": 2.3708
+          },
+          "estimatedDurationMinutes": 20,
+          "recommendedStartTime": "13:30",
+          "routeFromPrevious": {
+            "fromTitle": "Parc de la Villette",
+            "toTitle": "De La Villette ao Canal Saint-Martin",
+            "from": "Parc de la Villette",
+            "to": "Estação Jaurès",
+            "distanceKm": 1.8,
+            "estimatedMinutes": 24,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-d475d74d-a059-4540-88f0-606967587156",
+        "day": 5,
+        "type": "activity",
+        "title": "14:00 - Almoço no Le Comptoir Général",
+        "subTitle": "Experiência gastronômica com ambiente único | 1h30",
+        "details": "Deslocamento desde De La Villette ao Canal Saint-Martin: 0,9 km, 12 min estimados, recomendado a pe.\n\nHorario sugerido: 14:00, com permanencia de 1h30.\n\nDesfrute de um almoço tardio em um dos charmosos restaurantes ou cafés ao longo do Canal Saint-Martin. Sugerimos o Le Comptoir Général, conhecido por seu ambiente eclético e culinária inspirada em diversas culturas, oferecendo uma experiência diferenciada. É um ótimo local para relaxar e observar o movimento. Verifique a disponibilidade e horários de funcionamento.",
+        "image": "https://pixabay.com/get/gadc3dd11ee5db9892baee114d0c637c8ff8bb09c0a1bb3d46ed829eef61e8e6c14a335d63e667bca0dcad6de5e0b8fc4827ba089f7da696761c016c645831c20_1280.jpg",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 4,
+          "originalTitle": "Almoço no Le Comptoir Général",
+          "imageSearchQuery": "Le Comptoir Général Paris Canal Saint-Martin Le Comptoir Général 80 Quai de Jemmapes, 75010 Paris 14",
+          "location": {
+            "name": "Le Comptoir Général",
+            "address": "80 Quai de Jemmapes, 75010 Paris",
+            "latitude": 48.8741,
+            "longitude": 2.3663
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "14:00",
+          "routeFromPrevious": {
+            "fromTitle": "De La Villette ao Canal Saint-Martin",
+            "toTitle": "Almoço no Le Comptoir Général",
+            "from": "Estação Jaurès",
+            "to": "Le Comptoir Général",
+            "distanceKm": 0.9,
+            "estimatedMinutes": 12,
+            "mode": "walk",
+            "requiresLookup": false
+          },
+          "image": "https://pixabay.com/get/gadc3dd11ee5db9892baee114d0c637c8ff8bb09c0a1bb3d46ed829eef61e8e6c14a335d63e667bca0dcad6de5e0b8fc4827ba089f7da696761c016c645831c20_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "BARBAUD"
+        }
+      },
+      {
+        "id": "ai-103b6437-afa1-402f-9d0c-40bba7a521fb",
+        "day": 5,
+        "type": "places",
+        "title": "15:30 - Passeio pelo Canal Saint-Martin",
+        "subTitle": "Descobrindo a vibe boêmia de Paris | 2h",
+        "details": "Deslocamento desde Almoço no Le Comptoir Général: 0,2 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 15:30, com permanencia de 2h.\n\nApós o almoço, dedique a tarde a explorar as margens do Canal Saint-Martin. Caminhe pelas pontes de ferro, observe as eclusas e a arquitetura charmosa que emoldura o canal. A área é repleta de boutiques independentes, galerias de arte e cafés aconchegantes. É um local perfeito para sentir a Paris mais autêntica e relaxada, longe do burburinho turístico.",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 5,
+          "originalTitle": "Passeio pelo Canal Saint-Martin",
+          "imageSearchQuery": "Canal Saint-Martin Paris",
+          "location": {
+            "name": "Canal Saint-Martin",
+            "address": "Quai de Valmy, 75010 Paris",
+            "latitude": 48.8727,
+            "longitude": 2.3639
+          },
+          "estimatedDurationMinutes": 120,
+          "recommendedStartTime": "15:30",
+          "routeFromPrevious": {
+            "fromTitle": "Almoço no Le Comptoir Général",
+            "toTitle": "Passeio pelo Canal Saint-Martin",
+            "from": "Le Comptoir Général",
+            "to": "Canal Saint-Martin",
+            "distanceKm": 0.2,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-67548384-e42d-4777-bd0e-98551cee47c2",
+        "day": 5,
+        "type": "places",
+        "title": "17:30 - Artazart Design Bookstore",
+        "subTitle": "Para amantes de design e fotografia | 45 min",
+        "details": "Deslocamento desde Passeio pelo Canal Saint-Martin: 0,1 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 17:30, com permanencia de 45 min.\n\nFaça uma parada na Artazart Design Bookstore, uma livraria independente famosa por sua seleção de livros de arte, design, fotografia e arquitetura. É um paraíso para quem aprecia estética e criatividade, e um ótimo lugar para encontrar um souvenir único ou simplesmente folhear algumas publicações inspiradoras. Fica convenientemente às margens do canal.",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 6,
+          "originalTitle": "Artazart Design Bookstore",
+          "imageSearchQuery": "Artazart Design Bookstore Paris",
+          "location": {
+            "name": "Artazart Design Bookstore",
+            "address": "83 Quai de Valmy, 75010 Paris",
+            "latitude": 48.8732,
+            "longitude": 2.3653
+          },
+          "estimatedDurationMinutes": 45,
+          "recommendedStartTime": "17:30",
+          "routeFromPrevious": {
+            "fromTitle": "Passeio pelo Canal Saint-Martin",
+            "toTitle": "Artazart Design Bookstore",
+            "from": "Canal Saint-Martin",
+            "to": "Artazart Design Bookstore",
+            "distanceKm": 0.1,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-97170d6c-a786-42ea-a3d3-e1634e478c45",
+        "day": 5,
+        "type": "activity",
+        "title": "18:30 - Aperitivo no Le Pavillon des Canaux",
+        "subTitle": "Café-bar com ambiente peculiar | 1h",
+        "details": "Deslocamento desde Artazart Design Bookstore: 1,1 km, 15 min estimados, recomendado a pe.\n\nHorario sugerido: 18:30, com permanencia de 1h.\n\nRelaxe com um aperitivo no Le Pavillon des Canaux, um café-bar único instalado em uma antiga casa às margens do canal. Cada cômodo tem uma decoração diferente, criando uma atmosfera divertida e acolhedora. É o lugar ideal para descontrair e experimentar um drink enquanto o sol se põe, aproveitando a vista e o charme do local.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 7,
+          "originalTitle": "Aperitivo no Le Pavillon des Canaux",
+          "imageSearchQuery": "Le Pavillon des Canaux Paris",
+          "location": {
+            "name": "Le Pavillon des Canaux",
+            "address": "39 Quai de la Loire, 75019 Paris",
+            "latitude": 48.8821,
+            "longitude": 2.3708
+          },
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "18:30",
+          "routeFromPrevious": {
+            "fromTitle": "Artazart Design Bookstore",
+            "toTitle": "Aperitivo no Le Pavillon des Canaux",
+            "from": "Artazart Design Bookstore",
+            "to": "Le Pavillon des Canaux",
+            "distanceKm": 1.1,
+            "estimatedMinutes": 15,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-191704cc-0fff-4db8-9a38-6a86801f5347",
+        "day": 5,
+        "type": "activity",
+        "title": "20:00 - Jantar no La Marine",
+        "subTitle": "Culinária francesa clássica com vista para o canal | 1h30",
+        "details": "Deslocamento desde Aperitivo no Le Pavillon des Canaux: 0,9 km, 12 min estimados, recomendado a pe.\n\nHorario sugerido: 20:00, com permanencia de 1h30.\n\nPara o jantar, sugerimos o La Marine, um restaurante tradicional francês com uma bela vista para o canal. Oferece pratos clássicos da culinária francesa em um ambiente charmoso e acolhedor. É uma excelente opção para encerrar o dia com uma refeição saborosa e autêntica. Recomenda-se fazer reserva, especialmente se for em um fim de semana, para garantir seu lugar.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 8,
+          "originalTitle": "Jantar no La Marine",
+          "imageSearchQuery": "La Marine Paris Canal Saint-Martin",
+          "location": {
+            "name": "La Marine",
+            "address": "59 Quai de Valmy, 75010 Paris",
+            "latitude": 48.8749,
+            "longitude": 2.3652
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "20:00",
+          "routeFromPrevious": {
+            "fromTitle": "Aperitivo no Le Pavillon des Canaux",
+            "toTitle": "Jantar no La Marine",
+            "from": "Le Pavillon des Canaux",
+            "to": "La Marine",
+            "distanceKm": 0.9,
+            "estimatedMinutes": 12,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-80848c8e-1cf7-4c1e-ae44-815cfb21dd42",
+        "day": 5,
+        "type": "activity",
+        "title": "21:30 - Caminhada noturna pelo Canal Saint-Martin",
+        "subTitle": "Despedida do dia | 30 min",
+        "details": "Deslocamento desde Jantar no La Marine: 0,3 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 21:30, com permanencia de 30 min.\n\nPara finalizar o dia, desfrute de uma caminhada noturna pelas margens iluminadas do Canal Saint-Martin. A atmosfera à noite é diferente, mais tranquila e romântica, perfeita para refletir sobre as experiências do dia. Sinta a brisa e a energia noturna de Paris antes de retornar ao seu hotel, apreciando a beleza das luzes refletidas na água.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 9,
+          "originalTitle": "Caminhada noturna pelo Canal Saint-Martin",
+          "imageSearchQuery": "Canal Saint-Martin noite Paris",
+          "location": {
+            "name": "Canal Saint-Martin",
+            "address": "Quai de Valmy, 75010 Paris",
+            "latitude": 48.8727,
+            "longitude": 2.3639
+          },
+          "estimatedDurationMinutes": 30,
+          "recommendedStartTime": "21:30",
+          "routeFromPrevious": {
+            "fromTitle": "Jantar no La Marine",
+            "toTitle": "Caminhada noturna pelo Canal Saint-Martin",
+            "from": "La Marine",
+            "to": "Canal Saint-Martin",
+            "distanceKm": 0.3,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-831677df-0b7b-45f9-a02b-43e1b43451d1",
+        "day": 6,
+        "type": "day_summary",
+        "title": "Elegância Parisiense e Despedida na Champs-Élysées",
+        "subTitle": "Paris / 8 de junho de 2026",
+        "details": "Este dia é dedicado à icônica Avenida Champs-Élysées, com suas lojas de luxo e o imponente Arco do Triunfo, culminando com um passeio tranquilo e reflexivo. A tarde reserva um mergulho no mundo da tecnologia e, para o jantar, uma experiência clássica na charmosa Saint-Germain-des-Prés.",
+        "customSymbol": "calendar_today",
+        "meta": {
+          "aiGenerated": true,
+          "imageSearchQuery": "Champs-Élysées Arco do Triunfo Paris Elegância Parisiense e Despedida na Champs-Élysées",
+          "image": "https://pixabay.com/get/g8ab50cdd67bc6626a6867b4358ec625727a21c2a74819635b83d44f4adffe78aebebaf34ffcb15a4a55a5f0f028639375a72d2a7f5f1519dff2b9ae9bff8a575_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "herryway"
+        },
+        "image": "https://pixabay.com/get/g8ab50cdd67bc6626a6867b4358ec625727a21c2a74819635b83d44f4adffe78aebebaf34ffcb15a4a55a5f0f028639375a72d2a7f5f1519dff2b9ae9bff8a575_1280.jpg"
+      },
+      {
+        "id": "ai-a2dd5598-ac89-4291-9191-f4e1197e7a0b",
+        "day": 6,
+        "type": "activity",
+        "title": "08:30 - Café da Manhã na Ladurée Champs-Élysées",
+        "subTitle": "Início do dia com sabor e elegância | 1h",
+        "details": "Horario sugerido: 08:30, com permanencia de 1h.\n\nComece o dia com um clássico café da manhã parisiense nesta confeitaria icônica. Aproveite para saborear um croissant fresco e um café enquanto observa o movimento da avenida. É uma excelente forma de absorver a atmosfera local desde cedo.",
+        "image": "https://pixabay.com/get/g9330c900ed63ccfb12e6ba0b210ef84c8909c51eb84311cf19dd1197d5493e7601e5a358702b6a141e9f9ab13487511f_1280.jpg",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 1,
+          "originalTitle": "Café da Manhã na Ladurée Champs-Élysées",
+          "imageSearchQuery": "Ladurée Champs-Élysées Paris Ladurée Champs-Élysées 75 Av. des Champs-Élysées, 75008 Paris, França 0",
+          "location": {
+            "name": "Ladurée Champs-Élysées",
+            "address": "75 Av. des Champs-Élysées, 75008 Paris, França",
+            "latitude": 48.8709,
+            "longitude": 2.304
+          },
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "08:30",
+          "image": "https://pixabay.com/get/g9330c900ed63ccfb12e6ba0b210ef84c8909c51eb84311cf19dd1197d5493e7601e5a358702b6a141e9f9ab13487511f_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "LoboStudioHamburg"
+        }
+      },
+      {
+        "id": "ai-c746aa5c-84d3-4472-bff8-4f49db861411",
+        "day": 6,
+        "type": "activity",
+        "title": "09:30 - Passeio pela Avenida Champs-Élysées",
+        "subTitle": "Caminhada pela avenida mais famosa do mundo | 1h30",
+        "details": "Deslocamento desde Café da Manhã na Ladurée Champs-Élysées: 0,2 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 09:30, com permanencia de 1h30.\n\nApós o café, desfrute de uma caminhada relaxante pela Champs-Élysées, admirando as vitrines das lojas de luxo e a arquitetura imponente. Este é o momento perfeito para sentir a energia vibrante de Paris e tirar fotos memoráveis. A avenida é ideal para um passeio matinal tranquilo antes que fique muito cheia.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 2,
+          "originalTitle": "Passeio pela Avenida Champs-Élysées",
+          "imageSearchQuery": "Champs-Élysées Paris",
+          "location": {
+            "name": "Avenida Champs-Élysées",
+            "address": "Av. des Champs-Élysées, 75008 Paris, França",
+            "latitude": 48.8699,
+            "longitude": 2.307
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "09:30",
+          "routeFromPrevious": {
+            "fromTitle": "Café da Manhã na Ladurée Champs-Élysées",
+            "toTitle": "Passeio pela Avenida Champs-Élysées",
+            "from": "Ladurée Champs-Élysées",
+            "to": "Avenida Champs-Élysées",
+            "distanceKm": 0.2,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-71be6692-0160-48ba-ae48-6d60836b2b9d",
+        "day": 6,
+        "type": "places",
+        "title": "11:00 - Arco do Triunfo",
+        "subTitle": "Vista panorâmica e história marcante | 1h30",
+        "details": "Deslocamento desde Passeio pela Avenida Champs-Élysées: 1 km, 13 min estimados, recomendado a pe.\n\nHorario sugerido: 11:00, com permanencia de 1h30.\n\nVisite o Arco do Triunfo, um dos monumentos mais emblemáticos de Paris. Suba até o topo para desfrutar de uma vista espetacular da cidade, incluindo a Champs-Élysées e a Torre Eiffel. Chegar antes do meio-dia ajuda a evitar as maiores filas e garante uma experiência mais agradável.",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 3,
+          "originalTitle": "Arco do Triunfo",
+          "imageSearchQuery": "Arco do Triunfo Paris",
+          "location": {
+            "name": "Arco do Triunfo",
+            "address": "Place Charles de Gaulle, 75008 Paris, França",
+            "latitude": 48.8738,
+            "longitude": 2.295
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "11:00",
+          "routeFromPrevious": {
+            "fromTitle": "Passeio pela Avenida Champs-Élysées",
+            "toTitle": "Arco do Triunfo",
+            "from": "Avenida Champs-Élysées",
+            "to": "Arco do Triunfo",
+            "distanceKm": 1,
+            "estimatedMinutes": 13,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-6af5c503-49cd-4399-9ec2-8c58c9d93ebf",
+        "day": 6,
+        "type": "activity",
+        "title": "12:45 - Almoço no Publicis Drugstore",
+        "subTitle": "Pausa para uma refeição casual e moderna | 1h15",
+        "details": "Deslocamento desde Arco do Triunfo: 0,4 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 12:45, com permanencia de 1h15.\n\nPara o almoço, explore as opções gastronômicas do Publicis Drugstore, um espaço moderno que oferece diversas alternativas de refeição rápida e de qualidade. É uma escolha prática e com um ambiente dinâmico, ideal para um viajante solo que aprecia conveniência e um toque contemporâneo. Você encontrará desde lanches a pratos mais elaborados.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 4,
+          "originalTitle": "Almoço no Publicis Drugstore",
+          "imageSearchQuery": "Publicis Drugstore Paris",
+          "location": {
+            "name": "Publicis Drugstore",
+            "address": "133 Av. des Champs-Élysées, 75008 Paris, França",
+            "latitude": 48.8724,
+            "longitude": 2.2995
+          },
+          "estimatedDurationMinutes": 75,
+          "recommendedStartTime": "12:45",
+          "routeFromPrevious": {
+            "fromTitle": "Arco do Triunfo",
+            "toTitle": "Almoço no Publicis Drugstore",
+            "from": "Arco do Triunfo",
+            "to": "Publicis Drugstore",
+            "distanceKm": 0.4,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-0b9ead3a-a7e7-48d7-bc47-c8abb8454657",
+        "day": 6,
+        "type": "activity",
+        "title": "14:00 - Exploração na Fnac Champs-Élysées",
+        "subTitle": "Interesse em tecnologia e cultura pop | 1h30",
+        "details": "Deslocamento desde Almoço no Publicis Drugstore: 0,8 km, 11 min estimados, recomendado a pe.\n\nHorario sugerido: 14:00, com permanencia de 1h30.\n\nDedique um tempo para visitar a Fnac na Champs-Élysées, um paraíso para quem gosta de tecnologia, livros, música e filmes. É uma ótima oportunidade para explorar as últimas novidades em eletrônicos ou encontrar um souvenir cultural. Esteja atento às promoções e às seções de gadgets e jogos.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 5,
+          "originalTitle": "Exploração na Fnac Champs-Élysées",
+          "imageSearchQuery": "Fnac Champs-Élysées Paris",
+          "location": {
+            "name": "Fnac Champs-Élysées",
+            "address": "74 Av. des Champs-Élysées, 75008 Paris, França",
+            "latitude": 48.8687,
+            "longitude": 2.3087
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "14:00",
+          "routeFromPrevious": {
+            "fromTitle": "Almoço no Publicis Drugstore",
+            "toTitle": "Exploração na Fnac Champs-Élysées",
+            "from": "Publicis Drugstore",
+            "to": "Fnac Champs-Élysées",
+            "distanceKm": 0.8,
+            "estimatedMinutes": 11,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-e26a0cb4-0d72-4105-b88b-029d74e46936",
+        "day": 6,
+        "type": "activity",
+        "title": "15:30 - Jardins dos Campos Elíseos",
+        "subTitle": "Momento de natureza e tranquilidade | 1h",
+        "details": "Deslocamento desde Exploração na Fnac Champs-Élysées: 0,3 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 15:30, com permanencia de 1h.\n\nApós as compras, faça uma pausa relaxante nos Jardins dos Campos Elíseos, localizados entre a Place de la Concorde e o Rond-Point. Caminhe entre as árvores, aprecie as fontes e os canteiros de flores. Este é um ótimo momento para descontrair e refletir sobre as experiências da viagem, conectando-se com a natureza no coração da cidade.",
+        "image": "https://pixabay.com/get/gb7a0161ba06e4438f4f5ba7a1aac4045e3c4513fda8d3b12523f0e899d16889016dbe42bd956ce55d202d205269d7eaa718190e3474f29a939df7bd164a33779_1280.jpg",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 6,
+          "originalTitle": "Jardins dos Campos Elíseos",
+          "imageSearchQuery": "Jardins Champs-Élysées Paris Jardins dos Campos Elíseos Av. des Champs-Élysées, 75008 Paris, França ",
+          "location": {
+            "name": "Jardins dos Campos Elíseos",
+            "address": "Av. des Champs-Élysées, 75008 Paris, França",
+            "latitude": 48.868,
+            "longitude": 2.313
+          },
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "15:30",
+          "routeFromPrevious": {
+            "fromTitle": "Exploração na Fnac Champs-Élysées",
+            "toTitle": "Jardins dos Campos Elíseos",
+            "from": "Fnac Champs-Élysées",
+            "to": "Jardins dos Campos Elíseos",
+            "distanceKm": 0.3,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          },
+          "image": "https://pixabay.com/get/gb7a0161ba06e4438f4f5ba7a1aac4045e3c4513fda8d3b12523f0e899d16889016dbe42bd956ce55d202d205269d7eaa718190e3474f29a939df7bd164a33779_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "herryway"
+        }
+      },
+      {
+        "id": "ai-3057b57f-8306-40e2-9c57-5987000784d7",
+        "day": 6,
+        "type": "transport",
+        "title": "16:45 - Deslocamento para Saint-Germain-des-Prés",
+        "subTitle": "Viagem de metrô para um bairro charmoso | 30 min",
+        "details": "Deslocamento desde Jardins dos Campos Elíseos: 0,5 km, 7 min estimados, recomendado a pe.\n\nHorario sugerido: 16:45, com permanencia de 30 min.\n\nPegue o metrô da estação Franklin D. Roosevelt (linha 9) e siga em direção a Saint-Germain-des-Prés. Pode ser necessário fazer uma baldeação em Châtelet (linha 4). Este deslocamento levará você a um dos bairros mais charmosos e históricos de Paris, conhecido por sua atmosfera boêmia e cafés literários.",
+        "customSymbol": "directions_car",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 7,
+          "originalTitle": "Deslocamento para Saint-Germain-des-Prés",
+          "imageSearchQuery": "Metrô Paris",
+          "location": {
+            "name": "Estação Franklin D. Roosevelt",
+            "address": "Av. Franklin Delano Roosevelt, 75008 Paris, França",
+            "latitude": 48.869,
+            "longitude": 2.307
+          },
+          "estimatedDurationMinutes": 30,
+          "recommendedStartTime": "16:45",
+          "routeFromPrevious": {
+            "fromTitle": "Jardins dos Campos Elíseos",
+            "toTitle": "Deslocamento para Saint-Germain-des-Prés",
+            "from": "Jardins dos Campos Elíseos",
+            "to": "Estação Franklin D. Roosevelt",
+            "distanceKm": 0.5,
+            "estimatedMinutes": 7,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-b9530f82-059f-427b-a054-d5365cadb3e6",
+        "day": 6,
+        "type": "activity",
+        "title": "17:45 - Jantar no Le Relais de l'Entrecôte",
+        "subTitle": "Experiência gastronômica clássica parisiense | 1h30",
+        "details": "Deslocamento desde Deslocamento para Saint-Germain-des-Prés: 2,6 km, 35 min estimados, recomendado carro, taxi ou transporte publico.\n\nHorario sugerido: 17:45, com permanencia de 1h30.\n\nDesfrute de um jantar clássico no Le Relais de l'Entrecôte, famoso por seu prato único: entrecôte com molho secreto e batatas fritas à vontade. É uma experiência parisiense autêntica e descomplicada, perfeita para um viajante solo. Chegue um pouco antes do horário de pico para conseguir uma mesa com mais facilidade, pois eles não aceitam reservas.",
+        "image": "https://pixabay.com/get/gc112059162a9af2af472a9a2774b3d19ef62cd7e51e4c4aad8933c630fb9feb8e6f61144baff71d9ec9a8c951441445716fb0928a72303574e50831107525d1d_1280.jpg",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 8,
+          "originalTitle": "Jantar no Le Relais de l'Entrecôte",
+          "imageSearchQuery": "Le Relais de l'Entrecôte Saint-Germain Paris Le Relais de l'Entrecôte Saint-Germain 20 Rue Saint-Ben",
+          "location": {
+            "name": "Le Relais de l'Entrecôte Saint-Germain",
+            "address": "20 Rue Saint-Benoît, 75006 Paris, França",
+            "latitude": 48.8528,
+            "longitude": 2.333
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "17:45",
+          "routeFromPrevious": {
+            "fromTitle": "Deslocamento para Saint-Germain-des-Prés",
+            "toTitle": "Jantar no Le Relais de l'Entrecôte",
+            "from": "Estação Franklin D. Roosevelt",
+            "to": "Le Relais de l'Entrecôte Saint-Germain",
+            "distanceKm": 2.6,
+            "estimatedMinutes": 35,
+            "mode": "car_or_transit",
+            "requiresLookup": false
+          },
+          "image": "https://pixabay.com/get/gc112059162a9af2af472a9a2774b3d19ef62cd7e51e4c4aad8933c630fb9feb8e6f61144baff71d9ec9a8c951441445716fb0928a72303574e50831107525d1d_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "lbraffour"
+        }
+      },
+      {
+        "id": "ai-e18b279a-3e36-40a8-96d6-c442a6b53568",
+        "day": 6,
+        "type": "activity",
+        "title": "19:30 - Café no Café de Flore ou Les Deux Magots",
+        "subTitle": "Clássicos literários e observação noturna | 1h",
+        "details": "Deslocamento desde Jantar no Le Relais de l'Entrecôte: 0,1 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 19:30, com permanencia de 1h.\n\nApós o jantar, mergulhe na história literária de Paris visitando um dos famosos cafés de Saint-Germain-des-Prés, como o Café de Flore ou Les Deux Magots. Peça um café, um chá ou um vinho e absorva a atmosfera onde grandes intelectuais e artistas se reuniam. É um ótimo lugar para observar o movimento noturno da cidade e refletir sobre o dia.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 9,
+          "originalTitle": "Café no Café de Flore ou Les Deux Magots",
+          "imageSearchQuery": "Café de Flore Paris",
+          "location": {
+            "name": "Café de Flore",
+            "address": "172 Bd Saint-Germain, 75006 Paris, França",
+            "latitude": 48.8537,
+            "longitude": 2.3323
+          },
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "19:30",
+          "routeFromPrevious": {
+            "fromTitle": "Jantar no Le Relais de l'Entrecôte",
+            "toTitle": "Café no Café de Flore ou Les Deux Magots",
+            "from": "Le Relais de l'Entrecôte Saint-Germain",
+            "to": "Café de Flore",
+            "distanceKm": 0.1,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-91d165bb-e702-44ca-a60e-8c520f2f9830",
+        "day": 6,
+        "type": "transport",
+        "title": "20:30 - Retorno ao Alojamento",
+        "subTitle": "Fim do dia de exploração | 30 min",
+        "details": "Deslocamento desde Café no Café de Flore ou Les Deux Magots: 0,1 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 20:30, com permanencia de 30 min.\n\nApós um dia cheio de descobertas e reflexões, retorne ao seu alojamento. A estação de metrô Saint-Germain-des-Prés (linha 4) é de fácil acesso na região. Considere usar um aplicativo de transporte ou táxi se preferir mais conforto e segurança no final da noite.",
+        "image": "https://pixabay.com/get/gf7efc98390fd81909ba9d2874e2cf7e641401efc70d291a5dabfbcdfd9e173572ce86331a163fd93ff2494d8ea94deaf1c41312333143e93a03b042b4d1996fb_1280.jpg",
+        "customSymbol": "directions_car",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 10,
+          "originalTitle": "Retorno ao Alojamento",
+          "imageSearchQuery": "Metrô Paris noturno Estação Saint-Germain-des-Prés Place Saint-Germain des Prés, 75006 Paris, França",
+          "location": {
+            "name": "Estação Saint-Germain-des-Prés",
+            "address": "Place Saint-Germain des Prés, 75006 Paris, França",
+            "latitude": 48.8537,
+            "longitude": 2.3339
+          },
+          "estimatedDurationMinutes": 30,
+          "recommendedStartTime": "20:30",
+          "routeFromPrevious": {
+            "fromTitle": "Café no Café de Flore ou Les Deux Magots",
+            "toTitle": "Retorno ao Alojamento",
+            "from": "Café de Flore",
+            "to": "Estação Saint-Germain-des-Prés",
+            "distanceKm": 0.1,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          },
+          "image": "https://pixabay.com/get/gf7efc98390fd81909ba9d2874e2cf7e641401efc70d291a5dabfbcdfd9e173572ce86331a163fd93ff2494d8ea94deaf1c41312333143e93a03b042b4d1996fb_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "lbraffour"
         }
       }
-    ]
+    ],
+    "name": "Paris 2026",
+    "destinations": [
+      "Paris"
+    ],
+    "destinationsDetail": [
+      {
+        "city": "Paris (FR)",
+        "startDate": "2026-06-03",
+        "endDate": "2026-06-08",
+        "allTravelers": true
+      }
+    ],
+    "startDate": "2026-06-03",
+    "endDate": "2026-06-08",
+    "travelers": [
+      "PE"
+    ],
+    "clientName": "Pedro",
+    "budget": 12000,
+    "preferences": "Primeira viagem sozinho da vida, tem interesse em tecnologia, futebol, natureza e não apresenta restrições alimentares.",
+    "profile": "lazer",
+    "origin": "São Paulo (BR)",
+    "agencyId": "agency-default",
+    "aiStatus": "AI_REVIEWED",
+    "aiGenerationId": "2758c512-6799-4a58-998f-0d2fd07ab488",
+    "aiPrompt": {
+      "tripId": "HOR-7802",
+      "agencyId": "agency-default",
+      "title": "Paris 2026",
+      "origin": "São Paulo (BR)",
+      "destinations": [
+        "Paris"
+      ],
+      "destinationsDetail": [
+        {
+          "city": "Paris (FR)",
+          "startDate": "2026-06-03",
+          "endDate": "2026-06-08",
+          "allTravelers": true
+        }
+      ],
+      "startDate": "2026-06-03",
+      "endDate": "2026-06-08",
+      "travelersCount": 1,
+      "clientName": "Pedro",
+      "budget": 12000,
+      "currency": "BRL",
+      "profile": "lazer",
+      "preferences": "Primeira viagem sozinho da vida, tem interesse em tecnologia, futebol, natureza e não apresenta restrições alimentares.",
+      "locale": "pt-BR"
+    },
+    "aiResponse": {
+      "generationId": "2758c512-6799-4a58-998f-0d2fd07ab488",
+      "model": "gemini-2.5-flash",
+      "provider": "gemini",
+      "totalTokensIn": 10911,
+      "totalTokensOut": 13776,
+      "latencyMs": 168394,
+      "daysGenerated": 6
+    },
+    "aiGeneratedAt": "2026-06-25T17:48:44.591Z",
+    "coverImage": "https://pixabay.com/get/ge40db7f47c066740db95301906897ce0b270bbedb6a373b034ca7ecd4737aa3324d03074f95a6ab48b02ee5fb638851f52bc3acf5c77090ac88b1db7b52a330e_1280.jpg"
   },
   {
-    "agencyId": "agency-default",
-    "documents": [],
-    "id": "HOR-8842",
-    "createdDate": "14-04-2024",
-    "name": "Grand Tour de l'Italie",
-    "destinations": [
-      "Milão",
-      "Veneza",
-      "Florença"
-    ],
-    "startDate": "2025-04-01",
-    "endDate": "2025-04-19",
-    "travelers": [
-      "RR"
-    ],
-    "status": "Confirmado",
-    "clientName": "Raquel Rasera",
+    "id": "HOR-8526",
+    "createdDate": "25-06-2026",
+    "status": "Pendente",
     "itinerary": [
       {
-        "id": "item-3",
-        "day": 2,
-        "type": "hotel",
-        "title": "NH Collection Touring",
-        "subTitle": "Acomodação em Milão",
-        "details": "Hotel 4 estrelas premium localizado no centro de Milão.",
-        "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuDoZjJz35m8EyEiFJD7-B6xM8MSfSGJ3gFAUHCpWbTtzC6gpvyGHkg2esanTe5uy10gOLbK38rEN5gmMyY0xjPCar1KNb6yej5dVjEcRywodUMS8QNbnXFAop6lEuP4OAyAxqnnPG5FFsZlbTT8UJjM1PrSR-6qpkWRr0MDZ2fi-CQGacKPT4PGQmosNgIcTYbPLjHW7nzohmbMGFDXZqDY0-TUpJR_PPlmy7hsl7vFJFwvFnUL781RvzGhXXmqVWJ4I0FHtzZvLDUi",
+        "id": "ai-1b11514a-4b2e-4822-a861-d9642770a82a",
+        "day": 1,
+        "type": "trip_desc",
+        "title": "João Pessoa 2026",
+        "details": "Uma viagem relaxante e cultural para João Pessoa, explorando suas praias paradisíacas, a rica gastronomia local e a vibrante cultura junina. Bruna terá a oportunidade de desfrutar de momentos de lazer, boa comida e a alegria das festas de São João, com um roteiro que equilibra descanso e descobertas.",
+        "customSymbol": "description",
         "meta": {
-          "address": "Via Iginio Ugo Tarchetti, 2",
-          "rooms": "1 Quarto Duplo",
-          "checkin": "15:00"
+          "highlights": [
+            "Praias urbanas e do litoral sul da Paraíba",
+            "Gastronomia paraibana e opções variadas",
+            "Imersão na cultura e história local",
+            "Experiência das festividades de São João"
+          ],
+          "aiGenerated": true,
+          "image": "https://pixabay.com/get/g4704c3890f00ff069cf3adc56f67dc3779f67e2c351c5ca435309d4fb08eaa0e81a3ea3a0195659848ad6120763d272cb46c97c9124421c9dbd98c1acbba459c_1280.jpg",
+          "imageSource": "pixabay",
+          "imageSearchQuery": "João Pessoa 2026",
+          "imageCredit": "7945425"
+        },
+        "image": "https://pixabay.com/get/gab0aad297d9c47c2d2d3df8d15af4c9ae0adc69bf1400cfbffac3e161793728742593157ee0f05d02ed6ca198800b994baceb8755ad12ff745666309d0393e0e_1280.jpg",
+        "subTitle": ""
+      },
+      {
+        "id": "ai-97f2dbfb-7b98-4264-aa2a-1a61cf456be3",
+        "day": 1,
+        "type": "day_summary",
+        "title": "Chegada e Aclimatação na Orla de Tambaú",
+        "subTitle": "João Pessoa / Tambaú",
+        "details": "Este dia é dedicado à sua chegada em João Pessoa e à aclimatação na vibrante orla de Tambaú. O roteiro foi planejado para um ritmo tranquilo, permitindo que você se instale, relaxe na praia e desfrute da gastronomia local, tudo concentrado na região de Tambaú para otimizar os deslocamentos.",
+        "customSymbol": "calendar_today",
+        "meta": {
+          "aiGenerated": true,
+          "imageSearchQuery": "Orla de Tambaú João Pessoa Chegada e Aclimatação na Orla de Tambaú",
+          "image": "https://pixabay.com/get/gcb3ec9f4cb3d1e349f07d48d9cd88710e84279db17f795888cb5fc0969b8a284d0ff3b479f157a6b8abbca980c33ecb970732bba730a3668aa4455d9cb97546f_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "AlexBDP"
+        },
+        "image": "https://pixabay.com/get/gcb3ec9f4cb3d1e349f07d48d9cd88710e84279db17f795888cb5fc0969b8a284d0ff3b479f157a6b8abbca980c33ecb970732bba730a3668aa4455d9cb97546f_1280.jpg"
+      },
+      {
+        "id": "ai-dbb3755f-20a6-44a0-bd50-2acb6e97e8d0",
+        "day": 1,
+        "type": "text",
+        "title": "09:00 - Chegada em João Pessoa",
+        "subTitle": "Início da viagem | 1h",
+        "details": "Horario sugerido: 09:00, com permanencia de 1h.\n\nBem-vindo(a) a João Pessoa! Após o desembarque no Aeroporto Internacional Presidente Castro Pinto (JPA), prepare-se para iniciar sua jornada de lazer. Este é o momento de respirar fundo e sentir a brisa paraibana, dando início a dias de descanso e descobertas.",
+        "image": "https://pixabay.com/get/g47fbdd06a1a84efce10af350d7b003de9ce8c7070914e2abc67a508d3c7d07e6424b6c9f7ff91b3560cdaefa62f2e29db7974f1ded06fd7f7d17b5433eb5b4e6_1280.jpg",
+        "customSymbol": "description",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 1,
+          "originalTitle": "Chegada em João Pessoa",
+          "imageSearchQuery": "Chegada em João Pessoa João Pessoa",
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "09:00",
+          "image": "https://pixabay.com/get/g255508908e13da77747065a0aa9573bbe0e4f098e272aa2d2b94265008480e01144e1fa7e1c6b6d29406faa79b512d2146cb27dc58b8ae75419d5716865f0af9_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "7945425"
+        }
+      },
+      {
+        "id": "ai-af1db7df-3b81-4267-bc96-ff6fbbad9009",
+        "day": 1,
+        "type": "transport",
+        "title": "10:00 - Traslado para Tambaú",
+        "subTitle": "Deslocamento do aeroporto ao hotel | 45 min",
+        "details": "Horario sugerido: 10:00, com permanencia de 45 min.\n\nApós a chegada, o traslado para a região de Tambaú é rápido e conveniente. Recomendamos utilizar serviços de táxi, aplicativos de transporte ou transfers pré-agendados para maior conforto. A viagem dura aproximadamente 30 a 45 minutos, dependendo do trânsito.",
+        "customSymbol": "directions_car",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 2,
+          "originalTitle": "Traslado para Tambaú",
+          "imageSearchQuery": "Traslado para Tambaú João Pessoa",
+          "location": {
+            "name": "Aeroporto Internacional Presidente Castro Pinto (JPA) para Tambaú",
+            "address": "Aeroporto Internacional Presidente Castro Pinto, Bayeux - PB",
+            "latitude": -7.1517,
+            "longitude": -34.9514
+          },
+          "estimatedDurationMinutes": 45,
+          "recommendedStartTime": "10:00"
+        }
+      },
+      {
+        "id": "ai-bd211915-de86-4730-8ac1-a692d75a36d2",
+        "day": 1,
+        "type": "text",
+        "title": "10:45 - Check-in e Aclimatação",
+        "subTitle": "Preparação para o dia | 1h30",
+        "details": "Horario sugerido: 10:45, com permanencia de 1h30.\n\nApós chegar ao seu hotel em Tambaú, dedique um tempo para fazer o check-in e se instalar confortavelmente. Aproveite para desarrumar as malas, descansar um pouco e se preparar para explorar a região com calma e sem pressa. A ideia é começar a viagem em um ritmo relaxante.",
+        "image": "https://pixabay.com/get/gc07ec9f6c1588adb7c2a6922a15b54b600333beda9d4bf66b6dcf36851bae1fac0e029c39a7c16e4b11611b7c649a61592a0b4c599fb867c0c7353406e76728c_1280.jpg",
+        "customSymbol": "description",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 3,
+          "originalTitle": "Check-in e Aclimatação",
+          "imageSearchQuery": "Check-in e Aclimatação João Pessoa",
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "10:45",
+          "image": "https://pixabay.com/get/gc07ec9f6c1588adb7c2a6922a15b54b600333beda9d4bf66b6dcf36851bae1fac0e029c39a7c16e4b11611b7c649a61592a0b4c599fb867c0c7353406e76728c_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "JESHOOTS-com"
+        }
+      },
+      {
+        "id": "ai-025c5dbd-ae67-4354-a4c1-1483cc3b2ebb",
+        "day": 1,
+        "type": "activity",
+        "title": "12:15 - Caminhada na Orla de Tambaú",
+        "subTitle": "Primeiro contato com a praia | 1h",
+        "details": "Deslocamento desde Traslado para Tambaú: 15,2 km, 203 min estimados, recomendado carro, taxi ou transporte publico.\n\nHorario sugerido: 12:15, com permanencia de 1h.\n\nComece a explorar João Pessoa com uma caminhada relaxante pela Orla de Tambaú. Sinta a brisa do mar, observe o movimento dos coqueiros e aprecie a beleza da paisagem. É uma ótima maneira de se familiarizar com a região e sentir a energia local.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 4,
+          "originalTitle": "Caminhada na Orla de Tambaú",
+          "imageSearchQuery": "Orla de Tambaú",
+          "location": {
+            "name": "Orla de Tambaú",
+            "address": "Avenida Almirante Tamandaré, Tambaú, João Pessoa - PB",
+            "latitude": -7.1147,
+            "longitude": -34.819
+          },
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "12:15",
+          "routeFromPrevious": {
+            "fromTitle": "Traslado para Tambaú",
+            "toTitle": "Caminhada na Orla de Tambaú",
+            "from": "Aeroporto Internacional Presidente Castro Pinto (JPA) para Tambaú",
+            "to": "Orla de Tambaú",
+            "distanceKm": 15.2,
+            "estimatedMinutes": 203,
+            "mode": "car_or_transit",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-c8967eaf-7103-4317-b9ea-44302ecff4bc",
+        "day": 1,
+        "type": "places",
+        "title": "13:15 - Almoço no Restaurante Mangai",
+        "subTitle": "Gastronomia regional | 1h30",
+        "details": "Deslocamento desde Caminhada na Orla de Tambaú: 0,2 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 13:15, com permanencia de 1h30.\n\nPara o almoço, sugerimos o renomado Restaurante Mangai, famoso por sua vasta e deliciosa culinária regional em estilo self-service. É uma excelente oportunidade para provar diversos pratos típicos da Paraíba. Chegue cedo para evitar filas, especialmente em alta temporada.",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 5,
+          "originalTitle": "Almoço no Restaurante Mangai",
+          "imageSearchQuery": "Restaurante Mangai João Pessoa",
+          "location": {
+            "name": "Mangai João Pessoa",
+            "address": "R. João Câncio, 77 - Manaíra, João Pessoa - PB",
+            "latitude": -7.113,
+            "longitude": -34.8199
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "13:15",
+          "routeFromPrevious": {
+            "fromTitle": "Caminhada na Orla de Tambaú",
+            "toTitle": "Almoço no Restaurante Mangai",
+            "from": "Orla de Tambaú",
+            "to": "Mangai João Pessoa",
+            "distanceKm": 0.2,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-37894022-9e48-4ada-8964-1df071b2dc8b",
+        "day": 1,
+        "type": "activity",
+        "title": "14:45 - Tarde de Relaxamento na Praia de Tambaú",
+        "subTitle": "Lazer e descanso | 3h",
+        "details": "Deslocamento desde Almoço no Restaurante Mangai: 0,2 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 14:45, com permanencia de 3h.\n\nApós o almoço, aproveite a tarde para relaxar na Praia de Tambaú. Com suas águas calmas e mornas, é perfeita para um mergulho refrescante ou simplesmente para tomar sol. Você pode alugar cadeiras e guarda-sol nos quiosques locais e desfrutar da tranquilidade do ambiente.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 6,
+          "originalTitle": "Tarde de Relaxamento na Praia de Tambaú",
+          "imageSearchQuery": "Praia de Tambaú",
+          "location": {
+            "name": "Praia de Tambaú",
+            "address": "Avenida Almirante Tamandaré, Tambaú, João Pessoa - PB",
+            "latitude": -7.1147,
+            "longitude": -34.819
+          },
+          "estimatedDurationMinutes": 180,
+          "recommendedStartTime": "14:45",
+          "routeFromPrevious": {
+            "fromTitle": "Almoço no Restaurante Mangai",
+            "toTitle": "Tarde de Relaxamento na Praia de Tambaú",
+            "from": "Mangai João Pessoa",
+            "to": "Praia de Tambaú",
+            "distanceKm": 0.2,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-313f0eeb-fcda-4523-b10c-2c02ecb3e55a",
+        "day": 1,
+        "type": "activity",
+        "title": "17:45 - Pôr do Sol na Orla de Tambaú",
+        "subTitle": "Momento de contemplação | 1h",
+        "details": "Deslocamento desde Tarde de Relaxamento na Praia de Tambaú: 0 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 17:45, com permanencia de 1h.\n\nO fim de tarde na orla de Tambaú oferece um espetáculo à parte. Encontre um bom lugar na areia ou em um dos quiosques para apreciar as cores vibrantes do céu paraibano enquanto o sol se despede. É um momento de paz e beleza para encerrar a tarde.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 7,
+          "originalTitle": "Pôr do Sol na Orla de Tambaú",
+          "imageSearchQuery": "Pôr do sol Tambaú João Pessoa",
+          "location": {
+            "name": "Orla de Tambaú",
+            "address": "Avenida Almirante Tamandaré, Tambaú, João Pessoa - PB",
+            "latitude": -7.1147,
+            "longitude": -34.819
+          },
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "17:45",
+          "routeFromPrevious": {
+            "fromTitle": "Tarde de Relaxamento na Praia de Tambaú",
+            "toTitle": "Pôr do Sol na Orla de Tambaú",
+            "from": "Praia de Tambaú",
+            "to": "Orla de Tambaú",
+            "distanceKm": 0,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-3d47ce38-0171-4664-88b6-09571f3d4f18",
+        "day": 1,
+        "type": "text",
+        "title": "18:45 - Descanso e Preparação",
+        "subTitle": "Retorno ao hotel | 1h",
+        "details": "Horario sugerido: 18:45, com permanencia de 1h.\n\nApós o pôr do sol, retorne ao seu hotel para um merecido descanso. Aproveite para tomar um banho, se arrumar e recarregar as energias para o jantar. Este tempo é essencial para manter o ritmo tranquilo e aproveitar cada momento da viagem.",
+        "image": "https://pixabay.com/get/gec4a806f1aa4321350779f44ffe992c316d5ce8d28b37f40e41c585f1cb7ecfe9ea881e92f5cd7c59fa680883b0b7e462f39f7a8fcf0985d5b352cfa93bc9dfd_1280.jpg",
+        "customSymbol": "description",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 8,
+          "originalTitle": "Descanso e Preparação",
+          "imageSearchQuery": "Descanso e Preparação João Pessoa",
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "18:45",
+          "image": "https://pixabay.com/get/gec4a806f1aa4321350779f44ffe992c316d5ce8d28b37f40e41c585f1cb7ecfe9ea881e92f5cd7c59fa680883b0b7e462f39f7a8fcf0985d5b352cfa93bc9dfd_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "Pexels"
+        }
+      },
+      {
+        "id": "ai-65511593-6fa7-44c7-94ce-2eac52181628",
+        "day": 1,
+        "type": "places",
+        "title": "19:45 - Jantar no Roccia Cozinha Internacional",
+        "subTitle": "Experiência gastronômica | 2h",
+        "details": "Deslocamento desde Pôr do Sol na Orla de Tambaú: 0,3 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 19:45, com permanencia de 2h.\n\nPara o jantar, sugerimos o Roccia Cozinha Internacional, um restaurante sofisticado com um ambiente agradável e um cardápio variado que agrada a diversos paladares. É uma excelente opção para uma refeição mais elaborada e para desfrutar de uma boa conversa. Recomenda-se verificar a necessidade de reserva.",
+        "image": "https://pixabay.com/get/g00c491866a96868a7bf986fabf311076e64c6e8b67994432b60dd78190ad8def68472c8224718c7f6145472ed4b22427307d4dd710e0ffbc64d058e24bda8814_1280.jpg",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 9,
+          "originalTitle": "Jantar no Roccia Cozinha Internacional",
+          "imageSearchQuery": "Roccia Cozinha Internacional João Pessoa Roccia Cozinha Internacional Av. João Câncio da Silva, 1100",
+          "location": {
+            "name": "Roccia Cozinha Internacional",
+            "address": "Av. João Câncio da Silva, 1100 - Tambaú, João Pessoa - PB",
+            "latitude": -7.1136,
+            "longitude": -34.8211
+          },
+          "estimatedDurationMinutes": 120,
+          "recommendedStartTime": "19:45",
+          "routeFromPrevious": {
+            "fromTitle": "Pôr do Sol na Orla de Tambaú",
+            "toTitle": "Jantar no Roccia Cozinha Internacional",
+            "from": "Orla de Tambaú",
+            "to": "Roccia Cozinha Internacional",
+            "distanceKm": 0.3,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          },
+          "image": "https://pixabay.com/get/g00c491866a96868a7bf986fabf311076e64c6e8b67994432b60dd78190ad8def68472c8224718c7f6145472ed4b22427307d4dd710e0ffbc64d058e24bda8814_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "Olga_Fil"
+        }
+      },
+      {
+        "id": "ai-738cef1c-c98d-4929-a581-a0d27297db90",
+        "day": 1,
+        "type": "activity",
+        "title": "21:45 - Caminhada Noturna em Tambaú",
+        "subTitle": "Para finalizar o dia | 1h",
+        "details": "Deslocamento desde Jantar no Roccia Cozinha Internacional: 0,3 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 21:45, com permanencia de 1h.\n\nPara encerrar o primeiro dia, faça uma breve caminhada noturna pela orla de Tambaú. A iluminação e a brisa do mar criam um ambiente agradável e seguro para um passeio leve. É uma ótima forma de digerir o jantar e desfrutar da atmosfera noturna da cidade.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 10,
+          "originalTitle": "Caminhada Noturna em Tambaú",
+          "imageSearchQuery": "Orla de Tambaú noite",
+          "location": {
+            "name": "Orla de Tambaú",
+            "address": "Avenida Almirante Tamandaré, Tambaú, João Pessoa - PB",
+            "latitude": -7.1147,
+            "longitude": -34.819
+          },
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "21:45",
+          "routeFromPrevious": {
+            "fromTitle": "Jantar no Roccia Cozinha Internacional",
+            "toTitle": "Caminhada Noturna em Tambaú",
+            "from": "Roccia Cozinha Internacional",
+            "to": "Orla de Tambaú",
+            "distanceKm": 0.3,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-fe8dedc0-a793-4996-807b-ed9ce54f8620",
+        "day": 2,
+        "type": "day_summary",
+        "title": "Imersão no Centro Histórico e Encanto do Pôr do Sol no Jacaré",
+        "subTitle": "João Pessoa - Centro Histórico e Praia do Jacaré",
+        "details": "Este dia em João Pessoa é dedicado a explorar as riquezas culturais e históricas do Centro Histórico pela manhã e tarde, culminando com um espetáculo natural e musical no fim de tarde. A trilha começa no coração da cidade, explorando seus marcos arquitetônicos e culturais, e se encerra com a famosa apresentação do Bolero de Ravel no Rio Paraíba.",
+        "customSymbol": "calendar_today",
+        "meta": {
+          "aiGenerated": true,
+          "imageSearchQuery": "Centro Histórico João Pessoa e Pôr do Sol Jacaré Imersão no Centro Histórico e Encanto do Pôr do Sol",
+          "image": "https://pixabay.com/get/ge559eda967873c34f0571c1baf7d3e8e6cb636d63fdc45653f3e0d95e74f3737b441627045227efd80d3cd41d554cb6163a7d0b06ac828bacdb28a43a1e338ca_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "klimaplay1"
+        },
+        "image": "https://pixabay.com/get/ge559eda967873c34f0571c1baf7d3e8e6cb636d63fdc45653f3e0d95e74f3737b441627045227efd80d3cd41d554cb6163a7d0b06ac828bacdb28a43a1e338ca_1280.jpg"
+      },
+      {
+        "id": "ai-4889bfcf-a2fb-4a94-b580-dec56dd54837",
+        "day": 2,
+        "type": "places",
+        "title": "09:00 - Estação Cabo Branco - Ciência, Cultura e Artes",
+        "subTitle": "Visita essencial | 2h",
+        "details": "Horario sugerido: 09:00, com permanencia de 2h.\n\nComece o dia explorando a Estação Cabo Branco, um complexo arquitetônico projetado por Oscar Niemeyer. O local oferece exposições interativas sobre ciência, cultura e arte, além de uma vista panorâmica da cidade. É ideal para iniciar o dia com conhecimento e inspiração. Chegue cedo para aproveitar a tranquilidade.",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 1,
+          "originalTitle": "Estação Cabo Branco - Ciência, Cultura e Artes",
+          "imageSearchQuery": "Estação Cabo Branco João Pessoa",
+          "location": {
+            "name": "Estação Cabo Branco - Ciência, Cultura e Artes",
+            "address": "Av. Cabo Branco, 572 - Cabo Branco, João Pessoa - PB",
+            "latitude": -7.1103,
+            "longitude": -34.8308
+          },
+          "estimatedDurationMinutes": 120,
+          "recommendedStartTime": "09:00"
+        }
+      },
+      {
+        "id": "ai-f8f27b93-f241-4267-9296-09174e03ea18",
+        "day": 2,
+        "type": "transport",
+        "title": "11:00 - Deslocamento para o Centro Histórico",
+        "subTitle": "Transporte recomendado | 30 min",
+        "details": "Horario sugerido: 11:00, com permanencia de 30 min.\n\nUtilize um aplicativo de transporte ou táxi para se deslocar da Estação Cabo Branco até o Centro Histórico. O trajeto leva aproximadamente 20-30 minutos, dependendo do trânsito. Esta opção oferece conforto e agilidade para otimizar o tempo.",
+        "customSymbol": "directions_car",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 2,
+          "originalTitle": "Deslocamento para o Centro Histórico",
+          "imageSearchQuery": "Deslocamento para o Centro Histórico João Pessoa",
+          "estimatedDurationMinutes": 30,
+          "recommendedStartTime": "11:00"
+        }
+      },
+      {
+        "id": "ai-fd4f61e3-a51e-468d-86cf-b770cdb1e3bf",
+        "day": 2,
+        "type": "places",
+        "title": "11:30 - Centro Histórico de João Pessoa",
+        "subTitle": "Exploração cultural e histórica | 3h",
+        "details": "Deslocamento desde Estação Cabo Branco - Ciência, Cultura e Artes: 4,6 km, 61 min estimados, recomendado carro, taxi ou transporte publico.\n\nHorario sugerido: 11:30, com permanencia de 3h.\n\nPasseie pelo Centro Histórico, tombado pelo IPHAN, e admire a arquitetura colonial. Visite o Centro Cultural São Francisco, um complexo barroco impressionante com igreja e convento, e a Igreja da Misericórdia. Explore as ruas charmosas e sinta a atmosfera histórica da cidade. Reserve um tempo para fotos e para absorver a beleza local.",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 3,
+          "originalTitle": "Centro Histórico de João Pessoa",
+          "imageSearchQuery": "Centro Histórico João Pessoa",
+          "location": {
+            "name": "Centro Histórico de João Pessoa",
+            "address": "Centro, João Pessoa - PB",
+            "latitude": -7.1194,
+            "longitude": -34.8714
+          },
+          "estimatedDurationMinutes": 180,
+          "recommendedStartTime": "11:30",
+          "routeFromPrevious": {
+            "fromTitle": "Estação Cabo Branco - Ciência, Cultura e Artes",
+            "toTitle": "Centro Histórico de João Pessoa",
+            "from": "Estação Cabo Branco - Ciência, Cultura e Artes",
+            "to": "Centro Histórico de João Pessoa",
+            "distanceKm": 4.6,
+            "estimatedMinutes": 61,
+            "mode": "car_or_transit",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-7f8dbf68-ed47-4116-95ba-7b5c4c83df8c",
+        "day": 2,
+        "type": "places",
+        "title": "13:30 - Hotel Globo",
+        "subTitle": "Visita com vista | 45 min",
+        "details": "Deslocamento desde Centro Histórico de João Pessoa: 0,1 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 13:30, com permanencia de 45 min.\n\nFaça uma parada no Hotel Globo, um antigo hotel que hoje funciona como centro cultural e mirante. Oferece uma vista privilegiada do Rio Sanhauá e do pôr do sol, sendo um ótimo local para contemplar a paisagem urbana e histórica. A entrada é gratuita e o local é perfeito para fotos.",
+        "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuDoZjJz35m8EyEiFJD7-B6xM8MSfSGJ3gFAUHCpWbTtzC6gpvyGHkg2esanTe5uy10gOLbK38rEN5gmMyY0xjPCar1KNb6yej5dVjEcRywodUMS8QNbnXFAop6lEuP4OAyAxqnnPG5FFsZlbTT8UJjM1PrSR-6qpkWRr0MDZ2fi-CQGacKPT4PGQmosNgIcTYbPLjHW7nzohmbMGFDXZqDY0-TUpJR_PPlmy7hsl7vFJFwvFnUL781RvzGhXXmqVWJ4I0FHtzZvLDUi",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 4,
+          "originalTitle": "Hotel Globo",
+          "imageSearchQuery": "Hotel Globo João Pessoa Hotel Globo Praça Antenor Navarro, 10 - Centro, João Pessoa - PB 13:30 - Hot",
+          "location": {
+            "name": "Hotel Globo",
+            "address": "Praça Antenor Navarro, 10 - Centro, João Pessoa - PB",
+            "latitude": -7.1198,
+            "longitude": -34.8723
+          },
+          "estimatedDurationMinutes": 45,
+          "recommendedStartTime": "13:30",
+          "routeFromPrevious": {
+            "fromTitle": "Centro Histórico de João Pessoa",
+            "toTitle": "Hotel Globo",
+            "from": "Centro Histórico de João Pessoa",
+            "to": "Hotel Globo",
+            "distanceKm": 0.1,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          },
+          "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuDoZjJz35m8EyEiFJD7-B6xM8MSfSGJ3gFAUHCpWbTtzC6gpvyGHkg2esanTe5uy10gOLbK38rEN5gmMyY0xjPCar1KNb6yej5dVjEcRywodUMS8QNbnXFAop6lEuP4OAyAxqnnPG5FFsZlbTT8UJjM1PrSR-6qpkWRr0MDZ2fi-CQGacKPT4PGQmosNgIcTYbPLjHW7nzohmbMGFDXZqDY0-TUpJR_PPlmy7hsl7vFJFwvFnUL781RvzGhXXmqVWJ4I0FHtzZvLDUi",
+          "imageSource": "library",
+          "imageCredit": "NH Hotel"
+        }
+      },
+      {
+        "id": "ai-97fe52b2-0357-4c0d-a0ba-cf51be68882c",
+        "day": 2,
+        "type": "activity",
+        "title": "14:15 - Almoço no Centro Histórico",
+        "subTitle": "Almoço recomendado | 1h30",
+        "details": "Deslocamento desde Hotel Globo: 0,1 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 14:15, com permanencia de 1h30.\n\nDesfrute de um almoço em um dos restaurantes charmosos do Centro Histórico, que oferecem culinária regional. Opções como o Restaurante O Monte ou o Gulab Hari oferecem pratos saborosos em ambientes agradáveis. Verifique os horários de funcionamento e se há necessidade de reserva, especialmente em dias de maior movimento.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 5,
+          "originalTitle": "Almoço no Centro Histórico",
+          "imageSearchQuery": "Restaurante Centro Histórico João Pessoa",
+          "location": {
+            "name": "Centro Histórico de João Pessoa",
+            "address": "Centro, João Pessoa - PB",
+            "latitude": -7.1194,
+            "longitude": -34.8714
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "14:15",
+          "routeFromPrevious": {
+            "fromTitle": "Hotel Globo",
+            "toTitle": "Almoço no Centro Histórico",
+            "from": "Hotel Globo",
+            "to": "Centro Histórico de João Pessoa",
+            "distanceKm": 0.1,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-3feed93a-76ba-413b-b245-8b9e34fbdbb8",
+        "day": 2,
+        "type": "transport",
+        "title": "16:00 - Deslocamento para a Praia do Jacaré",
+        "subTitle": "Transporte recomendado | 40 min",
+        "details": "Horario sugerido: 16:00, com permanencia de 40 min.\n\nPegue um táxi ou aplicativo de transporte para se dirigir à Praia do Jacaré. O trajeto dura cerca de 30-40 minutos, dependendo do trânsito. É importante sair com antecedência para garantir um bom lugar e aproveitar o espetáculo do pôr do sol.",
+        "customSymbol": "directions_car",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 6,
+          "originalTitle": "Deslocamento para a Praia do Jacaré",
+          "imageSearchQuery": "Deslocamento para a Praia do Jacaré João Pessoa",
+          "estimatedDurationMinutes": 40,
+          "recommendedStartTime": "16:00"
+        }
+      },
+      {
+        "id": "ai-f0bc6aa3-2c70-431c-aeb7-433e691cdfff",
+        "day": 2,
+        "type": "activity",
+        "title": "16:40 - Pôr do Sol na Praia do Jacaré",
+        "subTitle": "Fim de tarde contemplativo | 2h",
+        "details": "Deslocamento desde Almoço no Centro Histórico: 5,2 km, 69 min estimados, recomendado carro, taxi ou transporte publico.\n\nHorario sugerido: 16:40, com permanencia de 2h.\n\nChegue à Praia do Jacaré para vivenciar o famoso pôr do sol ao som do Bolero de Ravel, tocado pelo músico Jurandy do Sax. A experiência é única e emocionante. Você pode assistir de um dos bares e restaurantes à beira-rio ou de uma embarcação. Chegue com antecedência para escolher o melhor ponto de observação.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 7,
+          "originalTitle": "Pôr do Sol na Praia do Jacaré",
+          "imageSearchQuery": "Pôr do Sol Praia do Jacaré João Pessoa",
+          "location": {
+            "name": "Praia do Jacaré",
+            "address": "Cabedelo - PB",
+            "latitude": -7.1095,
+            "longitude": -34.8258
+          },
+          "estimatedDurationMinutes": 120,
+          "recommendedStartTime": "16:40",
+          "routeFromPrevious": {
+            "fromTitle": "Almoço no Centro Histórico",
+            "toTitle": "Pôr do Sol na Praia do Jacaré",
+            "from": "Centro Histórico de João Pessoa",
+            "to": "Praia do Jacaré",
+            "distanceKm": 5.2,
+            "estimatedMinutes": 69,
+            "mode": "car_or_transit",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-395bda27-c2cc-4d97-a643-a26ca7cedf27",
+        "day": 2,
+        "type": "activity",
+        "title": "19:30 - Jantar na Orla de Tambaú",
+        "subTitle": "Jantar recomendado | 1h30",
+        "details": "Deslocamento desde Pôr do Sol na Praia do Jacaré: 0,8 km, 11 min estimados, recomendado a pe.\n\nHorario sugerido: 19:30, com permanencia de 1h30.\n\nApós o pôr do sol, retorne para a área de Tambaú para jantar. A região oferece uma vasta gama de opções gastronômicas, desde culinária local até internacional. Experimente um restaurante de frutos do mar frescos ou explore outras opções que agradem seu paladar. Confirme os horários de funcionamento dos estabelecimentos.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 8,
+          "originalTitle": "Jantar na Orla de Tambaú",
+          "imageSearchQuery": "Restaurante Orla Tambaú João Pessoa",
+          "location": {
+            "name": "Orla de Tambaú",
+            "address": "Av. Monsenhor Walfredo Leal - Tambaú, João Pessoa - PB",
+            "latitude": -7.1043,
+            "longitude": -34.8205
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "19:30",
+          "routeFromPrevious": {
+            "fromTitle": "Pôr do Sol na Praia do Jacaré",
+            "toTitle": "Jantar na Orla de Tambaú",
+            "from": "Praia do Jacaré",
+            "to": "Orla de Tambaú",
+            "distanceKm": 0.8,
+            "estimatedMinutes": 11,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-22b7e4b2-0d5c-4c37-94c8-88fe6129f434",
+        "day": 2,
+        "type": "text",
+        "title": "21:00 - Retorno ao Hotel",
+        "subTitle": "Fim do dia | 30 min",
+        "details": "Horario sugerido: 21:00, com permanencia de 30 min.\n\nApós o jantar, retorne ao seu hotel para descansar. Utilize um aplicativo de transporte ou táxi para um trajeto seguro e confortável. Planeje o dia seguinte com base nas suas impressões e energia.",
+        "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuDoZjJz35m8EyEiFJD7-B6xM8MSfSGJ3gFAUHCpWbTtzC6gpvyGHkg2esanTe5uy10gOLbK38rEN5gmMyY0xjPCar1KNb6yej5dVjEcRywodUMS8QNbnXFAop6lEuP4OAyAxqnnPG5FFsZlbTT8UJjM1PrSR-6qpkWRr0MDZ2fi-CQGacKPT4PGQmosNgIcTYbPLjHW7nzohmbMGFDXZqDY0-TUpJR_PPlmy7hsl7vFJFwvFnUL781RvzGhXXmqVWJ4I0FHtzZvLDUi",
+        "customSymbol": "description",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 9,
+          "originalTitle": "Retorno ao Hotel",
+          "imageSearchQuery": "Retorno ao Hotel João Pessoa",
+          "estimatedDurationMinutes": 30,
+          "recommendedStartTime": "21:00",
+          "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuDoZjJz35m8EyEiFJD7-B6xM8MSfSGJ3gFAUHCpWbTtzC6gpvyGHkg2esanTe5uy10gOLbK38rEN5gmMyY0xjPCar1KNb6yej5dVjEcRywodUMS8QNbnXFAop6lEuP4OAyAxqnnPG5FFsZlbTT8UJjM1PrSR-6qpkWRr0MDZ2fi-CQGacKPT4PGQmosNgIcTYbPLjHW7nzohmbMGFDXZqDY0-TUpJR_PPlmy7hsl7vFJFwvFnUL781RvzGhXXmqVWJ4I0FHtzZvLDUi",
+          "imageSource": "library",
+          "imageCredit": "NH Hotel"
+        }
+      },
+      {
+        "id": "ai-c0852b61-caa9-43f3-a260-3a180d7aa11d",
+        "day": 3,
+        "type": "day_summary",
+        "title": "Explorando as Belezas Naturais do Litoral Sul de João Pessoa",
+        "subTitle": "João Pessoa, Paraíba",
+        "details": "Este dia é dedicado a explorar as deslumbrantes paisagens do Litoral Sul de João Pessoa, focando nas famosas praias de Coqueirinho e Tambaba. A trilha foi pensada para otimizar o deslocamento, começando pela manhã e se estendendo até o fim da tarde, com paradas estratégicas para almoço e contemplação.",
+        "customSymbol": "calendar_today",
+        "meta": {
+          "aiGenerated": true,
+          "imageSearchQuery": "Praia de Coqueirinho João Pessoa Explorando as Belezas Naturais do Litoral Sul de João Pessoa",
+          "image": "https://pixabay.com/get/gb7d62d64a674bd40657d7d720f32baab63ae39396dc5e534733481d2a653714e0bb6679f6abf47d76b8c4ef899d9b24142bb42d3ecf50e8414b6f1c3691bfd20_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "7945425"
+        },
+        "image": "https://pixabay.com/get/g44c6e874bd026e63ce290726a8f2838e0dcc1fd993c3651d778a9c29ea482eaaf338adb4e656dedf35e734121bb28025ec40c2722149faeef1b1a5917c9f4d00_1280.jpg"
+      },
+      {
+        "id": "ai-1821921a-1611-45af-9bca-f8fac13c85ad",
+        "day": 3,
+        "type": "activity",
+        "title": "09:00 - Praia de Coqueirinho",
+        "subTitle": "Visita essencial ao paraíso natural | 3h",
+        "details": "Horario sugerido: 09:00, com permanencia de 3h.\n\nComece o dia explorando a Praia de Coqueirinho, conhecida por suas falésias coloridas e águas cristalinas. O ideal é chegar pela manhã para aproveitar a tranquilidade e a luz perfeita para fotos. Há barracas rústicas que servem petiscos e bebidas, mas a estrutura é mais simples. Leve protetor solar e aproveite para caminhar pela orla.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 1,
+          "originalTitle": "Praia de Coqueirinho",
+          "imageSearchQuery": "Praia de Coqueirinho João Pessoa",
+          "location": {
+            "name": "Praia de Coqueirinho",
+            "address": "Litoral Sul, João Pessoa",
+            "latitude": -7.2789,
+            "longitude": -34.8103
+          },
+          "estimatedDurationMinutes": 180,
+          "recommendedStartTime": "09:00"
+        }
+      },
+      {
+        "id": "ai-e8919829-0e68-40da-82eb-8524e95ab162",
+        "day": 3,
+        "type": "activity",
+        "title": "12:00 - Mirante de Coqueirinho",
+        "subTitle": "Contemplação das paisagens | 30 min",
+        "details": "Deslocamento desde Praia de Coqueirinho: 0,2 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 12:00, com permanencia de 30 min.\n\nPróximo à praia, o Mirante de Coqueirinho oferece uma vista panorâmica espetacular da costa. É um ótimo local para fotos e para apreciar a formação geológica das falésias. A visita é rápida e complementar à experiência na praia. Aproveite para tirar fotos incríveis da vista.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 2,
+          "originalTitle": "Mirante de Coqueirinho",
+          "imageSearchQuery": "Mirante de Coqueirinho João Pessoa",
+          "location": {
+            "name": "Mirante de Coqueirinho",
+            "address": "Litoral Sul, João Pessoa",
+            "latitude": -7.281,
+            "longitude": -34.811
+          },
+          "estimatedDurationMinutes": 30,
+          "recommendedStartTime": "12:00",
+          "routeFromPrevious": {
+            "fromTitle": "Praia de Coqueirinho",
+            "toTitle": "Mirante de Coqueirinho",
+            "from": "Praia de Coqueirinho",
+            "to": "Mirante de Coqueirinho",
+            "distanceKm": 0.2,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-4cc48e3b-53eb-426d-af07-54d50e814fab",
+        "day": 3,
+        "type": "activity",
+        "title": "12:30 - Almoço com vista para o mar",
+        "subTitle": "Gastronomia regional | 1h30",
+        "details": "Deslocamento desde Mirante de Coqueirinho: 0,6 km, 8 min estimados, recomendado a pe.\n\nHorario sugerido: 12:30, com permanencia de 1h30.\n\nPara o almoço, sugerimos um dos restaurantes localizados na região de Coqueirinho ou Tambaba, que oferecem culinária regional com frutos do mar frescos. Muitos possuem uma vista privilegiada para o mar, tornando a refeição uma experiência completa. Recomenda-se verificar o funcionamento e, se possível, fazer uma reserva, especialmente em alta temporada.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 3,
+          "originalTitle": "Almoço com vista para o mar",
+          "imageSearchQuery": "Restaurante Litoral Sul João Pessoa",
+          "location": {
+            "name": "Restaurantes em Coqueirinho/Tambaba",
+            "address": "Litoral Sul, João Pessoa",
+            "latitude": -7.285,
+            "longitude": -34.815
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "12:30",
+          "routeFromPrevious": {
+            "fromTitle": "Mirante de Coqueirinho",
+            "toTitle": "Almoço com vista para o mar",
+            "from": "Mirante de Coqueirinho",
+            "to": "Restaurantes em Coqueirinho/Tambaba",
+            "distanceKm": 0.6,
+            "estimatedMinutes": 8,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-2d18a0d9-0f5f-4968-a82d-ea1f2aaed9e9",
+        "day": 3,
+        "type": "activity",
+        "title": "14:00 - Praia de Tambaba (Acesso Livre)",
+        "subTitle": "Exploração da praia icônica | 2h",
+        "details": "Deslocamento desde Almoço com vista para o mar: 1,2 km, 16 min estimados, recomendado a pe.\n\nHorario sugerido: 14:00, com permanencia de 2h.\n\nVisite a famosa Praia de Tambaba, conhecida por ser a primeira praia naturista oficial do Brasil. O acesso à parte livre (não naturista) é permitido e oferece uma beleza natural impressionante com suas falésias e mar. A parte naturista requer vestimenta adequada ou a ausência dela, conforme as regras locais. Chegue no início da tarde para aproveitar o sol.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 4,
+          "originalTitle": "Praia de Tambaba (Acesso Livre)",
+          "imageSearchQuery": "Praia de Tambaba João Pessoa",
+          "location": {
+            "name": "Praia de Tambaba",
+            "address": "Litoral Sul, João Pessoa",
+            "latitude": -7.295,
+            "longitude": -34.82
+          },
+          "estimatedDurationMinutes": 120,
+          "recommendedStartTime": "14:00",
+          "routeFromPrevious": {
+            "fromTitle": "Almoço com vista para o mar",
+            "toTitle": "Praia de Tambaba (Acesso Livre)",
+            "from": "Restaurantes em Coqueirinho/Tambaba",
+            "to": "Praia de Tambaba",
+            "distanceKm": 1.2,
+            "estimatedMinutes": 16,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-7a2f0074-fd26-41e0-bd96-161ed2e759d9",
+        "day": 3,
+        "type": "activity",
+        "title": "17:00 - Pôr do Sol na Praia de Tambaba",
+        "subTitle": "Momento de contemplação | 1h",
+        "details": "Deslocamento desde Praia de Tambaba (Acesso Livre): 0 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 17:00, com permanencia de 1h.\n\nAo final da tarde, aproveite para assistir ao pôr do sol na Praia de Tambaba. A paisagem com as falésias e o mar ao entardecer é espetacular e proporciona um momento de paz e beleza natural. É uma oportunidade única para relaxar e apreciar a natureza exuberante do local.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 5,
+          "originalTitle": "Pôr do Sol na Praia de Tambaba",
+          "imageSearchQuery": "Pôr do Sol Praia de Tambaba João Pessoa",
+          "location": {
+            "name": "Praia de Tambaba",
+            "address": "Litoral Sul, João Pessoa",
+            "latitude": -7.295,
+            "longitude": -34.82
+          },
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "17:00",
+          "routeFromPrevious": {
+            "fromTitle": "Praia de Tambaba (Acesso Livre)",
+            "toTitle": "Pôr do Sol na Praia de Tambaba",
+            "from": "Praia de Tambaba",
+            "to": "Praia de Tambaba",
+            "distanceKm": 0,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-53a39d33-719e-450b-ba10-1948bb441038",
+        "day": 3,
+        "type": "transport",
+        "title": "18:00 - Retorno para João Pessoa",
+        "subTitle": "Deslocamento de volta | 1h30",
+        "details": "Deslocamento desde Pôr do Sol na Praia de Tambaba: 0 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 18:00, com permanencia de 1h30.\n\nApós um dia de exploração no Litoral Sul, inicie o retorno para a área urbana de João Pessoa. O trajeto pode ser feito de carro ou táxi/aplicativo. Considere o trânsito para planejar o tempo de chegada.",
+        "customSymbol": "directions_car",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 6,
+          "originalTitle": "Retorno para João Pessoa",
+          "imageSearchQuery": "Carro na estrada João Pessoa",
+          "location": {
+            "name": "Praia de Tambaba para João Pessoa",
+            "address": "Litoral Sul, João Pessoa",
+            "latitude": -7.295,
+            "longitude": -34.82
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "18:00",
+          "routeFromPrevious": {
+            "fromTitle": "Pôr do Sol na Praia de Tambaba",
+            "toTitle": "Retorno para João Pessoa",
+            "from": "Praia de Tambaba",
+            "to": "Praia de Tambaba para João Pessoa",
+            "distanceKm": 0,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-aae9e32e-a615-4384-9655-7f446b53b7c3",
+        "day": 3,
+        "type": "activity",
+        "title": "20:00 - Jantar na Orla de Tambaú",
+        "subTitle": "Opções gastronômicas variadas | 2h",
+        "details": "Deslocamento desde Retorno para João Pessoa: 20,9 km, 279 min estimados, recomendado carro, taxi ou transporte publico.\n\nHorario sugerido: 20:00, com permanencia de 2h.\n\nPara o jantar, a Orla de Tambaú oferece uma vasta gama de restaurantes, atendendo a diversos paladares. Como o cliente aprecia culinária variada e não quer repetir o estilo japonês todos os dias, esta é uma excelente oportunidade para experimentar pratos da culinária nordestina, frutos do mar ou outras opções internacionais. Verifique a disponibilidade e horários de funcionamento dos estabelecimentos.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 7,
+          "originalTitle": "Jantar na Orla de Tambaú",
+          "imageSearchQuery": "Restaurante Orla Tambaú João Pessoa",
+          "location": {
+            "name": "Orla de Tambaú",
+            "address": "Tambaú, João Pessoa",
+            "latitude": -7.107,
+            "longitude": -34.827
+          },
+          "estimatedDurationMinutes": 120,
+          "recommendedStartTime": "20:00",
+          "routeFromPrevious": {
+            "fromTitle": "Retorno para João Pessoa",
+            "toTitle": "Jantar na Orla de Tambaú",
+            "from": "Praia de Tambaba para João Pessoa",
+            "to": "Orla de Tambaú",
+            "distanceKm": 20.9,
+            "estimatedMinutes": 279,
+            "mode": "car_or_transit",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-3670b4c2-2f73-475c-a82c-f6966576b542",
+        "day": 3,
+        "type": "text",
+        "title": "22:00 - Noite Livre",
+        "subTitle": "Relaxamento e descanso | 2h",
+        "details": "Horario sugerido: 22:00, com permanencia de 2h.\n\nApós o jantar, aproveite para caminhar pela orla, tomar um sorvete ou simplesmente retornar ao hotel para descansar. O dia foi intenso com as belezas naturais do litoral, e a noite livre permite flexibilidade para o viajante.",
+        "image": "https://pixabay.com/get/gac3363044aafa8dc02d44afeb64c4c004998fde6230a2308124071e1233999e2b011aaf1552526bdeb9c6ab1e8e3e703c443d56db295e9ee5833c50b2e18865a_1280.jpg",
+        "customSymbol": "description",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 8,
+          "originalTitle": "Noite Livre",
+          "imageSearchQuery": "Noite na Orla de João Pessoa",
+          "estimatedDurationMinutes": 120,
+          "recommendedStartTime": "22:00",
+          "image": "https://pixabay.com/get/gac3363044aafa8dc02d44afeb64c4c004998fde6230a2308124071e1233999e2b011aaf1552526bdeb9c6ab1e8e3e703c443d56db295e9ee5833c50b2e18865a_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "MAURICIO_BR"
+        }
+      },
+      {
+        "id": "ai-f662468f-47d8-4354-aff3-555ad6518eee",
+        "day": 7,
+        "type": "day_summary",
+        "title": "Dia de Sol e Sabores em Intermares",
+        "subTitle": "João Pessoa - Praia de Intermares e Arredores",
+        "details": "Este dia é dedicado ao relaxamento e à diversão na Praia de Intermares, com oportunidades para esportes aquáticos e um jantar especial para explorar a culinária local. A logística foi pensada para otimizar o tempo, concentrando as atividades na região litorânea sul.",
+        "customSymbol": "calendar_today",
+        "meta": {
+          "aiGenerated": true,
+          "imageSearchQuery": "Praia de Intermares João Pessoa Dia de Sol e Sabores em Intermares",
+          "image": "https://pixabay.com/get/g9be8a4081c805bd8dc99ab37e0c5bc1992f1d65fcee1935ba4329cdc9b2294463dd4bee4e3d6a46efea9a77db4c092840648ec68a5c6fed48ac392100c868e11_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "1857643"
+        },
+        "image": "https://pixabay.com/get/g9be8a4081c805bd8dc99ab37e0c5bc1992f1d65fcee1935ba4329cdc9b2294463dd4bee4e3d6a46efea9a77db4c092840648ec68a5c6fed48ac392100c868e11_1280.jpg"
+      },
+      {
+        "id": "ai-fec1f49c-2df9-40d6-8287-2a2f58013a87",
+        "day": 7,
+        "type": "places",
+        "title": "08:30 - Praia de Intermares",
+        "subTitle": "Manhã de Sol e Mar | 3h",
+        "details": "Horario sugerido: 08:30, com permanencia de 3h.\n\nComece o dia aproveitando a extensa faixa de areia e as águas calmas de Intermares. É um local ideal para caminhadas matinais e para sentir a brisa do mar. Leve protetor solar, chapéu e aproveite para relaxar antes das atividades mais intensas.",
+        "image": "https://pixabay.com/get/g37d37f86ea63ccfdf000e6e7bc191d88f3f66cdb07e54f0323ca8607cf8422d158400532146450300fe9fe462bad21e7f4c24a64ed48eb27b2dd3c23fe0abe01_1280.jpg",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 1,
+          "originalTitle": "Praia de Intermares",
+          "imageSearchQuery": "Praia de Intermares João Pessoa Praia de Intermares Av. Governador Argemiro de Melo, Intermares, Cab",
+          "location": {
+            "name": "Praia de Intermares",
+            "address": "Av. Governador Argemiro de Melo, Intermares, Cabedelo - PB",
+            "latitude": -7.0799,
+            "longitude": -34.8216
+          },
+          "estimatedDurationMinutes": 180,
+          "recommendedStartTime": "08:30",
+          "image": "https://pixabay.com/get/g37d37f86ea63ccfdf000e6e7bc191d88f3f66cdb07e54f0323ca8607cf8422d158400532146450300fe9fe462bad21e7f4c24a64ed48eb27b2dd3c23fe0abe01_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "1857643"
+        }
+      },
+      {
+        "id": "ai-0bbe00a6-84d1-4f07-8e4c-000b5691fe04",
+        "day": 7,
+        "type": "activity",
+        "title": "11:00 - Esportes Aquáticos em Intermares",
+        "subTitle": "Aventura e Diversão na Água | 2h",
+        "details": "Deslocamento desde Praia de Intermares: 0 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 11:00, com permanencia de 2h.\n\nIntermares é conhecida por suas boas condições para a prática de kitesurf e windsurf. Se você é iniciante, há escolas na região que oferecem aulas experimentais. Caso prefira algo mais tranquilo, o stand-up paddle também é uma ótima opção. Verifique a disponibilidade e agende com antecedência, se possível.",
+        "image": "https://pixabay.com/get/g3f29a82b4e66d04b50f8f87f01bd38c5a5603c34828edff637e9ee605ff1f87774b2e225924804d85d3f3246a13673e03b6c7a2c96c19507bca978ec2edeb014_1280.jpg",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 2,
+          "originalTitle": "Esportes Aquáticos em Intermares",
+          "imageSearchQuery": "Kitesurf Praia de Intermares João Pessoa Praia de Intermares Av. Governador Argemiro de Melo, Interm",
+          "location": {
+            "name": "Praia de Intermares",
+            "address": "Av. Governador Argemiro de Melo, Intermares, Cabedelo - PB",
+            "latitude": -7.0799,
+            "longitude": -34.8216
+          },
+          "estimatedDurationMinutes": 120,
+          "recommendedStartTime": "11:00",
+          "routeFromPrevious": {
+            "fromTitle": "Praia de Intermares",
+            "toTitle": "Esportes Aquáticos em Intermares",
+            "from": "Praia de Intermares",
+            "to": "Praia de Intermares",
+            "distanceKm": 0,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          },
+          "image": "https://pixabay.com/get/g3f29a82b4e66d04b50f8f87f01bd38c5a5603c34828edff637e9ee605ff1f87774b2e225924804d85d3f3246a13673e03b6c7a2c96c19507bca978ec2edeb014_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "1857643"
+        }
+      },
+      {
+        "id": "ai-737b86ad-6b21-4575-8786-5955c9182dca",
+        "day": 7,
+        "type": "places",
+        "title": "13:00 - Restaurante Xaréu",
+        "subTitle": "Almoço com Vista para o Mar | 1h30",
+        "details": "Deslocamento desde Esportes Aquáticos em Intermares: 0,2 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 13:00, com permanencia de 1h30.\n\nPara o almoço, o Xaréu oferece uma culinária regional com frutos do mar frescos e uma vista privilegiada da praia. É uma excelente oportunidade para experimentar pratos locais em um ambiente agradável. Recomenda-se verificar o horário de funcionamento e se há necessidade de reserva, especialmente em fins de semana.",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 3,
+          "originalTitle": "Restaurante Xaréu",
+          "imageSearchQuery": "Restaurante Xaréu João Pessoa",
+          "location": {
+            "name": "Restaurante Xaréu",
+            "address": "Rua Manoel de Souza, 100, Intermares, Cabedelo - PB",
+            "latitude": -7.0815,
+            "longitude": -34.822
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "13:00",
+          "routeFromPrevious": {
+            "fromTitle": "Esportes Aquáticos em Intermares",
+            "toTitle": "Restaurante Xaréu",
+            "from": "Praia de Intermares",
+            "to": "Restaurante Xaréu",
+            "distanceKm": 0.2,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-bad5b892-0b93-4415-892a-db5ba89617c0",
+        "day": 7,
+        "type": "transport",
+        "title": "14:30 - Deslocamento para o Centro de João Pessoa",
+        "subTitle": "Transporte para o próximo destino | 40 min",
+        "details": "Deslocamento desde Restaurante Xaréu: 0,2 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 14:30, com permanencia de 40 min.\n\nApós o almoço, pegue um táxi ou aplicativo de transporte para retornar ao centro de João Pessoa, onde você terá mais opções de atividades e jantar. O trajeto leva aproximadamente 30-40 minutos, dependendo do trânsito.",
+        "customSymbol": "directions_car",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 4,
+          "originalTitle": "Deslocamento para o Centro de João Pessoa",
+          "imageSearchQuery": "Táxi João Pessoa",
+          "location": {
+            "name": "Praia de Intermares",
+            "address": "Intermares, Cabedelo - PB",
+            "latitude": -7.0799,
+            "longitude": -34.8216
+          },
+          "estimatedDurationMinutes": 40,
+          "recommendedStartTime": "14:30",
+          "routeFromPrevious": {
+            "fromTitle": "Restaurante Xaréu",
+            "toTitle": "Deslocamento para o Centro de João Pessoa",
+            "from": "Restaurante Xaréu",
+            "to": "Praia de Intermares",
+            "distanceKm": 0.2,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-743d8a3e-db44-4ca1-bb29-5923789657f0",
+        "day": 7,
+        "type": "places",
+        "title": "15:30 - Parque Solon de Lucena (Lagoa)",
+        "subTitle": "Passeio Relaxante no Fim de Tarde | 1h30",
+        "details": "Deslocamento desde Deslocamento para o Centro de João Pessoa: 6,6 km, 88 min estimados, recomendado carro, taxi ou transporte publico.\n\nHorario sugerido: 15:30, com permanencia de 1h30.\n\nA Lagoa é um cartão postal da cidade, perfeito para uma caminhada leve e para apreciar o pôr do sol. O parque é cercado por uma bela paisagem e é um ótimo local para relaxar após um dia de praia. Aproveite para tirar fotos e desfrutar da tranquilidade.",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 5,
+          "originalTitle": "Parque Solon de Lucena (Lagoa)",
+          "imageSearchQuery": "Parque Solon de Lucena João Pessoa",
+          "location": {
+            "name": "Parque Solon de Lucena",
+            "address": "Av. Epitácio Pessoa, s/n, Centro, João Pessoa - PB",
+            "latitude": -7.1129,
+            "longitude": -34.8718
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "15:30",
+          "routeFromPrevious": {
+            "fromTitle": "Deslocamento para o Centro de João Pessoa",
+            "toTitle": "Parque Solon de Lucena (Lagoa)",
+            "from": "Praia de Intermares",
+            "to": "Parque Solon de Lucena",
+            "distanceKm": 6.6,
+            "estimatedMinutes": 88,
+            "mode": "car_or_transit",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-1714f8a6-b590-4ba8-8151-477c09c28921",
+        "day": 7,
+        "type": "suggested_places",
+        "title": "17:00 - Feirinha de Artesanato de Tambaú",
+        "subTitle": "Compras e Lembrancinhas | 1h",
+        "details": "Deslocamento desde Parque Solon de Lucena (Lagoa): 4,2 km, 56 min estimados, recomendado carro, taxi ou transporte publico.\n\nHorario sugerido: 17:00, com permanencia de 1h.\n\nSe desejar, faça uma parada rápida na Feirinha de Artesanato de Tambaú para encontrar lembrancinhas e produtos locais. É um local vibrante com diversas opções de artesanato, rendas, cerâmicas e comidas típicas. O horário de funcionamento pode variar, mas geralmente funciona até o início da noite.",
+        "image": "https://pixabay.com/get/g2eba345061afb613004ac53104158e87d8682fa476942ec398f7821e6abf1437824fa03cd68cc97fb0624c54d25b2dff2837a5785f5f3b20a670c52da79ddb3d_1280.jpg",
+        "customSymbol": "star",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 6,
+          "originalTitle": "Feirinha de Artesanato de Tambaú",
+          "imageSearchQuery": "Feirinha de Artesanato Tambaú João Pessoa Feirinha de Artesanato de Tambaú Av. Almirante Tamandaré, ",
+          "location": {
+            "name": "Feirinha de Artesanato de Tambaú",
+            "address": "Av. Almirante Tamandaré, Tambaú, João Pessoa - PB",
+            "latitude": -7.1042,
+            "longitude": -34.8349
+          },
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "17:00",
+          "routeFromPrevious": {
+            "fromTitle": "Parque Solon de Lucena (Lagoa)",
+            "toTitle": "Feirinha de Artesanato de Tambaú",
+            "from": "Parque Solon de Lucena",
+            "to": "Feirinha de Artesanato de Tambaú",
+            "distanceKm": 4.2,
+            "estimatedMinutes": 56,
+            "mode": "car_or_transit",
+            "requiresLookup": false
+          },
+          "image": "https://pixabay.com/get/g2eba345061afb613004ac53104158e87d8682fa476942ec398f7821e6abf1437824fa03cd68cc97fb0624c54d25b2dff2837a5785f5f3b20a670c52da79ddb3d_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "Leolo212"
+        }
+      },
+      {
+        "id": "ai-135da3ff-c28d-463a-8556-c1c0d7b2eb3c",
+        "day": 7,
+        "type": "transport",
+        "title": "19:00 - Deslocamento para o Jantar",
+        "subTitle": "Transporte para o restaurante | 15 min",
+        "details": "Deslocamento desde Feirinha de Artesanato de Tambaú: 0 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 19:00, com permanencia de 15 min.\n\nUtilize um táxi ou aplicativo de transporte para se deslocar até o restaurante escolhido para o jantar. A região central e de Tambaú oferecem diversas opções gastronômicas.",
+        "customSymbol": "directions_car",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 7,
+          "originalTitle": "Deslocamento para o Jantar",
+          "imageSearchQuery": "Táxi João Pessoa",
+          "location": {
+            "name": "Tambaú",
+            "address": "Tambaú, João Pessoa - PB",
+            "latitude": -7.1042,
+            "longitude": -34.8349
+          },
+          "estimatedDurationMinutes": 15,
+          "recommendedStartTime": "19:00",
+          "routeFromPrevious": {
+            "fromTitle": "Feirinha de Artesanato de Tambaú",
+            "toTitle": "Deslocamento para o Jantar",
+            "from": "Feirinha de Artesanato de Tambaú",
+            "to": "Tambaú",
+            "distanceKm": 0,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-604ee44b-edd4-41a2-a828-20e182d2a8a0",
+        "day": 7,
+        "type": "places",
+        "title": "19:30 - Restaurante Nau Frutos do Mar",
+        "subTitle": "Jantar Especial com Culinária Diversificada | 2h",
+        "details": "Deslocamento desde Deslocamento para o Jantar: 0,1 km, 5 min estimados, recomendado a pe.\n\nHorario sugerido: 19:30, com permanencia de 2h.\n\nPara o jantar, o Nau Frutos do Mar é uma excelente opção para quem busca uma experiência gastronômica diferenciada, com foco em frutos do mar e pratos contemporâneos. O ambiente é sofisticado e o cardápio oferece opções variadas. É altamente recomendável fazer reserva com antecedência, pois o restaurante costuma ser bastante procurado.",
+        "image": "https://pixabay.com/get/gd12a601d965027ac18f52f0641731b53aca78b0e20e14e32ee7610e22259fe3096f892757069bb855d1d51cb907d05c9807ccb46fde4794247382d5a01be876c_1280.jpg",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 8,
+          "originalTitle": "Restaurante Nau Frutos do Mar",
+          "imageSearchQuery": "Restaurante Nau Frutos do Mar João Pessoa Restaurante Nau Frutos do Mar Av. Monsenhor Walfredo Leal,",
+          "location": {
+            "name": "Restaurante Nau Frutos do Mar",
+            "address": "Av. Monsenhor Walfredo Leal, 180, Tambaú, João Pessoa - PB",
+            "latitude": -7.1033,
+            "longitude": -34.8343
+          },
+          "estimatedDurationMinutes": 120,
+          "recommendedStartTime": "19:30",
+          "routeFromPrevious": {
+            "fromTitle": "Deslocamento para o Jantar",
+            "toTitle": "Restaurante Nau Frutos do Mar",
+            "from": "Tambaú",
+            "to": "Restaurante Nau Frutos do Mar",
+            "distanceKm": 0.1,
+            "estimatedMinutes": 5,
+            "mode": "walk",
+            "requiresLookup": false
+          },
+          "image": "https://pixabay.com/get/gd12a601d965027ac18f52f0641731b53aca78b0e20e14e32ee7610e22259fe3096f892757069bb855d1d51cb907d05c9807ccb46fde4794247382d5a01be876c_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "coligado"
+        }
+      },
+      {
+        "id": "ai-c7edf6b8-b840-4c31-8626-9bd6d326bedd",
+        "day": 7,
+        "type": "text",
+        "title": "21:30 - Noite em João Pessoa",
+        "subTitle": "Retorno e Descanso | 1h",
+        "details": "Horario sugerido: 21:30, com permanencia de 1h.\n\nApós o jantar, retorne ao seu hotel ou acomodação. Aproveite para descansar e se preparar para os próximos dias de exploração em João Pessoa. Se desejar, uma caminhada leve pela orla de Tambaú pode ser uma opção antes de encerrar a noite.",
+        "image": "https://pixabay.com/get/gaf4ad59038ad166b8061aebce376a6fc6fa24fa3b18ba5dbe5a8fe92df8bd3d2fcac0b56a5876230fe8973805e37e6dfe5b691a5bac25ef8276a85dd41598902_1280.jpg",
+        "customSymbol": "description",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 9,
+          "originalTitle": "Noite em João Pessoa",
+          "imageSearchQuery": "Orla de Tambaú João Pessoa à noite",
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "21:30",
+          "image": "https://pixabay.com/get/gaf4ad59038ad166b8061aebce376a6fc6fa24fa3b18ba5dbe5a8fe92df8bd3d2fcac0b56a5876230fe8973805e37e6dfe5b691a5bac25ef8276a85dd41598902_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "MAURICIO_BR"
+        }
+      },
+      {
+        "id": "ai-28f3da6b-3b7f-42a2-9c20-1c8db135c9e8",
+        "day": 8,
+        "type": "day_summary",
+        "title": "Manhã Livre e Despedida da Paraíba em Tambaú/Cabo Branco",
+        "subTitle": "João Pessoa - Tambaú / Cabo Branco",
+        "details": "Aproveite a manhã para últimas compras ou um passeio tranquilo pela orla de Tambaú e Cabo Branco. O dia é dedicado a desfrutar dos momentos finais na Paraíba, com opções de lazer e gastronomia antes da preparação para o retorno.",
+        "customSymbol": "calendar_today",
+        "meta": {
+          "aiGenerated": true,
+          "imageSearchQuery": "Orla de Tambaú João Pessoa"
+        }
+      },
+      {
+        "id": "ai-76fdbf74-82a9-4bbd-b333-5ef95ff043e4",
+        "day": 8,
+        "type": "activity",
+        "title": "08:30 - Manhã Livre em Tambaú",
+        "subTitle": "Tempo para compras e lazer | 3h",
+        "details": "Horario sugerido: 08:30, com permanencia de 3h.\n\nAproveite a manhã para fazer as últimas compras de artesanato local ou simplesmente relaxar na praia de Tambaú. A região oferece diversas lojas de souvenirs e barracas de praia. Considere um café da manhã em uma das padarias locais.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 1,
+          "originalTitle": "Manhã Livre em Tambaú",
+          "imageSearchQuery": "Praia de Tambaú João Pessoa",
+          "estimatedDurationMinutes": 180,
+          "recommendedStartTime": "08:30"
+        }
+      },
+      {
+        "id": "ai-6702144e-9048-4f00-8df9-41c9ffb43a1f",
+        "day": 8,
+        "type": "places",
+        "title": "10:00 - Feirinha de Artesanato de Tambaú",
+        "subTitle": "Compras de última hora | 1h30",
+        "details": "Horario sugerido: 10:00, com permanencia de 1h30.\n\nVisite a tradicional feirinha de artesanato de Tambaú para adquirir lembrancinhas e produtos locais. É uma ótima oportunidade para encontrar rendas, cerâmicas e outros itens característicos da Paraíba. A feirinha costuma estar mais movimentada no final da tarde, mas algumas barracas abrem pela manhã.",
+        "image": "https://pixabay.com/get/g50da7546dc9f9a92df43e07891e21da01f6d39df534225fea5c0a1f851b5a39a5629e51f71b344fd39eaed18e042382b5aefe7f0c1c88050a2f5c08809e7be41_1280.jpg",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 2,
+          "originalTitle": "Feirinha de Artesanato de Tambaú",
+          "imageSearchQuery": "Feirinha de Artesanato de Tambaú João Pessoa Feirinha de Artesanato de Tambaú Av. Monsenhor Walfredo",
+          "location": {
+            "name": "Feirinha de Artesanato de Tambaú",
+            "address": "Av. Monsenhor Walfredo Leal, Tambaú",
+            "latitude": -7.1056,
+            "longitude": -34.8312
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "10:00",
+          "image": "https://pixabay.com/get/g50da7546dc9f9a92df43e07891e21da01f6d39df534225fea5c0a1f851b5a39a5629e51f71b344fd39eaed18e042382b5aefe7f0c1c88050a2f5c08809e7be41_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "Leolo212"
+        }
+      },
+      {
+        "id": "ai-d79aec36-246c-4164-b18e-be6d2cc1f0e7",
+        "day": 8,
+        "type": "activity",
+        "title": "11:30 - Caminhada pela Orla de Cabo Branco",
+        "subTitle": "Apreciando a vista | 1h",
+        "details": "Horario sugerido: 11:30, com permanencia de 1h.\n\nFaça uma caminhada leve pela orla de Cabo Branco, apreciando a paisagem e o mar. É um momento para respirar o ar fresco e desfrutar das últimas vistas da cidade. A orla é bem estruturada e segura para pedestres.",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 3,
+          "originalTitle": "Caminhada pela Orla de Cabo Branco",
+          "imageSearchQuery": "Orla de Cabo Branco João Pessoa",
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "11:30"
+        }
+      },
+      {
+        "id": "ai-930d4466-ecf0-41ed-97a1-4802cac35eff",
+        "day": 8,
+        "type": "places",
+        "title": "13:00 - Almoço em Cabo Branco",
+        "subTitle": "Gastronomia local | 1h30",
+        "details": "Deslocamento desde Feirinha de Artesanato de Tambaú: 1,2 km, 16 min estimados, recomendado a pe.\n\nHorario sugerido: 13:00, com permanencia de 1h30.\n\nDesfrute de um almoço em um dos restaurantes da orla de Cabo Branco. Há opções variadas, desde frutos do mar frescos a pratos regionais. Sugerimos um restaurante com vista para o mar para uma experiência mais agradável. Verifique os horários de funcionamento e, se possível, faça uma reserva.",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 4,
+          "originalTitle": "Almoço em Cabo Branco",
+          "imageSearchQuery": "Restaurante Cabo Branco João Pessoa",
+          "location": {
+            "name": "Orla de Cabo Branco",
+            "address": "Av. Cabo Branco, Cabo Branco",
+            "latitude": -7.1166,
+            "longitude": -34.8333
+          },
+          "estimatedDurationMinutes": 90,
+          "recommendedStartTime": "13:00",
+          "routeFromPrevious": {
+            "fromTitle": "Feirinha de Artesanato de Tambaú",
+            "toTitle": "Almoço em Cabo Branco",
+            "from": "Feirinha de Artesanato de Tambaú",
+            "to": "Orla de Cabo Branco",
+            "distanceKm": 1.2,
+            "estimatedMinutes": 16,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-9429f189-ad01-43b2-adb7-d789feee9c91",
+        "day": 8,
+        "type": "transport",
+        "title": "14:30 - Deslocamento para o Hotel",
+        "subTitle": "Retorno para organização | 30 min",
+        "details": "Horario sugerido: 14:30, com permanencia de 30 min.\n\nRetorne ao hotel para organizar seus pertences e se preparar para o check-out ou para os próximos passos do dia.",
+        "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuDoZjJz35m8EyEiFJD7-B6xM8MSfSGJ3gFAUHCpWbTtzC6gpvyGHkg2esanTe5uy10gOLbK38rEN5gmMyY0xjPCar1KNb6yej5dVjEcRywodUMS8QNbnXFAop6lEuP4OAyAxqnnPG5FFsZlbTT8UJjM1PrSR-6qpkWRr0MDZ2fi-CQGacKPT4PGQmosNgIcTYbPLjHW7nzohmbMGFDXZqDY0-TUpJR_PPlmy7hsl7vFJFwvFnUL781RvzGhXXmqVWJ4I0FHtzZvLDUi",
+        "customSymbol": "car",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 5,
+          "originalTitle": "Deslocamento para o Hotel",
+          "imageSearchQuery": "Táxi João Pessoa 14:30 - Deslocamento para o Hotel",
+          "estimatedDurationMinutes": 30,
+          "recommendedStartTime": "14:30",
+          "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuDoZjJz35m8EyEiFJD7-B6xM8MSfSGJ3gFAUHCpWbTtzC6gpvyGHkg2esanTe5uy10gOLbK38rEN5gmMyY0xjPCar1KNb6yej5dVjEcRywodUMS8QNbnXFAop6lEuP4OAyAxqnnPG5FFsZlbTT8UJjM1PrSR-6qpkWRr0MDZ2fi-CQGacKPT4PGQmosNgIcTYbPLjHW7nzohmbMGFDXZqDY0-TUpJR_PPlmy7hsl7vFJFwvFnUL781RvzGhXXmqVWJ4I0FHtzZvLDUi",
+          "imageSource": "library",
+          "imageCredit": "NH Hotel"
+        }
+      },
+      {
+        "id": "ai-4c99d927-53eb-4ac2-ad7c-a0dd2785ef76",
+        "day": 8,
+        "type": "activity",
+        "title": "15:00 - Tempo Livre e Preparação para o Retorno",
+        "subTitle": "Organização final | 2h",
+        "details": "Horario sugerido: 15:00, com permanencia de 2h.\n\nUtilize este tempo para descansar, arrumar as malas e realizar qualquer pendência final antes do check-out ou da partida. Se o voo for mais tarde, pode ser um momento para um último café.",
+        "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuDoZjJz35m8EyEiFJD7-B6xM8MSfSGJ3gFAUHCpWbTtzC6gpvyGHkg2esanTe5uy10gOLbK38rEN5gmMyY0xjPCar1KNb6yej5dVjEcRywodUMS8QNbnXFAop6lEuP4OAyAxqnnPG5FFsZlbTT8UJjM1PrSR-6qpkWRr0MDZ2fi-CQGacKPT4PGQmosNgIcTYbPLjHW7nzohmbMGFDXZqDY0-TUpJR_PPlmy7hsl7vFJFwvFnUL781RvzGhXXmqVWJ4I0FHtzZvLDUi",
+        "customSymbol": "explore",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 6,
+          "originalTitle": "Tempo Livre e Preparação para o Retorno",
+          "imageSearchQuery": "Hotel João Pessoa 15:00 - Tempo Livre e Preparação para o Retorno",
+          "estimatedDurationMinutes": 120,
+          "recommendedStartTime": "15:00",
+          "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuDoZjJz35m8EyEiFJD7-B6xM8MSfSGJ3gFAUHCpWbTtzC6gpvyGHkg2esanTe5uy10gOLbK38rEN5gmMyY0xjPCar1KNb6yej5dVjEcRywodUMS8QNbnXFAop6lEuP4OAyAxqnnPG5FFsZlbTT8UJjM1PrSR-6qpkWRr0MDZ2fi-CQGacKPT4PGQmosNgIcTYbPLjHW7nzohmbMGFDXZqDY0-TUpJR_PPlmy7hsl7vFJFwvFnUL781RvzGhXXmqVWJ4I0FHtzZvLDUi",
+          "imageSource": "library",
+          "imageCredit": "NH Hotel"
+        }
+      },
+      {
+        "id": "ai-f55cebdf-f1e4-4d5c-bad6-ce6aa4adf0b7",
+        "day": 8,
+        "type": "places",
+        "title": "17:00 - Café da Tarde ou Lanche",
+        "subTitle": "Últimos sabores | 1h",
+        "details": "Deslocamento desde Almoço em Cabo Branco: 0,6 km, 8 min estimados, recomendado a pe.\n\nHorario sugerido: 17:00, com permanencia de 1h.\n\nDependendo do horário do seu voo, aproveite para um último café da tarde em uma cafeteria charmosa na região de Tambaú ou Cabo Branco. Experimente um doce local ou um salgado.",
+        "customSymbol": "museum",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 7,
+          "originalTitle": "Café da Tarde ou Lanche",
+          "imageSearchQuery": "Cafeteria Tambaú João Pessoa",
+          "location": {
+            "name": "Região de Tambaú/Cabo Branco",
+            "address": "Tambaú / Cabo Branco",
+            "latitude": -7.1111,
+            "longitude": -34.8322
+          },
+          "estimatedDurationMinutes": 60,
+          "recommendedStartTime": "17:00",
+          "routeFromPrevious": {
+            "fromTitle": "Almoço em Cabo Branco",
+            "toTitle": "Café da Tarde ou Lanche",
+            "from": "Orla de Cabo Branco",
+            "to": "Região de Tambaú/Cabo Branco",
+            "distanceKm": 0.6,
+            "estimatedMinutes": 8,
+            "mode": "walk",
+            "requiresLookup": false
+          }
+        }
+      },
+      {
+        "id": "ai-1cc767a9-6b0a-4d6a-9629-28d47241b1d9",
+        "day": 8,
+        "type": "text",
+        "title": "18:00 - Despedida da Paraíba",
+        "subTitle": "Momentos finais | 30 min",
+        "details": "Horario sugerido: 18:00, com permanencia de 30 min.\n\nEste é o momento de se despedir da bela João Pessoa. Esperamos que sua viagem tenha sido repleta de momentos agradáveis, sabores inesquecíveis e muita alegria. Leve consigo as boas recordações da hospitalidade paraibana.",
+        "image": "https://pixabay.com/get/gde6eb8be9b1f1094eaa0c55bf94614886b4a06ebc47f3e5d4c520073bed190ee92e23d170da797ffb16ffaf7949a7970c9c80973b9e57d23c9d6c48fc23058d7_1280.jpg",
+        "customSymbol": "description",
+        "meta": {
+          "aiGenerated": true,
+          "sequence": 8,
+          "originalTitle": "Despedida da Paraíba",
+          "imageSearchQuery": "João Pessoa pôr do sol",
+          "estimatedDurationMinutes": 30,
+          "recommendedStartTime": "18:00",
+          "image": "https://pixabay.com/get/gde6eb8be9b1f1094eaa0c55bf94614886b4a06ebc47f3e5d4c520073bed190ee92e23d170da797ffb16ffaf7949a7970c9c80973b9e57d23c9d6c48fc23058d7_1280.jpg",
+          "imageSource": "pixabay",
+          "imageCredit": "isaquelopess"
         }
       }
-    ]
+    ],
+    "name": "João Pessoa 2026",
+    "destinations": [
+      "Joao Pessoa"
+    ],
+    "destinationsDetail": [
+      {
+        "city": "Joao Pessoa (BR)",
+        "startDate": "2026-06-19",
+        "endDate": "2026-06-26",
+        "allTravelers": true
+      }
+    ],
+    "startDate": "2026-06-19",
+    "endDate": "2026-06-26",
+    "travelers": [
+      "BR"
+    ],
+    "clientName": "Bruna",
+    "budget": 10000,
+    "preferences": "Sem restrições, aproveitar praia, boa gastronomia e são joão, preferencias de culinaria variadas, gosta bastante de comida japonesa, mas nao quer comer esse estilo de comida todos os dias",
+    "profile": "lazer",
+    "origin": "São Paulo (BR)",
+    "agencyId": "agency-default",
+    "aiStatus": "AI_REVIEWED",
+    "aiResponse": {
+      "generationId": "d35dbf1d-d40f-4463-bb72-417a89398785",
+      "model": "gemini-2.5-flash",
+      "provider": "gemini",
+      "totalTokensIn": 9534,
+      "totalTokensOut": 10424,
+      "latencyMs": 112156,
+      "daysGenerated": 5,
+      "failedDays": [
+        {
+          "day": 4,
+          "error": "Falha ao gerar resposta com Gemini. Modelos tentados: gemini-2.5-flash, gemini-2.5-flash-lite, gemini-1.5-flash. Falhas: gemini-2.5-flash: HTTP 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\\nPlease retry in 33.593931621s. | gemini-2.5-flash-lite: HTTP 503 This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later. | gemini-1.5-flash: HTTP 404 models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods."
+        },
+        {
+          "day": 5,
+          "error": "Falha ao gerar resposta com Gemini. Modelos tentados: gemini-2.5-flash, gemini-2.5-flash-lite, gemini-1.5-flash. Falhas: gemini-2.5-flash: HTTP 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\\nPlease retry in 31.485369525s. | gemini-2.5-flash-lite: HTTP 503 This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later. | gemini-1.5-flash: HTTP 404 models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods."
+        },
+        {
+          "day": 6,
+          "error": "Falha ao gerar resposta com Gemini. Modelos tentados: gemini-2.5-flash, gemini-2.5-flash-lite, gemini-1.5-flash. Falhas: gemini-2.5-flash: HTTP 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\\nPlease retry in 25.711823919s. | gemini-2.5-flash-lite: HTTP 503 This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later. | gemini-1.5-flash: HTTP 404 models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods."
+        }
+      ]
+    },
+    "aiGenerationId": "d35dbf1d-d40f-4463-bb72-417a89398785",
+    "aiPrompt": {
+      "tripId": "HOR-8526",
+      "agencyId": "agency-default",
+      "title": "João Pessoa 2026",
+      "origin": "São Paulo (BR)",
+      "destinations": [
+        "Joao Pessoa"
+      ],
+      "destinationsDetail": [
+        {
+          "city": "Joao Pessoa (BR)",
+          "startDate": "2026-06-19",
+          "endDate": "2026-06-26",
+          "allTravelers": true
+        }
+      ],
+      "startDate": "2026-06-19",
+      "endDate": "2026-06-26",
+      "travelersCount": 1,
+      "clientName": "Bruna",
+      "budget": 10000,
+      "currency": "BRL",
+      "profile": "lazer",
+      "preferences": "Sem restrições, aproveitar praia, boa gastronomia e são joão, preferencias de culinaria variadas, gosta bastante de comida japonesa, mas nao quer comer esse estilo de comida todos os dias",
+      "locale": "pt-BR"
+    },
+    "aiGeneratedAt": "2026-06-25T21:00:21.888Z",
+    "coverImage": "https://pixabay.com/get/ge2cc0dc04a1ae6843f84b214b5d9456787718843a3d343d397fe926c36fd23c7794b6cb2f276425d624a4bc1eafb8b1d8facc718876cf0734582da0d70d2f6d2_1280.jpg"
   }
 ]
