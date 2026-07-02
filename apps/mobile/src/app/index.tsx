@@ -1,75 +1,153 @@
-import React from 'react';
-import { StyleSheet, FlatList, Pressable, ActivityIndicator, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Modal,
+  Pressable,
+  StyleSheet,
+  TextInput,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Image } from "expo-image";
+import { useRouter } from "expo-router";
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
-import { useTravelerData, MobileItinerary } from '@/hooks/use-supabase';
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { useAuth } from "@/hooks/use-auth";
+import { useTheme } from "@/hooks/use-theme";
+import {
+  getInvitePreview,
+  getTravelerTrips,
+  importTravelerTrip,
+  MobileItinerary,
+} from "@/lib/traveler-api";
 
 export default function HomeScreen() {
   const router = useRouter();
   const theme = useTheme();
-  const { trips, loading } = useTravelerData();
+  const { sessionId, user, signOut } = useAuth();
+  const [trips, setTrips] = useState<MobileItinerary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [inviteToken, setInviteToken] = useState("");
+  const [inviteHint, setInviteHint] = useState<string | null>(null);
 
-  if (loading) {
-    return (
-      <ThemedView style={[styles.centerContainer, { backgroundColor: theme.background }]}>
-        <ActivityIndicator size="large" color="#004782" />
-        <ThemedText style={styles.loadingText}>Carregando suas viagens...</ThemedText>
-      </ThemedView>
-    );
-  }
+  const fetchTrips = async () => {
+    if (!sessionId) return;
+    setLoading(true);
+    setError(null);
+
+    try {
+      setTrips(await getTravelerTrips(sessionId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Nao foi possivel carregar suas viagens.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTrips();
+  }, [sessionId]);
+
+  const handlePreviewInvite = async (value: string) => {
+    setInviteToken(value);
+    setInviteHint(null);
+
+    const normalized = value.trim();
+    if (normalized.length < 6) return;
+
+    try {
+      const preview = await getInvitePreview(normalized);
+      setInviteHint(`${preview.agency.name} · ${preview.trip.title}`);
+    } catch {
+      setInviteHint("Convite nao localizado ainda.");
+    }
+  };
+
+  const handleImport = async () => {
+    if (!sessionId || !inviteToken.trim()) return;
+
+    setImporting(true);
+    setError(null);
+    try {
+      await importTravelerTrip(sessionId, inviteToken.trim());
+      setInviteToken("");
+      setInviteHint(null);
+      setImportOpen(false);
+      await fetchTrips();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Falha ao importar viagem.");
+    } finally {
+      setImporting(false);
+    }
+  };
 
   const renderTripCard = ({ item }: { item: MobileItinerary }) => {
-    const isConfirmed = item.status === 'Confirmado' || item.status === 'Publicado';
+    const isPublished =
+      item.status === "Confirmado" ||
+      item.status === "Publicado" ||
+      item.status === "confirmed" ||
+      item.status === "active";
 
     return (
       <Pressable
         onPress={() => {
           router.push({
-            pathname: '/trip/[id]',
-            params: { id: item.id }
+            pathname: "/trip/[id]",
+            params: { id: item.id },
           });
         }}
         style={({ pressed }) => [
           styles.card,
           {
             backgroundColor: theme.backgroundElement,
-            borderColor: pressed ? '#004782' : theme.backgroundSelected,
-            opacity: pressed ? 0.9 : 1
-          }
-        ]}>
+            borderColor: pressed ? "#004782" : theme.backgroundSelected,
+            opacity: pressed ? 0.92 : 1,
+          },
+        ]}
+      >
         <ThemedView style={styles.cardHeader}>
-          <Image
-            source={{ uri: item.agency.logoUrl }}
-            style={styles.tripAgencyLogo}
-            contentFit="cover"
-            transition={300}
-          />
+          {item.agency?.logoUrl ? (
+            <Image
+              source={{ uri: item.agency.logoUrl }}
+              style={styles.tripAgencyLogo}
+              contentFit="cover"
+              transition={300}
+            />
+          ) : (
+            <View style={styles.tripAgencyFallback}>
+              <ThemedText style={styles.tripAgencyFallbackText}>
+                {(item.agency?.name || "AG").slice(0, 2).toUpperCase()}
+              </ThemedText>
+            </View>
+          )}
           <ThemedText style={styles.cardTitle} type="subtitle">
             {item.title}
           </ThemedText>
           <ThemedView
             style={[
               styles.badge,
-              { backgroundColor: isConfirmed ? '#E1F5EE' : '#FBEAF0' }
-            ]}>
+              { backgroundColor: isPublished ? "#E1F5EE" : "#FBEAF0" },
+            ]}
+          >
             <ThemedText
               style={[
                 styles.badgeText,
-                { color: isConfirmed ? '#0F6E56' : '#703800' }
-              ]}>
+                { color: isPublished ? "#0F6E56" : "#703800" },
+              ]}
+            >
               {item.status.toUpperCase()}
             </ThemedText>
           </ThemedView>
         </ThemedView>
 
         <ThemedText style={styles.destinationText} themeColor="textSecondary">
-          {item.agency.name} | Destino: {item.destination}
+          {item.agency?.name || "Agência"} | Destino: {item.destination || "A confirmar"}
         </ThemedText>
 
         <ThemedView style={styles.cardFooter}>
@@ -80,15 +158,15 @@ export default function HomeScreen() {
             </ThemedText>
           </ThemedView>
           <ThemedView style={styles.metaItem}>
-            <ThemedText style={styles.metaIcon}>👤</ThemedText>
+            <ThemedText style={styles.metaIcon}>🗺️</ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
-              {item.travelers} {item.travelers > 1 ? 'viajantes' : 'viajante'}
+              {item.itinerary.length} blocos na trilha
             </ThemedText>
           </ThemedView>
         </ThemedView>
 
         <ThemedView style={styles.buttonPlaceholder}>
-          <ThemedText style={styles.buttonText}>Ver Trilha da Viagem →</ThemedText>
+          <ThemedText style={styles.buttonText}>Abrir trilha da viagem →</ThemedText>
         </ThemedView>
       </Pressable>
     );
@@ -96,37 +174,116 @@ export default function HomeScreen() {
 
   return (
     <ThemedView style={[styles.container, { backgroundColor: theme.background }]}>
-      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-        {/* White-Label Agency Header */}
+      <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
         <ThemedView style={[styles.headerContainer, { borderColor: theme.backgroundSelected }]}>
-          
           <ThemedView style={styles.agencyInfo}>
             <ThemedText style={styles.agencyName} type="subtitle">
               Minhas viagens
             </ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
-              Agência de Viagens
+              {user?.fullName || "Viajante"}
             </ThemedText>
           </ThemedView>
+          <Pressable onPress={() => setImportOpen(true)} style={styles.headerAction}>
+            <ThemedText style={styles.headerActionText}>Importar</ThemedText>
+          </Pressable>
+          <Pressable onPress={signOut} style={[styles.headerAction, styles.logoutAction]}>
+            <ThemedText style={styles.logoutActionText}>Sair</ThemedText>
+          </Pressable>
         </ThemedView>
 
         <ThemedText style={styles.sectionTitle} type="title">
-          Meus Roteiros
+          Trilhas liberadas para você
         </ThemedText>
 
-        <FlatList
-          data={trips}
-          keyExtractor={(item) => item.id}
-          renderItem={renderTripCard}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <ThemedView style={styles.emptyContainer}>
-              <ThemedText themeColor="textSecondary">Nenhuma viagem disponível.</ThemedText>
-            </ThemedView>
-          }
-        />
+        {loading ? (
+          <ThemedView style={styles.centerContainer}>
+            <ActivityIndicator size="large" color="#004782" />
+            <ThemedText style={styles.loadingText}>Carregando suas viagens...</ThemedText>
+          </ThemedView>
+        ) : (
+          <FlatList
+            data={trips}
+            keyExtractor={(item) => item.id}
+            renderItem={renderTripCard}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <ThemedView style={styles.emptyContainer}>
+                <ThemedText style={styles.emptyTitle}>Nenhuma viagem importada</ThemedText>
+                <ThemedText themeColor="textSecondary" style={styles.emptyText}>
+                  Use o convite enviado pela agência para liberar sua primeira trilha no app.
+                </ThemedText>
+                <Pressable onPress={() => setImportOpen(true)} style={styles.emptyButton}>
+                  <ThemedText style={styles.emptyButtonText}>Importar convite</ThemedText>
+                </Pressable>
+              </ThemedView>
+            }
+            ListHeaderComponent={
+              error ? (
+                <ThemedView style={styles.errorBanner}>
+                  <ThemedText style={styles.errorBannerText}>{error}</ThemedText>
+                </ThemedView>
+              ) : null
+            }
+          />
+        )}
       </SafeAreaView>
+
+      <Modal visible={importOpen} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <ThemedView style={[styles.modalSheet, { backgroundColor: theme.background }]}>
+            <ThemedText style={styles.modalTitle}>Importar viagem</ThemedText>
+            <ThemedText style={styles.modalSubtitle} themeColor="textSecondary">
+              Cole o link ou código do convite enviado pela sua agência.
+            </ThemedText>
+
+            <TextInput
+              value={inviteToken}
+              onChangeText={handlePreviewInvite}
+              placeholder="https://.../mobile/invite/abc123"
+              placeholderTextColor={theme.textSecondary}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: theme.backgroundElement,
+                  color: theme.text,
+                  borderColor: theme.backgroundSelected,
+                },
+              ]}
+              autoCapitalize="none"
+            />
+
+            {inviteHint ? (
+              <ThemedView style={styles.inviteHintBox}>
+                <ThemedText style={styles.inviteHintText}>{inviteHint}</ThemedText>
+              </ThemedView>
+            ) : null}
+
+            <View style={styles.modalActions}>
+              <Pressable onPress={() => setImportOpen(false)} style={styles.cancelButton}>
+                <ThemedText>Cancelar</ThemedText>
+              </Pressable>
+              <Pressable
+                onPress={handleImport}
+                disabled={importing || !inviteToken.trim()}
+                style={({ pressed }) => [
+                  styles.confirmButton,
+                  {
+                    opacity: importing || !inviteToken.trim() ? 0.7 : pressed ? 0.9 : 1,
+                  },
+                ]}
+              >
+                {importing ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <ThemedText style={styles.confirmButtonText}>Importar</ThemedText>
+                )}
+              </Pressable>
+            </View>
+          </ThemedView>
+        </View>
+      </Modal>
     </ThemedView>
   );
 }
@@ -138,53 +295,58 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     maxWidth: MaxContentWidth,
-    alignSelf: 'center',
-    width: '100%',
+    alignSelf: "center",
+    width: "100%",
   },
   centerContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     gap: Spacing.two,
   },
   loadingText: {
     marginTop: Spacing.two,
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   headerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.three,
     borderBottomWidth: 1,
-    gap: Spacing.three,
-  },
-  agencyLogo: {
-    width: 46,
-    height: 46,
-    borderRadius: 8,
-    backgroundColor: '#eee',
-  },
-  tripAgencyLogo: {
-    width: 34,
-    height: 34,
-    borderRadius: 7,
-    backgroundColor: '#eee',
-    marginRight: Spacing.two,
+    gap: Spacing.two,
   },
   agencyInfo: {
     flex: 1,
-    justifyContent: 'center',
   },
   agencyName: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#004782',
+    fontWeight: "700",
+    color: "#004782",
+  },
+  headerAction: {
+    backgroundColor: "#004782",
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  headerActionText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  logoutAction: {
+    backgroundColor: "#E9EEF4",
+  },
+  logoutActionText: {
+    color: "#004782",
+    fontSize: 12,
+    fontWeight: "700",
   },
   sectionTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: "700",
     paddingHorizontal: Spacing.four,
     marginTop: Spacing.four,
     marginBottom: Spacing.two,
@@ -198,70 +360,180 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 12,
     padding: Spacing.three,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
   },
   cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: Spacing.one,
+  },
+  tripAgencyLogo: {
+    width: 34,
+    height: 34,
+    borderRadius: 7,
+    backgroundColor: "#eee",
+    marginRight: Spacing.two,
+  },
+  tripAgencyFallback: {
+    width: 34,
+    height: 34,
+    borderRadius: 7,
+    backgroundColor: "#D9E6F2",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: Spacing.two,
+  },
+  tripAgencyFallbackText: {
+    color: "#004782",
+    fontSize: 12,
+    fontWeight: "800",
   },
   cardTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
     flex: 1,
     marginRight: Spacing.two,
   },
   badge: {
     paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.half,
-    borderRadius: 4,
+    paddingVertical: 6,
+    borderRadius: 999,
   },
   badgeText: {
-    fontSize: 9,
-    fontWeight: '800',
+    fontSize: 10,
+    fontWeight: "700",
   },
   destinationText: {
     fontSize: 13,
-    fontWeight: '500',
-    marginBottom: Spacing.two,
+    marginBottom: Spacing.three,
   },
   cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.two,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.05)',
-    paddingTop: Spacing.two,
+    gap: Spacing.two,
   },
   metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.one,
   },
   metaIcon: {
-    fontSize: 12,
+    fontSize: 14,
   },
   buttonPlaceholder: {
-    backgroundColor: '#004782',
-    borderRadius: 8,
-    paddingVertical: Spacing.two,
-    alignItems: 'center',
-    justifyContent: 'center',
+    marginTop: Spacing.three,
+    paddingTop: Spacing.three,
+    borderTopWidth: 1,
+    borderTopColor: "#E8EDF2",
   },
   buttonText: {
-    color: '#ffffff',
-    fontSize: 12,
-    fontWeight: '700',
+    color: "#004782",
+    fontWeight: "700",
   },
   emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: Spacing.six,
+    marginTop: Spacing.six,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: "#D6E0E8",
+    padding: Spacing.five,
+    alignItems: "center",
+    gap: Spacing.two,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+  },
+  emptyText: {
+    textAlign: "center",
+    lineHeight: 20,
+  },
+  emptyButton: {
+    marginTop: Spacing.one,
+    backgroundColor: "#004782",
+    borderRadius: 999,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+  },
+  emptyButtonText: {
+    color: "#fff",
+    fontWeight: "700",
+  },
+  errorBanner: {
+    backgroundColor: "#FBEAF0",
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: Spacing.three,
+  },
+  errorBannerText: {
+    color: "#8A1C4A",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.35)",
+    justifyContent: "flex-end",
+  },
+  modalSheet: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: Spacing.four,
+    gap: Spacing.three,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "800",
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    fontSize: 15,
+  },
+  inviteHintBox: {
+    backgroundColor: "#E9F6F2",
+    borderRadius: 12,
+    padding: 12,
+  },
+  inviteHintText: {
+    color: "#0F6E56",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  modalActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: Spacing.two,
+    marginTop: Spacing.one,
+  },
+  cancelButton: {
+    borderWidth: 1,
+    borderColor: "#D6E0E8",
+    borderRadius: 12,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+  },
+  confirmButton: {
+    backgroundColor: "#004782",
+    borderRadius: 12,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    minWidth: 110,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  confirmButtonText: {
+    color: "#fff",
+    fontWeight: "800",
   },
 });
+

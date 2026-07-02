@@ -11,7 +11,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ user });
     }
 
-    const response = NextResponse.json({ user: login.user });
+    const response = NextResponse.json({
+      user: login.user,
+      session: {
+        id: login.session.id,
+        expiresAt: login.session.expiresAt,
+      },
+    });
     response.cookies.set('rumo_session', login.session.id, {
       httpOnly: true,
       sameSite: 'lax',

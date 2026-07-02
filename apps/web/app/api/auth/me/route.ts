@@ -1,15 +1,17 @@
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { db } from '@rumo/db';
+import { getCurrentUser, getSessionIdFromRequest } from '../../../../lib/server-auth';
 
-export async function GET() {
-  const cookieStore = await cookies();
-  const sessionId = cookieStore.get('rumo_session')?.value;
-  const user = db.auth.me(sessionId);
+export async function GET(request: Request) {
+  const user = await getCurrentUser(request);
 
   if (!user) {
     return NextResponse.json({ user: null }, { status: 401 });
   }
 
-  return NextResponse.json({ user });
+  return NextResponse.json({
+    user,
+    session: {
+      id: getSessionIdFromRequest(request) || null,
+    },
+  });
 }

@@ -4,7 +4,7 @@ import { db } from '@rumo/db';
 
 export async function POST(request: Request) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) return NextResponse.json({ error: 'Nao autenticado' }, { status: 401 });
     if (user.role !== 'traveler') {
       return NextResponse.json({ error: 'Area exclusiva para viajantes' }, { status: 403 });

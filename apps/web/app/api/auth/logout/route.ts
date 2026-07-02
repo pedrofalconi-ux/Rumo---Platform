@@ -1,10 +1,11 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { db } from '@rumo/db';
+import { getSessionIdFromRequest } from '../../../../lib/server-auth';
 
-export async function POST() {
+export async function POST(request: Request) {
   const cookieStore = await cookies();
-  const sessionId = cookieStore.get('rumo_session')?.value;
+  const sessionId = getSessionIdFromRequest(request) || cookieStore.get('rumo_session')?.value;
 
   if (sessionId) {
     db.sessions.delete(sessionId);

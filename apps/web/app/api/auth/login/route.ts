@@ -10,7 +10,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'E-mail ou senha invalidos' }, { status: 401 });
     }
 
-    const response = NextResponse.json({ user: result.user });
+    const response = NextResponse.json({
+      user: result.user,
+      session: {
+        id: result.session.id,
+        expiresAt: result.session.expiresAt,
+      },
+    });
     response.cookies.set('rumo_session', result.session.id, {
       httpOnly: true,
       sameSite: 'lax',
