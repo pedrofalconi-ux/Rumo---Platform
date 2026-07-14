@@ -437,8 +437,8 @@ export default function NewTripPage() {
     reader.readAsDataURL(file);
   };
 
-  const handleCoverSearchSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const handleCoverSearchSubmit = async (event?: React.FormEvent) => {
+    if (event) event.preventDefault();
     if (!coverSearchTerm.trim()) return;
 
     setIsCoverSearching(true);
@@ -768,22 +768,30 @@ export default function NewTripPage() {
 
               {coverPickerTab === 'search' && (
                 <div className="space-y-3">
-                  <form onSubmit={handleCoverSearchSubmit} className="flex gap-2">
+                  <div className="flex gap-2">
                     <input
                       type="text"
                       value={coverSearchTerm}
                       onChange={(event) => setCoverSearchTerm(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          handleCoverSearchSubmit();
+                        }
+                      }}
                       placeholder="Ex: Joao Pessoa beach sunset"
                       className="flex-1 border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-primary outline-none"
                     />
                     <button
-                      type="submit"
+                      type="button"
+                      onClick={() => handleCoverSearchSubmit()}
                       disabled={isCoverSearching}
                       className="px-4 py-2.5 rounded-lg bg-primary text-on-primary text-xs font-bold disabled:opacity-60"
                     >
                       {isCoverSearching ? 'Buscando...' : 'Buscar'}
                     </button>
-                  </form>
+                  </div>
                   {coverSearchError && <p className="text-xs font-semibold text-error">{coverSearchError}</p>}
                   <div className="grid grid-cols-3 gap-2 max-h-44 overflow-y-auto custom-scrollbar pr-1">
                     {coverSearchResults.map((url) => (

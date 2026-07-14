@@ -224,7 +224,13 @@ export async function POST(request: Request) {
         (db as any).libraryOrder.save(updatedOrders);
       }
 
-      return NextResponse.json({ success: true, folders: updatedFolders, photos: updatedPhotos });
+      return NextResponse.json({
+        success: true,
+        folders: updatedFolders,
+        photos: updatedPhotos,
+        orders: (db as any).libraryOrder ? (db as any).libraryOrder.get() : {},
+        folderCovers: (db as any).folderCovers ? (db as any).folderCovers.get() : {},
+      });
     } else if (action === 'update_order') {
       const { parentPath, itemIds } = body;
       if (parentPath === undefined || !itemIds) {
@@ -291,6 +297,105 @@ export async function POST(request: Request) {
       }
       
       return NextResponse.json({ success: true, folders: updatedFolders, photos: updatedPhotos });
+    } else if (action === 'rename_folder') {
+      const { folderPath, newName } = body;
+      const trimmedName = String(newName || '').trim();
+      if (!folderPath || !trimmedName) {
+        return NextResponse.json({ error: 'Parâmetros insuficientes' }, { status: 400 });
+      }
+
+      const folders = db.folders.findMany();
+      const photos = db.photos.findMany();
+      const parts = folderPath.split('/');
+      const parentPath = parts.slice(0, -1).join('/');
+      const nextPath = parentPath ? `${parentPath}/${trimmedName}` : trimmedName;
+      const prefix = `${folderPath}/`;
+
+      if (folderPath !== nextPath && folders.includes(nextPath)) {
+        return NextResponse.json({ error: 'Ja existe uma pasta com esse nome neste local' }, { status: 409 });
+      }
+
+      const updatedFolders = folders.map((folder) => {
+        if (folder === folderPath) return nextPath;
+        if (folder.startsWith(prefix)) return `${nextPath}${folder.substring(folderPath.length)}`;
+        return folder;
+      });
+
+      const updatedPhotos = photos.map((photo: any) => {
+        if (photo.folder === folderPath) return { ...photo, folder: nextPath };
+        if (photo.folder.startsWith(prefix)) {
+          return { ...photo, folder: `${nextPath}${photo.folder.substring(folderPath.length)}` };
+        }
+        return photo;
+      });
+
+      db.folders.updateAll(updatedFolders);
+      db.photos.updateAll(updatedPhotos);
+
+      let updatedCovers: Record<string, string> = {};
+      if ((db as any).folderCovers) {
+        const covers = (db as any).folderCovers.get() as Record<string, string>;
+        Object.entries(covers).forEach(([key, value]) => {
+          if (key === folderPath) {
+            updatedCovers[nextPath] = value;
+          } else if (key.startsWith(prefix)) {
+            updatedCovers[`${nextPath}${key.substring(folderPath.length)}`] = value;
+          } else {
+            updatedCovers[key] = value;
+          }
+        });
+        (db as any).folderCovers.save(updatedCovers);
+      }
+
+      let updatedOrders: Record<string, string[]> = {};
+      if ((db as any).libraryOrder) {
+        const orders = (db as any).libraryOrder.get() as Record<string, string[]>;
+        Object.entries(orders).forEach(([key, items]) => {
+          const mappedKey =
+            key === folderPath
+              ? nextPath
+              : key.startsWith(prefix)
+              ? `${nextPath}${key.substring(folderPath.length)}`
+              : key;
+
+          updatedOrders[mappedKey] = items.map((item) => {
+            if (!item.startsWith('folder:')) return item;
+            const itemPath = item.substring('folder:'.length);
+            if (itemPath === folderPath) return `folder:${nextPath}`;
+            if (itemPath.startsWith(prefix)) return `folder:${nextPath}${itemPath.substring(folderPath.length)}`;
+            return item;
+          });
+        });
+        (db as any).libraryOrder.save(updatedOrders);
+      }
+
+      return NextResponse.json({
+        success: true,
+        folders: updatedFolders,
+        photos: updatedPhotos,
+        folderCovers: updatedCovers,
+        orders: updatedOrders,
+      });
+    } else if (action === 'rename_photo') {
+      const { photoId, newName } = body;
+      const trimmedName = String(newName || '').trim();
+      if (!photoId || !trimmedName) {
+        return NextResponse.json({ error: 'Parâmetros insuficientes' }, { status: 400 });
+      }
+
+      const photos = db.photos.findMany();
+      const photoIndex = photos.findIndex((photo: any) => photo.id === photoId);
+      if (photoIndex === -1) {
+        return NextResponse.json({ error: 'Foto não encontrada' }, { status: 404 });
+      }
+
+      photos[photoIndex] = {
+        ...photos[photoIndex],
+        name: trimmedName,
+      };
+      db.photos.updateAll(photos);
+
+      return NextResponse.json({ success: true, photos });
     } else if (action === 'set_folder_cover') {
       const { folderPath, coverUrl } = body;
       if (!folderPath) {
