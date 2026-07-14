@@ -3,9 +3,9 @@ import { db } from '@rumo/db';
 import { getCurrentUser } from '../../../lib/server-auth';
 import { convertUrlToBase64 } from '../../../lib/media/base64-converter';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) return NextResponse.json({ error: 'Nao autenticado' }, { status: 401 });
     const trips = db.trips.findMany(user.agencyId);
     return NextResponse.json(trips);
@@ -16,7 +16,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) return NextResponse.json({ error: 'Nao autenticado' }, { status: 401 });
     const body = await request.json();
 
@@ -43,6 +43,7 @@ export async function POST(request: Request) {
     return NextResponse.json(newTrip);
   } catch (error) {
     console.error('Erro ao criar viagem:', error);
-    return NextResponse.json({ error: 'Erro ao criar viagem' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Erro ao criar viagem';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

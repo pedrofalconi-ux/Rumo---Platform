@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { useNotificationStore } from '../lib/notification-store';
 
 interface ToastState {
   id: number;
@@ -24,12 +25,19 @@ export default function RumoToastProvider({ children }: { children: React.ReactN
 
     const showToast = (message: string, options?: Omit<ToastState, 'id' | 'message'>) => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      const title = options?.title || 'Rumo';
+      const tone = options?.tone || 'info';
+
       setToast({
         id: Date.now(),
         message,
-        title: options?.title || 'Rumo',
-        tone: options?.tone || 'info',
+        title,
+        tone,
       });
+
+      // Persist in the notification store
+      useNotificationStore.getState().addNotification(title, message, tone);
+
       timeoutRef.current = setTimeout(() => setToast(null), 5200);
     };
 

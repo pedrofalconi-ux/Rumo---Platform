@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   let tripIdForError: string | undefined;
 
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) {
       return NextResponse.json({ error: 'Nao autenticado' }, { status: 401 });
     }
@@ -19,6 +19,15 @@ export async function POST(request: Request) {
     tripIdForError = tripId;
     if (!tripId) {
       return NextResponse.json({ error: 'tripId obrigatorio' }, { status: 400 });
+    }
+    if (tripId.startsWith('LOCAL-')) {
+      return NextResponse.json(
+        {
+          error:
+            'Esta viagem foi criada apenas no fallback local do navegador. A IA precisa de persistencia compartilhada no backend para gerar o roteiro.',
+        },
+        { status: 409 }
+      );
     }
 
     const trip = db.trips.findOne(tripId);

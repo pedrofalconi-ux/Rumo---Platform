@@ -2,6 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import {
+  canUseLocalTripFallback,
+  isProductionPersistenceError,
+  mergeTripsById,
+  readLocalTrips,
+  removeLocalTrip,
+} from '../../../lib/trip-local-store';
 
 interface ItineraryItem {
   id: string;
@@ -28,6 +35,7 @@ interface Trip {
 }
 
 export default function TripsPage() {
+  const browserFallbackEnabled = canUseLocalTripFallback();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -38,10 +46,16 @@ export default function TripsPage() {
     setLoading(true);
     try {
       const response = await fetch('/api/trips');
-      const data = await response.json();
-      setTrips(data);
+      const localTrips = readLocalTrips<Trip>();
+      if (response.ok) {
+        const data = await response.json();
+        setTrips(mergeTripsById(data, localTrips));
+      } else {
+        setTrips(localTrips);
+      }
     } catch (error) {
       console.error('Erro ao buscar viagens:', error);
+      setTrips(readLocalTrips<Trip>());
     } finally {
       setLoading(false);
     }
@@ -60,10 +74,20 @@ export default function TripsPage() {
       if (response.ok) {
         fetchTrips();
       } else {
-        alert('Erro ao excluir viagem.');
+        const data = await response.json().catch(() => ({}));
+        if (browserFallbackEnabled && isProductionPersistenceError(String(data.error || ''))) {
+          removeLocalTrip(id);
+          fetchTrips();
+          return;
+        }
+        alert(data.error || 'Erro ao excluir viagem.');
       }
     } catch (error) {
       console.error(error);
+      if (browserFallbackEnabled) {
+        removeLocalTrip(id);
+        fetchTrips();
+      }
     }
   };
 

@@ -5,7 +5,7 @@ import { convertUrlToBase64 } from '../../../../lib/media/base64-converter';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) return NextResponse.json({ error: 'Nao autenticado' }, { status: 401 });
 
     const resolvedParams = await params;
@@ -14,14 +14,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Viagem nao encontrada' }, { status: 404 });
     }
     return NextResponse.json(trip);
-  } catch {
-    return NextResponse.json({ error: 'Erro ao buscar viagem' }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro ao buscar viagem';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) return NextResponse.json({ error: 'Nao autenticado' }, { status: 401 });
 
     const resolvedParams = await params;
@@ -55,13 +56,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json(updated);
   } catch (error) {
     console.error('Erro ao salvar alteracoes da viagem:', error);
-    return NextResponse.json({ error: 'Erro ao salvar alteracoes da viagem' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Erro ao salvar alteracoes da viagem';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) return NextResponse.json({ error: 'Nao autenticado' }, { status: 401 });
 
     const resolvedParams = await params;
@@ -72,7 +74,8 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
     const success = db.trips.delete(resolvedParams.id);
     return NextResponse.json({ success });
-  } catch {
-    return NextResponse.json({ error: 'Erro ao deletar viagem' }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro ao deletar viagem';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

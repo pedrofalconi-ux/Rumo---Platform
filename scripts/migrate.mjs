@@ -20,14 +20,15 @@ const ROOT = path.join(__dirname, '..');
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const SUPABASE_ACCESS_TOKEN = process.env.SUPABASE_ACCESS_TOKEN || '';
 const PROJECT_REF =
   process.env.SUPABASE_PROJECT_REF ||
   (SUPABASE_URL.match(/^https:\/\/([^.]+)\.supabase\.co$/)?.[1] ?? '');
 const MIGRATION_DIR = path.join(ROOT, 'packages', 'db', 'migrations');
 
-if (!SUPABASE_URL || !SERVICE_ROLE_KEY || !PROJECT_REF) {
+if (!SUPABASE_URL || !PROJECT_REF) {
   throw new Error(
-    'Defina SUPABASE_URL/NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY e SUPABASE_PROJECT_REF antes de rodar este script.'
+    'Defina SUPABASE_URL/NEXT_PUBLIC_SUPABASE_URL e SUPABASE_PROJECT_REF antes de rodar este script.'
   );
 }
 
@@ -35,11 +36,14 @@ if (!SUPABASE_URL || !SERVICE_ROLE_KEY || !PROJECT_REF) {
 
 async function runSQL(sql) {
   const url = `https://api.supabase.com/v1/projects/${PROJECT_REF}/database/query`;
+  if (!SUPABASE_ACCESS_TOKEN) {
+    throw new Error('SUPABASE_ACCESS_TOKEN ausente para usar a Management API');
+  }
   const res = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+      'Authorization': `Bearer ${SUPABASE_ACCESS_TOKEN}`,
     },
     body: JSON.stringify({ query: sql }),
   });
@@ -187,8 +191,8 @@ async function main() {
   try {
     const testRes = await fetch(`${SUPABASE_URL}/rest/v1/`, {
       headers: {
-        apikey: SERVICE_ROLE_KEY,
-        Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+        apikey: SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+        Authorization: `Bearer ${SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''}`,
       },
     });
     console.log(`   Status: ${testRes.status} ${testRes.ok ? '✅' : '❌'}\n`);
@@ -214,7 +218,8 @@ async function main() {
         console.log('     ✅ Aplicado via RPC');
       } else {
         console.log(`     ❌ RPC falhou (${rpc.status}): ${rpc.body.slice(0, 200)}`);
-        console.log('\n📌 A migration precisa ser aplicada manualmente no Supabase Dashboard:');
+        console.log('\n📌 A migration precisa ser aplicada manualmente no Supabase Dashboard ou com PAT:');
+        console.log('   Defina SUPABASE_ACCESS_TOKEN para aplicar programaticamente via Management API.');
         console.log('   https://supabase.com/dashboard/project/xypnpnsswufjyucouneg/sql\n');
         console.log('   Cole o conteúdo do arquivo:', path.join(MIGRATION_DIR, file));
         process.exit(1);

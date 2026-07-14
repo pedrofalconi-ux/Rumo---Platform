@@ -4,6 +4,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AMERICA_DESTINATIONS } from '../../../../lib/destinations/america-destinations';
+import {
+  canUseLocalTripFallback,
+  isProductionPersistenceError,
+  upsertLocalTrip,
+} from '../../../../lib/trip-local-store';
 
 // Predefined list of searchable cities and travel regions
 const CITIES = AMERICA_DESTINATIONS;
@@ -34,6 +39,25 @@ interface MediaSearchResult {
   previewUrl: string;
   alt: string;
   credit: string;
+}
+
+interface NewTripPayload {
+  id: string;
+  createdDate: string;
+  name: string;
+  destinations: string[];
+  destinationsDetail: DestinationEntry[];
+  startDate: string;
+  endDate: string;
+  travelers: string[];
+  status: 'Pendente';
+  clientName: string;
+  itinerary: any[];
+  budget: number;
+  preferences: string;
+  profile: string;
+  origin: string;
+  coverImage: string;
 }
 
 interface CalendarPickerProps {
@@ -372,6 +396,7 @@ const SearchableCitySelect: React.FC<SearchableCitySelectProps> = ({
 
 export default function NewTripPage() {
   const router = useRouter();
+  const browserFallbackEnabled = canUseLocalTripFallback();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -588,6 +613,30 @@ export default function NewTripPage() {
 
     setLoading(true);
 
+    const localTrip: NewTripPayload = {
+      id: `LOCAL-${Date.now()}`,
+      createdDate: new Date().toLocaleDateString('pt-BR').replace(/\//g, '-'),
+      name: formData.title,
+      destinations: destinations.map(d => d.city.split(' (')[0]).filter(Boolean),
+      destinationsDetail: destinations.map(d => ({
+        city: d.city,
+        startDate: d.startDate,
+        endDate: d.endDate,
+        allTravelers: d.allTravelers
+      })),
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      travelers: formData.travelerNames ? formData.travelerNames.split(',').map(n => n.trim().substring(0, 2).toUpperCase()) : ['DR'],
+      clientName: formData.travelerNames.split(',')[0].trim() || 'Cliente Geral',
+      budget: parseFloat(formData.budget) || 0,
+      preferences: formData.preferences,
+      profile: formData.profile,
+      origin: formData.origin,
+      coverImage: formData.coverImage,
+      status: 'Pendente',
+      itinerary: [],
+    };
+
     try {
       const response = await fetch('/api/trips', {
         method: 'POST',
@@ -621,11 +670,22 @@ export default function NewTripPage() {
         const newTrip = await response.json();
         router.push(`/trips/${newTrip.id}/edit`);
       } else {
-        alert('Erro ao criar roteiro no banco de dados.');
+        const data = await response.json().catch(() => ({}));
+        if (browserFallbackEnabled && isProductionPersistenceError(String(data.error || ''))) {
+          upsertLocalTrip(localTrip);
+          router.push(`/trips/${localTrip.id}/edit`);
+          return;
+        }
+        alert(data.error || 'Erro ao criar roteiro no banco de dados.');
       }
     } catch (error) {
       console.error(error);
-      alert('Erro de conexão ao banco.');
+      if (browserFallbackEnabled) {
+        upsertLocalTrip(localTrip);
+        router.push(`/trips/${localTrip.id}/edit`);
+        return;
+      }
+      alert('Erro de conexão ao criar a viagem no backend.');
     } finally {
       setLoading(false);
     }
@@ -645,7 +705,7 @@ export default function NewTripPage() {
       <div className="scroll-reveal scroll-reveal-delay-100 bg-white rounded-xl border border-outline-variant p-8 shadow-sm">
         <h2 className="font-headline-lg text-2xl font-bold text-primary mb-2">Criar Novo Roteiro com Múltiplos Destinos</h2>
         <p className="text-on-surface opacity-75 text-sm mb-6">
-          Preencha os dados abaixo. As informações serão salvas permanentemente no banco local.
+          Preencha os dados abaixo. As informações serão salvas no backend compartilhado da plataforma.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">

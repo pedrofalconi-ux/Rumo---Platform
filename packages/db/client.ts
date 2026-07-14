@@ -1,9 +1,123 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { spawnSync } from 'child_process';
 
 // Define the root data directory for our local JSON database
 const DATA_DIR = path.join(process.cwd(), '../../packages/db/data');
+const REMOTE_DB_BUCKET = process.env.RUMO_REMOTE_DB_BUCKET || 'rumo-data';
+const REMOTE_DB_PREFIX = process.env.RUMO_REMOTE_DB_PREFIX || 'json-db';
+const REMOTE_DB_ENABLED = Boolean(
+  process.env.NODE_ENV === 'production' &&
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+const REMOTE_FILE_PREFIX = 'remote:';
+const REMOTE_CACHE_TTL_MS = 750;
+const remoteDataCache = new Map<string, { value: unknown; loadedAt: number }>();
+
+function cloneData<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
+function encodeStoragePath(key: string) {
+  return key
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+}
+
+function getRemoteKey(filename: string) {
+  return `${REMOTE_DB_PREFIX}/${filename}`;
+}
+
+function getRemoteMarker(filename: string) {
+  return `${REMOTE_FILE_PREFIX}${filename}`;
+}
+
+function buildRemoteScript() {
+  return `
+const url = process.env.RUMO_REMOTE_URL;
+const token = process.env.RUMO_REMOTE_TOKEN;
+const bucket = process.env.RUMO_REMOTE_BUCKET;
+const key = process.env.RUMO_REMOTE_KEY;
+const op = process.env.RUMO_REMOTE_OP;
+const payload = process.env.RUMO_REMOTE_PAYLOAD || '';
+const encodedKey = key.split('/').map(encodeURIComponent).join('/');
+const headers = { apikey: token, Authorization: 'Bearer ' + token };
+
+async function main() {
+  if (op === 'download') {
+    const res = await fetch(url + '/storage/v1/object/' + bucket + '/' + encodedKey, { headers });
+    if (!res.ok) {
+      console.error(await res.text());
+      process.exit(2);
+    }
+    process.stdout.write(await res.text());
+    return;
+  }
+
+  if (op === 'upload') {
+    const res = await fetch(url + '/storage/v1/object/' + bucket + '/' + encodedKey, {
+      method: 'POST',
+      headers: { ...headers, 'Content-Type': 'application/json', 'x-upsert': 'true' },
+      body: Buffer.from(payload, 'base64').toString('utf8'),
+    });
+    if (!res.ok) {
+      console.error(await res.text());
+      process.exit(3);
+    }
+    process.stdout.write(await res.text());
+    return;
+  }
+
+  if (op === 'exists') {
+    const res = await fetch(url + '/storage/v1/object/info/' + bucket + '/' + encodedKey, { headers });
+    if (res.status === 400 || res.status === 404) {
+      process.stdout.write(JSON.stringify({ exists: false }));
+      return;
+    }
+    if (!res.ok) {
+      console.error(await res.text());
+      process.exit(4);
+    }
+    process.stdout.write(JSON.stringify({ exists: true }));
+  }
+}
+
+main().catch((error) => {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exit(1);
+});
+`;
+}
+
+function runRemoteStorage(op: 'download' | 'upload' | 'exists', remoteKey: string, payload?: string) {
+  const result = spawnSync(
+    process.execPath,
+    ['-e', buildRemoteScript()],
+    {
+      env: {
+        ...process.env,
+        RUMO_REMOTE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+        RUMO_REMOTE_TOKEN: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+        RUMO_REMOTE_BUCKET: REMOTE_DB_BUCKET,
+        RUMO_REMOTE_KEY: remoteKey,
+        RUMO_REMOTE_OP: op,
+        RUMO_REMOTE_PAYLOAD: payload ? Buffer.from(payload, 'utf8').toString('base64') : '',
+      },
+      encoding: 'utf8',
+      maxBuffer: 10 * 1024 * 1024,
+    }
+  );
+
+  if (result.status !== 0) {
+    const errorOutput = (result.stderr || result.stdout || '').trim();
+    throw new Error(errorOutput || `Remote storage operation failed: ${op}`);
+  }
+
+  return result.stdout.trim();
+}
 
 // Helper to ensure data directory and files exist
 function ensureDbFile(filename: string, initialData: any) {
@@ -13,6 +127,23 @@ function ensureDbFile(filename: string, initialData: any) {
   const filePath = path.join(DATA_DIR, filename);
   if (!fs.existsSync(filePath)) {
     fs.writeFileSync(filePath, JSON.stringify(initialData, null, 2), 'utf-8');
+  }
+
+  if (REMOTE_DB_ENABLED) {
+    const remoteKey = getRemoteKey(filename);
+    try {
+      const existsResult = runRemoteStorage('exists', remoteKey);
+      const existsPayload = existsResult ? JSON.parse(existsResult) as { exists?: boolean } : {};
+      if (!existsPayload.exists) {
+        runRemoteStorage('upload', remoteKey, JSON.stringify(initialData, null, 2));
+        const marker = getRemoteMarker(filename);
+        remoteDataCache.set(marker, { value: cloneData(initialData), loadedAt: Date.now() });
+        return marker;
+      }
+      return getRemoteMarker(filename);
+    } catch (error) {
+      console.warn(`[db] Remote persistence unavailable for ${filename}, falling back to local file.`, error);
+    }
   }
   return filePath;
 }
@@ -289,6 +420,24 @@ if (existingClients.some((client) => !client.agencyId)) {
 
 // Generic read/write helpers
 function readData<T>(filePath: string): T {
+  if (filePath.startsWith(REMOTE_FILE_PREFIX) && REMOTE_DB_ENABLED) {
+    const cached = remoteDataCache.get(filePath);
+    if (cached && Date.now() - cached.loadedAt < REMOTE_CACHE_TTL_MS) {
+      return cloneData(cached.value as T);
+    }
+
+    const filename = filePath.slice(REMOTE_FILE_PREFIX.length);
+    try {
+      const remoteText = runRemoteStorage('download', getRemoteKey(filename));
+      const parsed = JSON.parse(remoteText) as T;
+      remoteDataCache.set(filePath, { value: cloneData(parsed), loadedAt: Date.now() });
+      return cloneData(parsed);
+    } catch (error) {
+      console.warn(`[db] Failed to read remote file ${filename}. Falling back to local seed.`, error);
+      filePath = path.join(DATA_DIR, filename);
+    }
+  }
+
   try {
     const data = fs.readFileSync(filePath, 'utf-8');
     return JSON.parse(data) as T;
@@ -298,6 +447,19 @@ function readData<T>(filePath: string): T {
 }
 
 function writeData<T>(filePath: string, data: T): void {
+  if (filePath.startsWith(REMOTE_FILE_PREFIX) && REMOTE_DB_ENABLED) {
+    const filename = filePath.slice(REMOTE_FILE_PREFIX.length);
+    const serialized = JSON.stringify(data, null, 2);
+    try {
+      runRemoteStorage('upload', getRemoteKey(filename), serialized);
+      remoteDataCache.set(filePath, { value: cloneData(data), loadedAt: Date.now() });
+      return;
+    } catch (error) {
+      console.warn(`[db] Failed to write remote file ${filename}. Falling back to local seed.`, error);
+      filePath = path.join(DATA_DIR, filename);
+    }
+  }
+
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
 }
 

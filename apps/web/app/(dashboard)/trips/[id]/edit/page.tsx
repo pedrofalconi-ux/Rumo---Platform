@@ -4,6 +4,12 @@ import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AMERICA_DESTINATIONS } from '@/lib/destinations/america-destinations';
+import {
+  canUseLocalTripFallback,
+  findLocalTrip,
+  isProductionPersistenceError,
+  upsertLocalTrip,
+} from '@/lib/trip-local-store';
 
 const CITIES = AMERICA_DESTINATIONS;
 
@@ -361,6 +367,8 @@ const SearchableCitySelect: React.FC<SearchableCitySelectProps> = ({
 export default function EditItineraryPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const tripId = resolvedParams.id;
+  const browserFallbackEnabled = canUseLocalTripFallback();
+  const isLocalOnlyTrip = browserFallbackEnabled && tripId.startsWith('LOCAL-');
   const router = useRouter();
   
   const [trip, setTrip] = useState<Trip | null>(null);
@@ -416,6 +424,24 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
   });
   const [regeneratingDay, setRegeneratingDay] = useState<number | null>(null);
   const [uploadingDoc, setUploadingDoc] = useState(false);
+
+  const persistLocalTrip = (nextTrip: Trip) => {
+    if (!browserFallbackEnabled) return nextTrip;
+    setTrip(nextTrip);
+    setItems(nextTrip.itinerary || []);
+    upsertLocalTrip(nextTrip);
+    return nextTrip;
+  };
+
+  const applyLocalTripPatch = (patch: Partial<Trip>) => {
+    if (!trip) return null;
+    const nextTrip = {
+      ...trip,
+      ...patch,
+      itinerary: patch.itinerary || trip.itinerary || [],
+    };
+    return persistLocalTrip(nextTrip);
+  };
 
   const handleExportPDF = () => {
     const wasPreview = isPreviewMode;
@@ -492,12 +518,27 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
         const data: Trip = await response.json();
         setTrip(data);
         setItems(data.itinerary || []);
+        upsertLocalTrip(data);
       } else {
-        alert('Viagem não encontrada no banco.');
-        router.push('/trips');
+        const localTrip = browserFallbackEnabled ? findLocalTrip<Trip>(tripId) : null;
+        if (localTrip) {
+          setTrip(localTrip);
+          setItems(localTrip.itinerary || []);
+        } else {
+          alert('Viagem não encontrada no banco.');
+          router.push('/trips');
+        }
       }
     } catch (error) {
       console.error(error);
+      const localTrip = browserFallbackEnabled ? findLocalTrip<Trip>(tripId) : null;
+      if (localTrip) {
+        setTrip(localTrip);
+        setItems(localTrip.itinerary || []);
+      } else {
+        alert('Nao foi possivel carregar a viagem no backend.');
+        router.push('/trips');
+      }
     } finally {
       setLoading(false);
     }
@@ -546,37 +587,63 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
   const saveItinerary = async (updatedItems: ItineraryItem[]) => {
     if (!trip) return;
     try {
-      await fetch(`/api/trips/${tripId}`, {
+      const response = await fetch(`/api/trips/${tripId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           itinerary: updatedItems,
         }),
       });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        if (browserFallbackEnabled && isProductionPersistenceError(String(data.error || ''))) {
+          applyLocalTripPatch({ itinerary: updatedItems });
+        }
+      }
     } catch (error) {
       console.error('Erro ao salvar alterações no banco:', error);
+      if (browserFallbackEnabled) {
+        applyLocalTripPatch({ itinerary: updatedItems });
+      }
     }
   };
 
   const saveTripPatch = async (patch: Partial<Trip>) => {
-    const response = await fetch(`/api/trips/${tripId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(patch),
-    });
+    try {
+      const response = await fetch(`/api/trips/${tripId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      });
 
-    if (!response.ok) {
-      throw new Error('Erro ao salvar viagem');
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        if (browserFallbackEnabled && isProductionPersistenceError(String(data.error || ''))) {
+          return applyLocalTripPatch(patch);
+        }
+        throw new Error(data.error || 'Erro ao salvar viagem');
+      }
+
+      const updatedTrip: Trip = await response.json();
+      setTrip(updatedTrip);
+      setItems(updatedTrip.itinerary || []);
+      upsertLocalTrip(updatedTrip);
+      return updatedTrip;
+    } catch (error) {
+      console.error(error);
+      if (browserFallbackEnabled) {
+        return applyLocalTripPatch(patch);
+      }
+      throw error;
     }
-
-    const updatedTrip: Trip = await response.json();
-    setTrip(updatedTrip);
-    setItems(updatedTrip.itinerary || []);
-    return updatedTrip;
   };
 
   const handleGenerateWithAi = async () => {
     if (!trip) return;
+    if (isLocalOnlyTrip) {
+      alert('Esta viagem foi criada no fallback local do navegador. Para usar a IA, precisamos primeiro estabilizar a persistencia compartilhada no backend.');
+      return;
+    }
 
     const hasManualItems = items.some((item) => !item.meta?.aiGenerated);
     if (hasManualItems) {
@@ -660,15 +727,9 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
     }
 
     try {
-      const response = await fetch(`/api/trips/${tripId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: editedTitle.trim() }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setTrip(data);
+      const updatedTrip = await saveTripPatch({ name: editedTitle.trim() });
+      if (updatedTrip) {
+        setTrip(updatedTrip);
       }
     } catch (error) {
       console.error(error);
@@ -710,14 +771,8 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
     };
 
     try {
-      const response = await fetch(`/api/trips/${tripId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedData),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
+      const data = await saveTripPatch(updatedData);
+      if (data) {
         setTrip(data);
         setIsTripSettingsModalOpen(false);
       } else {
@@ -796,6 +851,10 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
   };
 
   const handleApproveAiDraft = async () => {
+    if (isLocalOnlyTrip) {
+      alert('Esta viagem esta apenas no fallback local do navegador. A aprovacao da IA so funciona com persistencia no backend.');
+      return;
+    }
     try {
       const response = await fetch('/api/ai/itinerary/approve', {
         method: 'POST',
@@ -815,6 +874,10 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
   };
 
   const handleRegenerateDay = async (dayNum: number) => {
+    if (isLocalOnlyTrip) {
+      alert('Esta viagem esta apenas no fallback local do navegador. A regeneracao com IA so funciona com persistencia no backend.');
+      return;
+    }
     const instruction = window.prompt(
       `Instrucao opcional para regenerar o Dia ${dayNum} (deixe vazio para padrao):`,
       ''
@@ -1558,14 +1621,21 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
 
+        {isLocalOnlyTrip ? (
+          <div className="mt-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-[11px] font-semibold text-amber-900 print-hidden">
+            Esta viagem está rodando no fallback local do navegador. Edições básicas funcionam, mas geração com IA ainda depende de persistência compartilhada no backend.
+          </div>
+        ) : null}
+
         {/* Action buttons */}
         <div className="pdf-actions flex items-center gap-2 print-hidden">
           {!isPreviewMode ? (
             <>
               <button
                 onClick={handleGenerateWithAi}
-                disabled={aiGenerating}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-60 text-xs font-bold transition-all"
+                disabled={aiGenerating || isLocalOnlyTrip}
+                className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-60 disabled:cursor-not-allowed text-xs font-bold transition-all"
+                title={isLocalOnlyTrip ? 'IA indisponivel enquanto a viagem existir apenas no fallback local' : 'Gerar com IA'}
               >
                 <span className="material-symbols-outlined text-base">auto_awesome</span>
                 <span>{aiGenerating ? 'Gerando...' : 'Gerar com IA'}</span>

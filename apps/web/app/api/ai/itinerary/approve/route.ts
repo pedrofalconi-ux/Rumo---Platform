@@ -4,7 +4,7 @@ import { getCurrentUser } from '../../../../../lib/server-auth';
 
 export async function POST(request: Request) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) {
       return NextResponse.json({ error: 'Nao autenticado' }, { status: 401 });
     }
@@ -13,6 +13,15 @@ export async function POST(request: Request) {
     const tripId = body.tripId as string;
     if (!tripId) {
       return NextResponse.json({ error: 'tripId obrigatorio' }, { status: 400 });
+    }
+    if (tripId.startsWith('LOCAL-')) {
+      return NextResponse.json(
+        {
+          error:
+            'Esta viagem existe apenas no fallback local do navegador. A aprovacao da IA exige persistencia no backend.',
+        },
+        { status: 409 }
+      );
     }
 
     const trip = db.trips.findOne(tripId);

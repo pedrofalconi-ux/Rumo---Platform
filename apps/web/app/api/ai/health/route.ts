@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '../../../../lib/server-auth';
 import { createTripAiOrchestrator } from '../../../../lib/ai/create-orchestrator';
 import { getAgencySettings } from '../../../../lib/server-account-store';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) {
       return NextResponse.json({ error: 'Nao autenticado' }, { status: 401 });
     }
