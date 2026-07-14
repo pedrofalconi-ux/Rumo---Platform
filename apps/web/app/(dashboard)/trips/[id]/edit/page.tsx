@@ -366,6 +366,11 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
   const [trip, setTrip] = useState<Trip | null>(null);
   const [items, setItems] = useState<ItineraryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [coverImageFailed, setCoverImageFailed] = useState(false);
+
+  useEffect(() => {
+    setCoverImageFailed(false);
+  }, [trip?.coverImage]);
   
   // Modal visibility states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -2147,8 +2152,13 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
       <section className="mb-12 grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="pdf-info-card bg-white border border-outline-variant rounded-xl shadow-sm col-span-2 overflow-hidden">
           <div className="relative min-h-[310px] bg-surface-container-low">
-            {trip.coverImage ? (
-              <img src={trip.coverImage} alt={`Capa de ${trip.name}`} className="absolute inset-0 h-full w-full object-cover" />
+            {trip.coverImage && !coverImageFailed ? (
+              <img
+                src={trip.coverImage}
+                alt={`Capa de ${trip.name}`}
+                className="absolute inset-0 h-full w-full object-cover"
+                onError={() => setCoverImageFailed(true)}
+              />
             ) : (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 border-b border-outline-variant bg-gradient-to-br from-surface-container-low to-white">
                 <span className="material-symbols-outlined text-5xl text-primary opacity-75">add_photo_alternate</span>
@@ -2159,12 +2169,12 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
               </div>
             )}
 
-            {trip.coverImage && (
+            {trip.coverImage && !coverImageFailed && (
               <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-black/15" />
             )}
 
             <div className="absolute left-5 top-5 right-5 flex items-start justify-between gap-3">
-              <div className={`${trip.coverImage ? 'text-white' : 'text-primary'} max-w-md`}>
+              <div className={`${trip.coverImage && !coverImageFailed ? 'text-white' : 'text-primary'} max-w-md`}>
                 <h3 className="font-headline-md text-2xl font-black leading-tight mt-1">{trip.name}</h3>
               </div>
               <button
@@ -2891,6 +2901,9 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
                           src={item.image}
                           alt={item.title}
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.parentElement?.style.setProperty('display', 'none');
+                          }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-b sm:bg-gradient-to-r from-transparent to-black/5" />
                       </div>

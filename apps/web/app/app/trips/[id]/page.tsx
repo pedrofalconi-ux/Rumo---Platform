@@ -106,6 +106,11 @@ export default function TravelerTripDetailPage() {
   const router = useRouter();
   const [trip, setTrip] = useState<TravelerTrip | null>(null);
   const [loading, setLoading] = useState(true);
+  const [coverImageFailed, setCoverImageFailed] = useState(false);
+
+  useEffect(() => {
+    setCoverImageFailed(false);
+  }, [trip?.coverImage]);
 
   useEffect(() => {
     const fetchTrip = async () => {
@@ -179,8 +184,13 @@ export default function TravelerTripDetailPage() {
       <section className="max-w-5xl mx-auto px-5 py-8">
         <div className="bg-white border border-outline-variant rounded-xl overflow-hidden shadow-sm mb-8">
           <div className="relative min-h-[280px] bg-surface-container-low">
-            {trip.coverImage ? (
-              <img src={trip.coverImage} alt={trip.name} className="absolute inset-0 h-full w-full object-cover" />
+            {trip.coverImage && !coverImageFailed ? (
+              <img
+                src={trip.coverImage}
+                alt={trip.name}
+                className="absolute inset-0 h-full w-full object-cover"
+                onError={() => setCoverImageFailed(true)}
+              />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center text-primary bg-primary/5">
                 <span className="material-symbols-outlined text-5xl">travel_explore</span>
@@ -276,7 +286,14 @@ export default function TravelerTripDetailPage() {
 
                         <div className="bg-white border border-outline-variant rounded-xl overflow-hidden shadow-sm">
                           {item.image && (
-                            <img src={item.image} alt={item.title} className="w-full h-48 object-cover" />
+                            <img
+                              src={item.image}
+                              alt={item.title}
+                              className="w-full h-48 object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
                           )}
                           <div className="p-5">
                             <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-2.5 py-1 mb-3 text-primary">
