@@ -39,6 +39,9 @@ interface MediaSearchResult {
   credit: string;
 }
 
+const LIBRARY_LOCAL_FOLDERS_KEY = 'rumo:library:folders';
+const LIBRARY_LOCAL_FOLDER_COVERS_KEY = 'rumo:library:folder-covers';
+
 // Extract all unique folder paths including parent paths
 const getAllFolderPaths = (flatFolders: string[]): string[] => {
   const paths = new Set<string>();
@@ -112,6 +115,71 @@ const getFolderRows = (
   return rows;
 };
 
+const readLocalFolders = (): string[] => {
+  if (typeof window === 'undefined') return [];
+
+  try {
+    const raw = window.localStorage.getItem(LIBRARY_LOCAL_FOLDERS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((value): value is string => typeof value === 'string') : [];
+  } catch {
+    return [];
+  }
+};
+
+const writeLocalFolders = (folders: string[]) => {
+  if (typeof window === 'undefined') return;
+
+  try {
+    window.localStorage.setItem(
+      LIBRARY_LOCAL_FOLDERS_KEY,
+      JSON.stringify(Array.from(new Set(folders)).sort((a, b) => a.localeCompare(b)))
+    );
+  } catch {
+    // Ignore local storage write failures.
+  }
+};
+
+const readLocalFolderCovers = (): Record<string, string> => {
+  if (typeof window === 'undefined') return {};
+
+  try {
+    const raw = window.localStorage.getItem(LIBRARY_LOCAL_FOLDER_COVERS_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+    return Object.fromEntries(
+      Object.entries(parsed).filter(
+        (entry): entry is [string, string] => typeof entry[0] === 'string' && typeof entry[1] === 'string'
+      )
+    );
+  } catch {
+    return {};
+  }
+};
+
+const writeLocalFolderCovers = (covers: Record<string, string>) => {
+  if (typeof window === 'undefined') return;
+
+  try {
+    window.localStorage.setItem(LIBRARY_LOCAL_FOLDER_COVERS_KEY, JSON.stringify(covers));
+  } catch {
+    // Ignore local storage write failures.
+  }
+};
+
+const isProductionPersistenceError = (message: string) => {
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes('persistencia de producao indisponivel') ||
+    normalized.includes('read-only file system') ||
+    normalized.includes('erofs') ||
+    normalized.includes('erro na biblioteca de mídia') ||
+    normalized.includes('erro na biblioteca de midia')
+  );
+};
+
 export default function LibraryPage() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [folders, setFolders] = useState<string[]>([]);
@@ -137,10 +205,14 @@ export default function LibraryPage() {
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [showCoverModal, setShowCoverModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
+  const [folderModalError, setFolderModalError] = useState('');
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newPhotoName, setNewPhotoName] = useState('');
   const [newPhotoUrl, setNewPhotoUrl] = useState('');
   const [coverFolderPath, setCoverFolderPath] = useState('');
   const [coverUrl, setCoverUrl] = useState('');
+  const [coverModalError, setCoverModalError] = useState('');
+  const [isSavingCover, setIsSavingCover] = useState(false);
   
   // Photo source selector
   const [photoSourceTab, setPhotoSourceTab] = useState<'upload' | 'search' | 'url'>('upload');
@@ -158,20 +230,35 @@ export default function LibraryPage() {
       const response = await fetch('/api/library');
       if (response.ok) {
         const data = await response.json();
+        const mergedFolders = Array.from(new Set([...(data.folders || []), ...readLocalFolders()]));
+        const mergedFolderCovers = { ...(data.folderCovers || {}), ...readLocalFolderCovers() };
         setPhotos(data.photos || []);
-        setFolders(data.folders || []);
+        setFolders(mergedFolders);
         setOrders(data.orders || {});
-        setFolderCovers(data.folderCovers || {});
+        setFolderCovers(mergedFolderCovers);
         
         // Expand all folders by default on initial load
         const initialExpanded: Record<string, boolean> = {};
-        data.folders?.forEach((f: string) => {
+        mergedFolders.forEach((f: string) => {
+          initialExpanded[f] = true;
+        });
+        setExpandedPaths(initialExpanded);
+        writeLocalFolders(mergedFolders);
+        writeLocalFolderCovers(mergedFolderCovers);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar biblioteca:', error);
+      const localFolders = readLocalFolders();
+      const localFolderCovers = readLocalFolderCovers();
+      if (localFolders.length > 0) {
+        setFolders(localFolders);
+        const initialExpanded: Record<string, boolean> = {};
+        localFolders.forEach((f) => {
           initialExpanded[f] = true;
         });
         setExpandedPaths(initialExpanded);
       }
-    } catch (error) {
-      console.error('Erro ao buscar biblioteca:', error);
+      setFolderCovers(localFolderCovers);
     } finally {
       setLoading(false);
     }
@@ -181,17 +268,39 @@ export default function LibraryPage() {
     fetchLibrary();
   }, []);
 
+  useEffect(() => {
+    writeLocalFolders(folders);
+  }, [folders]);
+
+  useEffect(() => {
+    writeLocalFolderCovers(folderCovers);
+  }, [folderCovers]);
+
   const openFolderModal = () => {
     setParentFolder(activeFolder || '');
     setNewFolderName('');
+    setFolderModalError('');
     setShowFolderModal(true);
   };
 
   const handleCreateFolder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newFolderName) return;
+    if (isCreatingFolder) return;
 
-    const finalPath = parentFolder ? `${parentFolder}/${newFolderName}` : newFolderName;
+    const trimmedName = newFolderName.trim();
+    if (!trimmedName) {
+      setFolderModalError('Digite um nome para a nova pasta.');
+      return;
+    }
+
+    const finalPath = parentFolder ? `${parentFolder}/${trimmedName}` : trimmedName;
+    if (folders.includes(finalPath)) {
+      setFolderModalError('Ja existe uma pasta com esse nome neste local.');
+      return;
+    }
+
+    setIsCreatingFolder(true);
+    setFolderModalError('');
 
     try {
       const response = await fetch('/api/library', {
@@ -205,7 +314,7 @@ export default function LibraryPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setFolders((prev) => [...prev, data.folder]);
+        setFolders((prev) => Array.from(new Set([...prev, data.folder])));
         
         if (parentFolder) {
           setExpandedPaths(prev => ({ ...prev, [parentFolder]: true }));
@@ -215,9 +324,34 @@ export default function LibraryPage() {
         setNewFolderName('');
         setParentFolder('');
         setShowFolderModal(false);
+        return;
       }
+
+      const data = await response.json().catch(() => ({}));
+      if (isProductionPersistenceError(String(data.error || ''))) {
+        setFolders((prev) => Array.from(new Set([...prev, finalPath])));
+        if (parentFolder) {
+          setExpandedPaths((prev) => ({ ...prev, [parentFolder]: true }));
+        }
+        setActiveFolder(finalPath);
+        setNewFolderName('');
+        setParentFolder('');
+        setShowFolderModal(false);
+        return;
+      }
+      setFolderModalError(data.error || 'Nao foi possivel criar a pasta.');
     } catch (error) {
       console.error(error);
+      setFolders((prev) => Array.from(new Set([...prev, finalPath])));
+      if (parentFolder) {
+        setExpandedPaths((prev) => ({ ...prev, [parentFolder]: true }));
+      }
+      setActiveFolder(finalPath);
+      setNewFolderName('');
+      setParentFolder('');
+      setShowFolderModal(false);
+    } finally {
+      setIsCreatingFolder(false);
     }
   };
 
@@ -276,6 +410,7 @@ export default function LibraryPage() {
   const openCoverModal = (folderPath: string) => {
     setCoverFolderPath(folderPath);
     setCoverUrl(folderCovers[folderPath] || '');
+    setCoverModalError('');
     setOnlineSearchTerm('');
     setOnlineSearchResults([]);
     setSearchError('');
@@ -285,26 +420,71 @@ export default function LibraryPage() {
 
   const handleSaveFolderCover = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!coverFolderPath) return;
+    if (!coverFolderPath || isSavingCover) return;
 
-    const response = await fetch('/api/library', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'set_folder_cover',
-        folderPath: coverFolderPath,
-        coverUrl,
-      }),
-    });
+    setIsSavingCover(true);
+    setCoverModalError('');
 
-    if (response.ok) {
-      const data = await response.json();
-      setFolderCovers(data.folderCovers || {});
+    try {
+      const response = await fetch('/api/library', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'set_folder_cover',
+          folderPath: coverFolderPath,
+          coverUrl,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFolderCovers(data.folderCovers || {});
+        setShowCoverModal(false);
+        setCoverFolderPath('');
+        setCoverUrl('');
+        setOnlineSearchTerm('');
+        setOnlineSearchResults([]);
+        return;
+      }
+
+      const data = await response.json().catch(() => ({}));
+      if (isProductionPersistenceError(String(data.error || ''))) {
+        setFolderCovers((prev) => {
+          const next = { ...prev };
+          if (coverUrl) {
+            next[coverFolderPath] = coverUrl;
+          } else {
+            delete next[coverFolderPath];
+          }
+          return next;
+        });
+        setShowCoverModal(false);
+        setCoverFolderPath('');
+        setCoverUrl('');
+        setOnlineSearchTerm('');
+        setOnlineSearchResults([]);
+        return;
+      }
+
+      setCoverModalError(data.error || 'Nao foi possivel salvar a capa.');
+    } catch (error) {
+      console.error(error);
+      setFolderCovers((prev) => {
+        const next = { ...prev };
+        if (coverUrl) {
+          next[coverFolderPath] = coverUrl;
+        } else {
+          delete next[coverFolderPath];
+        }
+        return next;
+      });
       setShowCoverModal(false);
       setCoverFolderPath('');
       setCoverUrl('');
       setOnlineSearchTerm('');
       setOnlineSearchResults([]);
+    } finally {
+      setIsSavingCover(false);
     }
   };
 
@@ -1119,24 +1299,49 @@ export default function LibraryPage() {
                   type="text"
                   placeholder="Ex: Portugal ou Paris"
                   value={newFolderName}
-                  onChange={(e) => setNewFolderName(e.target.value)}
+                  autoFocus
+                  onChange={(e) => {
+                    setNewFolderName(e.target.value);
+                    if (folderModalError) setFolderModalError('');
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      void handleCreateFolder(e);
+                    }
+                  }}
                   className="border border-outline-variant rounded-lg p-2 text-xs focus:ring-1 focus:ring-primary outline-none"
                 />
               </div>
+
+              {folderModalError ? (
+                <p className="rounded-lg bg-error/10 p-2 text-[11px] font-semibold text-error">
+                  {folderModalError}
+                </p>
+              ) : null}
               
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setShowFolderModal(false)}
+                  onClick={() => {
+                    setShowFolderModal(false);
+                    setFolderModalError('');
+                    setNewFolderName('');
+                  }}
                   className="px-4 py-2 border border-outline rounded-lg text-xs font-semibold hover:bg-surface-container"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-primary text-on-primary rounded-lg text-xs font-bold hover:opacity-90"
+                  disabled={isCreatingFolder}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    void handleCreateFolder(e);
+                  }}
+                  className="px-4 py-2 bg-primary text-on-primary rounded-lg text-xs font-bold hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  Criar Pasta
+                  {isCreatingFolder ? 'Criando...' : 'Criar Pasta'}
                 </button>
               </div>
             </form>

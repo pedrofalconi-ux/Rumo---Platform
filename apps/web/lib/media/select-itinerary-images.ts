@@ -1,5 +1,6 @@
 import { db } from '@rumo/db';
 import type { ItineraryItem } from '@rumo/ai';
+import { convertUrlToBase64 } from './base64-converter';
 
 const FALLBACK_PIXABAY_KEY = '56439289-7031ef2f0e888cf1c7ab9501e';
 
@@ -131,7 +132,10 @@ async function findOnlinePhoto(query: string, pixabayKey?: string): Promise<{
     );
 
     const url = hit?.largeImageURL || hit?.webformatURL || hit?.previewURL;
-    return url ? { url, credit: hit?.user || 'Pixabay' } : null;
+    if (!url) return null;
+
+    const base64Url = await convertUrlToBase64(url);
+    return { url: base64Url, credit: hit?.user || 'Pixabay' };
   } catch {
     return null;
   }

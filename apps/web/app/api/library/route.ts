@@ -40,7 +40,8 @@ export async function GET() {
 
     return NextResponse.json({ photos, folders, orders, folderCovers });
   } catch (error) {
-    return NextResponse.json({ error: 'Erro ao buscar biblioteca' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Erro ao buscar biblioteca';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -50,8 +51,17 @@ export async function POST(request: Request) {
     const { action, name, folder, url, draggedPath, targetPath, position } = body;
     
     if (action === 'create_folder') {
-      const folderName = db.folders.create(name);
-      return NextResponse.json({ success: true, folder: folderName });
+      const folderName = String(name || '').trim();
+      if (!folderName) {
+        return NextResponse.json({ error: 'Nome da pasta obrigatorio' }, { status: 400 });
+      }
+
+      if (db.folders.findMany().includes(folderName)) {
+        return NextResponse.json({ error: 'Ja existe uma pasta com esse nome neste local' }, { status: 409 });
+      }
+
+      const createdFolderName = db.folders.create(folderName);
+      return NextResponse.json({ success: true, folder: createdFolderName });
     } else if (action === 'move_folder') {
       if (!draggedPath || !targetPath || !position) {
         return NextResponse.json({ error: 'Parâmetros insuficientes' }, { status: 400 });
@@ -294,6 +304,7 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     console.error('Erro na biblioteca de mídia:', error);
-    return NextResponse.json({ error: 'Erro na biblioteca de mídia' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Erro na biblioteca de mídia';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
