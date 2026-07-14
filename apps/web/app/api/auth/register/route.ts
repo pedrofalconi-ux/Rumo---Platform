@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@rumo/db';
+import { registerAgencyAccount } from '../../../../lib/server-account-store';
 
 export async function POST(request: Request) {
   try {
@@ -9,20 +10,26 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Dados obrigatorios ausentes' }, { status: 400 });
     }
 
-    const user = db.auth.register(body);
-    const login = db.auth.login(body.email, body.password);
-
-    if (!login) {
-      return NextResponse.json({ user });
+    if (body.accessKey !== 'rumo123') {
+      return NextResponse.json({ error: 'Chave de acesso invalida' }, { status: 403 });
     }
 
-    const response = NextResponse.json({ user: login.user });
-    response.cookies.set('rumo_session', login.session.id, {
+    const user = await registerAgencyAccount({
+      fullName: body.fullName,
+      agencyName: body.agencyName || 'Nova Agencia',
+      email: body.email,
+      phone: body.phone || '',
+      password: body.password,
+    });
+    const session = db.sessions.create(user.id);
+
+    const response = NextResponse.json({ user });
+    response.cookies.set('rumo_session', session.id, {
       httpOnly: true,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
       path: '/',
-      expires: new Date(login.session.expiresAt),
+      expires: new Date(session.expiresAt),
     });
 
     return response;

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { db } from '@rumo/db';
 import { getCurrentUser } from '../../../../lib/server-auth';
 import { createTripAiOrchestrator } from '../../../../lib/ai/create-orchestrator';
+import { getAgencySettings } from '../../../../lib/server-account-store';
 
 export async function GET() {
   try {
@@ -10,7 +10,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Nao autenticado' }, { status: 401 });
     }
 
-    const settings = db.settings.get(user.agencyId);
+    const settings = await getAgencySettings(user.agencyId);
     const provider = process.env.LLM_PROVIDER || 'gemini';
     const hasAnthropicKey = Boolean(process.env.ANTHROPIC_API_KEY || settings.claudeKey);
     const hasGeminiKey = Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || settings.geminiKey);

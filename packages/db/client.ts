@@ -180,6 +180,12 @@ const initialNotifications: any[] = [];
 const initialTravelerInvites: any[] = [];
 const initialTravelerTripAccess: any[] = [];
 
+const SESSION_TTL_DAYS = 7;
+const SESSION_SECRET =
+  process.env.SESSION_SECRET ||
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  'rumo-dev-session-secret';
+
 const initialSettings = {
   agencyName: 'Horizon Enterprise',
   logoUrl: '',
@@ -305,6 +311,55 @@ function addDays(date: Date, days: number) {
   const next = new Date(date);
   next.setDate(next.getDate() + days);
   return next;
+}
+
+function toBase64Url(input: string) {
+  return Buffer.from(input, 'utf-8').toString('base64url');
+}
+
+function fromBase64Url(input: string) {
+  return Buffer.from(input, 'base64url').toString('utf-8');
+}
+
+function signSessionPayload(payload: string) {
+  return crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('base64url');
+}
+
+function createSessionToken(userId: string, expiresAt: string) {
+  const payload = toBase64Url(JSON.stringify({ userId, expiresAt }));
+  const signature = signSessionPayload(payload);
+  return `${payload}.${signature}`;
+}
+
+function parseSessionToken(token: string) {
+  const [payload, signature] = token.split('.');
+  if (!payload || !signature) return null;
+
+  const expectedSignature = signSessionPayload(payload);
+  const provided = Buffer.from(signature);
+  const expected = Buffer.from(expectedSignature);
+  if (provided.length !== expected.length || !crypto.timingSafeEqual(provided, expected)) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(fromBase64Url(payload)) as {
+      userId?: string;
+      expiresAt?: string;
+    };
+
+    if (!parsed.userId || !parsed.expiresAt) return null;
+    if (new Date(parsed.expiresAt) <= new Date()) return null;
+
+    return {
+      id: token,
+      userId: parsed.userId,
+      createdAt: '',
+      expiresAt: parsed.expiresAt,
+    };
+  } catch {
+    return null;
+  }
 }
 
 // Database ORM Client
@@ -440,25 +495,17 @@ export const db = {
   },
   sessions: {
     create: (userId: string) => {
-      const sessions = readData<any[]>(SESSIONS_FILE).filter((session) => new Date(session.expiresAt) > new Date());
+      const expiresAt = addDays(new Date(), SESSION_TTL_DAYS).toISOString();
       const newSession = {
-        id: crypto.randomBytes(32).toString('hex'),
+        id: createSessionToken(userId, expiresAt),
         userId,
         createdAt: new Date().toISOString(),
-        expiresAt: addDays(new Date(), 7).toISOString(),
+        expiresAt,
       };
-      sessions.push(newSession);
-      writeData(SESSIONS_FILE, sessions);
       return newSession;
     },
-    findOne: (id: string) => {
-      const session = readData<any[]>(SESSIONS_FILE).find((s) => s.id === id);
-      if (!session || new Date(session.expiresAt) <= new Date()) return null;
-      return session;
-    },
-    delete: (id: string) => {
-      const sessions = readData<any[]>(SESSIONS_FILE);
-      writeData(SESSIONS_FILE, sessions.filter((s) => s.id !== id));
+    findOne: (id: string) => parseSessionToken(id),
+    delete: (_id: string) => {
       return true;
     },
   },

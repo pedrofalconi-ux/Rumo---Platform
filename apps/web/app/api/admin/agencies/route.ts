@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@rumo/db';
 import { getCurrentUser } from '../../../../lib/server-auth';
+import { listAgencies, listUsersForAgency, updateAgency } from '../../../../lib/server-account-store';
 
 function ensurePlatformAdmin(user: any) {
   return user?.role === 'platform_admin';
@@ -14,8 +15,8 @@ export async function GET() {
       return NextResponse.json({ error: 'Acesso restrito ao admin da plataforma' }, { status: 403 });
     }
 
-    const agencies = db.agencies.findMany();
-    const users = db.users.findMany();
+    const agencies = await listAgencies();
+    const users = await listUsersForAgency();
     const trips = db.trips.findMany();
 
     return NextResponse.json(
@@ -35,8 +36,9 @@ export async function GET() {
         tripsCount: trips.filter((trip: any) => trip.agencyId === agency.id).length,
       }))
     );
-  } catch {
-    return NextResponse.json({ error: 'Erro ao buscar agencias' }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro ao buscar agencias';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -53,7 +55,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'ID da agencia obrigatorio' }, { status: 400 });
     }
 
-    const updated = db.agencies.update(body.id, {
+    const updated = await updateAgency(body.id, {
       name: body.name,
       plan: body.plan,
       subscriptionStatus: body.subscriptionStatus,
@@ -66,7 +68,8 @@ export async function PATCH(request: Request) {
     }
 
     return NextResponse.json(updated);
-  } catch {
-    return NextResponse.json({ error: 'Erro ao atualizar agencia' }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro ao atualizar agencia';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -103,7 +103,7 @@ export default function TripsPage() {
   return (
     <div className="flex-1">
       {/* Header Section */}
-      <div className="scroll-reveal flex justify-between items-end mb-8">
+      <div className="scroll-reveal flex flex-col sm:flex-row gap-4 sm:items-end justify-between mb-8">
         <div>
           <h2 className="font-headline-lg text-2xl font-bold text-primary tracking-tight">VIAGENS</h2>
           <p className="text-on-surface opacity-75 text-sm mt-1">
@@ -112,7 +112,7 @@ export default function TripsPage() {
         </div>
         <Link
           href="/trips/new"
-          className="btn-interactive bg-primary text-on-primary font-semibold text-xs px-6 py-3 rounded-lg shadow-sm flex items-center gap-2 hover:shadow-md active:scale-95 transition-all"
+          className="btn-interactive bg-primary text-on-primary font-semibold text-xs px-6 py-3 rounded-lg shadow-sm flex items-center justify-center gap-2 hover:shadow-md active:scale-95 transition-all shrink-0 w-full sm:w-auto text-center"
         >
           <span className="material-symbols-outlined text-sm">add_circle</span>
           CRIAR NOVA VIAGEM

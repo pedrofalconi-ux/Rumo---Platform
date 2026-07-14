@@ -173,4 +173,40 @@ body {
   animation: pageEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+.auth-canvas {
+  background:
+    radial-gradient(circle at top left, rgba(111, 168, 220, 0.16), transparent 24%),
+    radial-gradient(circle at bottom right, rgba(255, 107, 74, 0.12), transparent 22%),
+    linear-gradient(135deg, #020a16 0%, #07192f 46%, #05182d 100%);
+}
+
+.auth-grid-pattern {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(circle at center, black 38%, transparent 100%);
+}
+
+.auth-brand-panel::after {
+  content: '';
+  position: absolute;
+  inset: 14% 24% auto auto;
+  width: 260px;
+  height: 260px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(111, 168, 220, 0.22), transparent 72%);
+  filter: blur(10px);
+}
+
+.auth-form-panel::before {
+  content: '';
+  position: absolute;
+  inset: auto auto 10% 8%;
+  width: 260px;
+  height: 260px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(111, 168, 220, 0.16), transparent 70%);
+  filter: blur(18px);
+}
 

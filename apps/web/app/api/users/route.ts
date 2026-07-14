@@ -1,12 +1,18 @@
 import { NextResponse } from 'next/server';
-import { db } from '@rumo/db';
 import { getCurrentUser } from '../../../lib/server-auth';
+import {
+  createAgencyUser,
+  deleteAgencyUser,
+  getUserById,
+  listUsersForAgency,
+  updateAgencyUser,
+} from '../../../lib/server-account-store';
 
 export async function GET() {
   try {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Nao autenticado' }, { status: 401 });
-    const users = db.users.findMany(user.agencyId);
+    const users = await listUsersForAgency(user.agencyId);
     return NextResponse.json(users);
   } catch {
     return NextResponse.json({ error: 'Erro ao buscar usuarios' }, { status: 500 });
@@ -18,10 +24,14 @@ export async function POST(request: Request) {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Nao autenticado' }, { status: 401 });
     const body = await request.json();
-    const newUser = db.users.create({
-      ...body,
-      agencyId: user.agencyId,
+    const newUser = await createAgencyUser(user.agencyId, {
+      fullName: body.fullName,
+      email: body.email,
+      phone: body.phone,
+      role: body.role,
       password: body.password || 'rumo123',
+      accessStatus: body.accessStatus,
+      accessExpiresAt: body.accessExpiresAt,
     });
     return NextResponse.json(newUser);
   } catch (error: unknown) {
@@ -36,12 +46,12 @@ export async function PATCH(request: Request) {
     if (!currentUser) return NextResponse.json({ error: 'Nao autenticado' }, { status: 401 });
 
     const body = await request.json();
-    const targetUser = db.users.findOne(body.id);
+    const targetUser = await getUserById(body.id);
     if (!targetUser || targetUser.agencyId !== currentUser.agencyId) {
       return NextResponse.json({ error: 'Usuario nao encontrado' }, { status: 404 });
     }
 
-    const updated = db.users.update(body.id, {
+    const updated = await updateAgencyUser(body.id, {
       fullName: body.fullName,
       email: body.email,
       phone: body.phone,
@@ -69,7 +79,7 @@ export async function DELETE(request: Request) {
     const id = searchParams.get('id');
     if (!id) return NextResponse.json({ error: 'ID do usuario nao informado' }, { status: 400 });
 
-    const targetUser = db.users.findOne(id);
+    const targetUser = await getUserById(id);
     if (!targetUser || targetUser.agencyId !== currentUser.agencyId) {
       return NextResponse.json({ error: 'Usuario nao encontrado' }, { status: 404 });
     }
@@ -78,7 +88,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Voce nao pode remover seu proprio usuario' }, { status: 400 });
     }
 
-    db.users.delete(id);
+    await deleteAgencyUser(id);
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Erro ao remover usuario';

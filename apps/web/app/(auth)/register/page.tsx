@@ -3,6 +3,45 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
+import AuthShell from '../../../components/auth-shell';
+
+function Field({
+  label,
+  icon,
+  type = 'text',
+  value,
+  placeholder,
+  onChange,
+  trailing,
+}: {
+  label: string;
+  icon: string;
+  type?: string;
+  value: string;
+  placeholder?: string;
+  onChange: (value: string) => void;
+  trailing?: React.ReactNode;
+}) {
+  return (
+    <label className="block space-y-2">
+      <span className="text-xs font-bold uppercase tracking-[0.22em] text-white/62">{label}</span>
+      <div className="relative">
+        <span className="material-symbols-outlined pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[21px] text-white/34">
+          {icon}
+        </span>
+        <input
+          required
+          type={type}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={placeholder}
+          className="input-interactive h-14 w-full rounded-[20px] border border-white/12 bg-white/92 pl-14 pr-14 text-base font-medium text-[#0b1930] placeholder:text-[#78849a] focus:border-[#6FA8DC] focus:bg-white"
+        />
+        {trailing ? <div className="absolute right-3 top-1/2 -translate-y-1/2">{trailing}</div> : null}
+      </div>
+    </label>
+  );
+}
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -54,148 +93,131 @@ export default function RegisterPage() {
   };
 
   return (
-    <main className="min-h-screen bg-surface flex items-center justify-center p-6">
-      <section className="animate-page-enter w-full max-w-md bg-white border border-outline-variant rounded-xl shadow-sm p-8">
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <img src="/rumo-mark.svg" alt="Rumo" className="h-12 w-12 rounded-full shadow-sm" />
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Rumo</p>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-on-surface opacity-55">A sua bussola</p>
-            </div>
-          </div>
-          <h1 className="font-headline-lg text-2xl font-bold text-on-surface mt-2">Criar conta</h1>
-          <p className="text-sm text-on-surface opacity-70 mt-1">
-            Cadastro operacional para agencias whitelabel. A agencia criada aqui isola viagens, usuarios e configuracoes.
+    <AuthShell
+      mode="register"
+      eyebrow="Onboarding de agencias"
+      title="Estruture sua operacao"
+      description="Crie o tenant da sua agencia, configure o administrador inicial e entre em um fluxo preparado para escala, governanca e experiencia premium."
+      footer={
+        <>
+          <p>
+            Ja possui acesso?{' '}
+            <Link href="/login" className="font-semibold text-[#6FA8DC] transition hover:text-white">
+              Entrar na plataforma
+            </Link>
           </p>
+          <p className="mt-2">
+            Sou viajante convidado por uma agencia.{' '}
+            <Link href="/traveler/register" className="font-semibold text-[#6FA8DC] transition hover:text-white">
+              Criar acesso de viajante
+            </Link>
+          </p>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field
+            label="Nome completo"
+            icon="person"
+            value={formData.fullName}
+            onChange={(value) => setFormData((prev) => ({ ...prev, fullName: value }))}
+            placeholder="Responsavel pela operacao"
+          />
+          <Field
+            label="Nome da agencia"
+            icon="apartment"
+            value={formData.agencyName}
+            onChange={(value) => setFormData((prev) => ({ ...prev, agencyName: value }))}
+            placeholder="Rumo Viagens"
+          />
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-on-surface">Nome completo</label>
-            <input
-              required
-              type="text"
-              value={formData.fullName}
-              onChange={(event) => setFormData((prev) => ({ ...prev, fullName: event.target.value }))}
-              className="input-interactive border border-outline-variant rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-            />
-          </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field
+            label="E-mail"
+            icon="mail"
+            type="email"
+            value={formData.email}
+            onChange={(value) => setFormData((prev) => ({ ...prev, email: value }))}
+            placeholder="operacao@agencia.com"
+          />
+          <Field
+            label="Confirmar e-mail"
+            icon="forward_to_inbox"
+            type="email"
+            value={formData.emailConfirm}
+            onChange={(value) => setFormData((prev) => ({ ...prev, emailConfirm: value }))}
+            placeholder="Repita o e-mail"
+          />
+        </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-on-surface">Nome da agencia</label>
-            <input
-              required
-              type="text"
-              value={formData.agencyName}
-              onChange={(event) => setFormData((prev) => ({ ...prev, agencyName: event.target.value }))}
-              className="input-interactive border border-outline-variant rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-            />
-          </div>
+        <Field
+          label="Telefone"
+          icon="call"
+          value={formData.phone}
+          onChange={(value) => setFormData((prev) => ({ ...prev, phone: value }))}
+          placeholder="+55 11 99999-9999"
+        />
 
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-on-surface">E-mail</label>
-            <input
-              required
-              type="email"
-              value={formData.email}
-              onChange={(event) => setFormData((prev) => ({ ...prev, email: event.target.value }))}
-              className="input-interactive border border-outline-variant rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-            />
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-on-surface">Confirmar e-mail</label>
-            <input
-              required
-              type="email"
-              value={formData.emailConfirm}
-              onChange={(event) => setFormData((prev) => ({ ...prev, emailConfirm: event.target.value }))}
-              className="input-interactive border border-outline-variant rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-            />
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-on-surface">Telefone</label>
-            <input
-              type="text"
-              value={formData.phone}
-              onChange={(event) => setFormData((prev) => ({ ...prev, phone: event.target.value }))}
-              className="input-interactive border border-outline-variant rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-            />
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-on-surface">Senha</label>
-            <div className="relative">
-              <input
-                required
-                type={showPassword ? 'text' : 'password'}
-                minLength={6}
-                value={formData.password}
-                onChange={(event) => setFormData((prev) => ({ ...prev, password: event.target.value }))}
-                className="input-interactive w-full border border-outline-variant rounded-lg p-3 pr-11 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-              />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field
+            label="Senha"
+            icon="lock"
+            type={showPassword ? 'text' : 'password'}
+            value={formData.password}
+            onChange={(value) => setFormData((prev) => ({ ...prev, password: value }))}
+            placeholder="Minimo de 6 caracteres"
+            trailing={
               <button
                 type="button"
                 onClick={() => setShowPassword((value) => !value)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full hover:bg-surface-container-low flex items-center justify-center text-on-surface opacity-70"
+                className="flex h-10 w-10 items-center justify-center rounded-full text-[#607089] transition hover:bg-[#eef4fb]"
                 title={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
               >
-                <span className="material-symbols-outlined text-[18px]">
+                <span className="material-symbols-outlined text-[20px]">
                   {showPassword ? 'visibility_off' : 'visibility'}
                 </span>
               </button>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-on-surface">Chave de acesso</label>
-            <div className="relative">
-              <input
-                required
-                type={showAccessKey ? 'text' : 'password'}
-                value={formData.accessKey}
-                onChange={(event) => setFormData((prev) => ({ ...prev, accessKey: event.target.value }))}
-                className="input-interactive w-full border border-outline-variant rounded-lg p-3 pr-11 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-              />
+            }
+          />
+          <Field
+            label="Chave de acesso"
+            icon="key"
+            type={showAccessKey ? 'text' : 'password'}
+            value={formData.accessKey}
+            onChange={(value) => setFormData((prev) => ({ ...prev, accessKey: value }))}
+            placeholder="Chave fornecida pela Rumo"
+            trailing={
               <button
                 type="button"
                 onClick={() => setShowAccessKey((value) => !value)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full hover:bg-surface-container-low flex items-center justify-center text-on-surface opacity-70"
+                className="flex h-10 w-10 items-center justify-center rounded-full text-[#607089] transition hover:bg-[#eef4fb]"
                 title={showAccessKey ? 'Ocultar chave' : 'Mostrar chave'}
               >
-                <span className="material-symbols-outlined text-[18px]">
+                <span className="material-symbols-outlined text-[20px]">
                   {showAccessKey ? 'visibility_off' : 'visibility'}
                 </span>
               </button>
-            </div>
-          </div>
+            }
+          />
+        </div>
 
-          {error && <p className="text-xs font-semibold text-error bg-error/10 rounded-lg p-3">{error}</p>}
+        {error ? (
+          <p className="rounded-[18px] border border-[#ff6b4a]/28 bg-[#ff6b4a]/12 px-4 py-3 text-sm font-semibold text-[#ffd6cd]">
+            {error}
+          </p>
+        ) : null}
 
-          <button
-            disabled={loading}
-            type="submit"
-            className="btn-interactive w-full bg-primary text-on-primary rounded-lg py-3 text-xs font-bold hover:opacity-95 disabled:opacity-60 transition-all"
-          >
-            {loading ? 'CRIANDO...' : 'CRIAR CONTA'}
-          </button>
-        </form>
-
-        <p className="text-xs text-center text-on-surface opacity-70 mt-6">
-          Ja tem conta?{' '}
-          <Link href="/login" className="font-bold text-primary hover:underline">
-            Entrar
-          </Link>
-        </p>
-        <p className="text-xs text-center text-on-surface opacity-70 mt-3">
-          Sou cliente/viajante de uma agencia.{' '}
-          <Link href="/traveler/register" className="font-bold text-primary hover:underline">
-            Criar acesso do viajante
-          </Link>
-        </p>
-      </section>
-    </main>
+        <button
+          disabled={loading}
+          type="submit"
+          className="btn-interactive flex h-16 w-full items-center justify-center gap-3 rounded-[22px] bg-[linear-gradient(135deg,#6FA8DC,#4F8DDA)] px-6 text-base font-bold text-white shadow-[0_14px_40px_rgba(79,141,218,0.35)] transition disabled:cursor-not-allowed disabled:opacity-65"
+        >
+          <span>{loading ? 'Criando ambiente...' : 'Criar conta da agencia'}</span>
+          <span className="material-symbols-outlined text-[22px]">arrow_forward</span>
+        </button>
+      </form>
+    </AuthShell>
   );
 }

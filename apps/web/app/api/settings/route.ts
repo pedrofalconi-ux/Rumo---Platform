@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { db } from '@rumo/db';
 import { getCurrentUser } from '../../../lib/server-auth';
+import { getAgencySettings, updateAgencySettings } from '../../../lib/server-account-store';
 
 const agencyEditableFields = [
   'agencyName',
@@ -39,9 +39,10 @@ export async function GET() {
     if (user.role === 'platform_admin') {
       return NextResponse.json({ agencyName: 'Rumo Admin', logoUrl: '', defaultCurrency: 'BRL', notificationEmail: '' });
     }
-    return NextResponse.json(sanitizeAgencySettings(db.settings.get(user.agencyId)));
+    return NextResponse.json(sanitizeAgencySettings(await getAgencySettings(user.agencyId)));
   } catch (error) {
-    return NextResponse.json({ error: 'Erro ao buscar configuracoes' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Erro ao buscar configuracoes';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -53,8 +54,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Use o painel Admin SaaS para configuracoes sensiveis' }, { status: 403 });
     }
     const body = await request.json();
-    return NextResponse.json(sanitizeAgencySettings(db.settings.update({ ...pickAgencyEditableSettings(body), agencyId: user.agencyId })));
+    return NextResponse.json(
+      sanitizeAgencySettings(await updateAgencySettings(user.agencyId, pickAgencyEditableSettings(body)))
+    );
   } catch (error) {
-    return NextResponse.json({ error: 'Erro ao salvar configuracoes' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Erro ao salvar configuracoes';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

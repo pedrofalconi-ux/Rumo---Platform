@@ -1,10 +1,9 @@
 {
-  "América": "https://pixabay.com/get/ga88a640995c306ec58008a6e98c76fced2866af146c6f0c62a2294000f4e52c6ad28c29c273f31befc8c644bf79b7ec9_1280.jpg",
-  "Brasil": "https://pixabay.com/get/g2cf85a334cbf1bc73df3dab48708c259e84aba4b8f36ae03046e9e994ded65643cf9494fbe6dd41b870658c2db04cc4e906b2be9b07877154c70331257f679a6_1280.jpg",
-  "Europa": "https://pixabay.com/get/g63ba9adfe10a1e9f295fd7535f65b29948c5819af33d3c9e1c81e7aa651b350a6ab1a78076880eb4b9788ed8e2650c52fca99bbaa781433fa6209b717e3dea94_1280.jpg",
-  "Europa/Milão": "https://pixabay.com/get/g6065293ff083874e40888c87db5ea3c35f98aa31bf32b0b880d9c6ae9fb0fc10340071cca586d447272011c6f8fb4acf7c371502e030f7423d9bca625889fb8c_1280.jpg",
-  "América/Orlando": "https://pixabay.com/get/gbcf6c7ca31a9150da6851d6826b4149bd536ecb89b6a2f07e157cb1069d00cfd10a424797834fe8aa1b89fc56c76ed0ff37c4a984a9ea53a66f9c68ba05d537d_1280.jpg",
-  "América/Miami": "https://pixabay.com/get/g335bf14eb02be3253519a4b1644ed2725cf79e3845ddd3b1d009ac883db8885c0cdb0de36baeba01fd4dbeb57fab3786509efd1b1eb35a8c2da31d361baa32a6_1280.jpg",
-  "Brasil/Joâo Pessoa": "https://pixabay.com/get/gff126ab218cb44f3fd1c31d7ed4f6aaf6474612b816b33f6eee8e027cf50d8b11b5153054d80dff2b4128b3ef0b1c6ee6e1971c642a28348d991ce811516f79e_1280.jpg",
-  "Europa/Roma": "https://pixabay.com/get/g00f5316b18345841631995f06135575ced96df8b6abba487e4d646f5ba6bc36b04a0acc59f2b822999d6a18f43b4d8bf47a5be311e66e6d5005ebf12e995cb4a_1280.jpg"
+  "América": "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?auto=format&fit=crop&w=600&q=80",
+  "Brasil": "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=600&q=80",
+  "Europa": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80",
+  "Europa/Milão": "https://images.unsplash.com/photo-1520175480921-4edfa2983e0f?auto=format&fit=crop&w=600&q=80",
+  "América/Orlando": "https://images.unsplash.com/photo-1502134249126-9f3755a50d78?auto=format&fit=crop&w=600&q=80",
+  "América/Miami": "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=600&q=80",
+  "Europa/Roma": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=600&q=80"
 }

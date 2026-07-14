@@ -19,6 +19,15 @@ interface SessionUser {
   fullName: string;
 }
 
+interface NewsItem {
+  title: string;
+  link: string;
+  description: string;
+  pubDate: string;
+  imageUrl?: string;
+  source: string;
+}
+
 export default function DashboardPage() {
   const [stats, setStats] = useState<Stats>({
     totalTrips: 0,
@@ -29,6 +38,8 @@ export default function DashboardPage() {
   });
   const [user, setUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [news, setNews] = useState<NewsItem[]>([]);
+  const [newsLoading, setNewsLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -62,7 +73,22 @@ export default function DashboardPage() {
       }
     };
 
+    const fetchNews = async () => {
+      try {
+        const res = await fetch('/api/news');
+        if (res.ok) {
+          const data = await res.json();
+          setNews(data);
+        }
+      } catch (error) {
+        console.error('Error loading news:', error);
+      } finally {
+        setNewsLoading(false);
+      }
+    };
+
     fetchStats();
+    fetchNews();
   }, []);
 
   return (
@@ -188,6 +214,78 @@ export default function DashboardPage() {
                 </span>
               </div>
             </div>
+          </div>
+
+          {/* Rumo News Section */}
+          <div className="scroll-reveal scroll-reveal-delay-300 bg-white border border-outline-variant p-6 rounded-xl shadow-sm">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-[24px]">newspaper</span>
+                <h3 className="font-bold text-sm text-primary uppercase tracking-wider">Rumo News: O Mundo das Viagens</h3>
+              </div>
+              <span className="text-xs text-on-surface opacity-60">Atualizado recentemente</span>
+            </div>
+
+            {newsLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="animate-pulse flex flex-col gap-3">
+                    <div className="bg-surface-container-high h-40 rounded-lg w-full"></div>
+                    <div className="h-4 bg-surface-container-high rounded w-3/4"></div>
+                    <div className="h-3 bg-surface-container-high rounded w-full"></div>
+                    <div className="h-3 bg-surface-container-high rounded w-5/6"></div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {news.map((item, idx) => (
+                  <a
+                    key={idx}
+                    href={item.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex flex-col bg-surface-container-low hover:bg-surface-container-medium border border-outline-variant rounded-xl overflow-hidden transition-all duration-200 hover:shadow-md"
+                  >
+                    {item.imageUrl ? (
+                      <div className="h-40 overflow-hidden relative">
+                        <img
+                          src={item.imageUrl}
+                          alt={item.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <span className="absolute bottom-2 left-2 bg-primary text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          {item.source}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="h-40 bg-primary-container-alt text-primary flex items-center justify-center relative">
+                        <span className="material-symbols-outlined text-4xl opacity-50">travel</span>
+                        <span className="absolute bottom-2 left-2 bg-primary text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          {item.source}
+                        </span>
+                      </div>
+                    )}
+                    <div className="p-4 flex-1 flex flex-col justify-between gap-3">
+                      <div className="space-y-2">
+                        <h4 className="font-bold text-sm text-on-surface line-clamp-2 group-hover:text-primary transition-colors">
+                          {item.title}
+                        </h4>
+                        <p className="text-xs text-on-surface opacity-75 line-clamp-3 leading-relaxed">
+                          {item.description}
+                        </p>
+                      </div>
+                      <div className="text-[10px] text-on-surface opacity-60 flex justify-between items-center pt-2 border-t border-outline-variant/50">
+                        <span>{new Date(item.pubDate).toLocaleDateString('pt-BR')}</span>
+                        <span className="flex items-center gap-0.5 font-semibold text-primary group-hover:translate-x-1 transition-transform">
+                          Ler mais <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                        </span>
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
         </>
       )}

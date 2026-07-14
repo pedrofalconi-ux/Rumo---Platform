@@ -8,43 +8,30 @@ export async function GET() {
     const orders = (db as any).libraryOrder ? (db as any).libraryOrder.get() : {};
     const folderCovers = (db as any).folderCovers ? (db as any).folderCovers.get() : {};
 
-    // Auto-populate missing covers using Pixabay
-    let hasChanges = false;
-    const foldersWithoutCover = folders.filter(f => !folderCovers[f]);
-    if (foldersWithoutCover.length > 0) {
-      const pixabayKey = '56439289-7031ef2f0e888cf1c7ab9501e';
-      await Promise.all(
-        foldersWithoutCover.map(async (folderPath) => {
-          const folderName = folderPath.split('/').pop() || '';
-          try {
-            const pixabayUrl = new URL('https://pixabay.com/api/');
-            pixabayUrl.searchParams.set('key', pixabayKey);
-            pixabayUrl.searchParams.set('q', folderName);
-            pixabayUrl.searchParams.set('image_type', 'photo');
-            pixabayUrl.searchParams.set('per_page', '3');
+    // Auto-populate missing covers using beautiful Unsplash default images
+    const defaultFolderCovers: Record<string, string> = {
+      'América': 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?auto=format&fit=crop&w=600&q=80',
+      'América/Orlando': 'https://images.unsplash.com/photo-1502134249126-9f3755a50d78?auto=format&fit=crop&w=600&q=80',
+      'América/Miami': 'https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=600&q=80',
+      'Brasil': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=600&q=80',
+      'Europa': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80',
+      'Europa/Milão': 'https://images.unsplash.com/photo-1520175480921-4edfa2983e0f?auto=format&fit=crop&w=600&q=80',
+      'Europa/Roma': 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=600&q=80'
+    };
 
-            const response = await fetch(pixabayUrl);
-            if (response.ok) {
-              const data = await response.json();
-              if (data.hits && data.hits.length > 0) {
-                folderCovers[folderPath] = data.hits[0].largeImageURL || data.hits[0].webformatURL;
-                hasChanges = true;
-              } else {
-                // Fallback to Picsum
-                folderCovers[folderPath] = `https://picsum.photos/600/400?sig=${Math.floor(Math.random() * 1000)}`;
-                hasChanges = true;
-              }
-            } else {
-              folderCovers[folderPath] = `https://picsum.photos/600/400?sig=${Math.floor(Math.random() * 1000)}`;
-              hasChanges = true;
-            }
-          } catch (e) {
-            console.error(`Erro ao buscar capa automática para ${folderPath}:`, e);
-            folderCovers[folderPath] = `https://picsum.photos/600/400?sig=${Math.floor(Math.random() * 1000)}`;
-            hasChanges = true;
-          }
-        })
-      );
+    let hasChanges = false;
+    const foldersWithoutCover = folders.filter(f => !folderCovers[f] || folderCovers[f].includes('picsum.photos') || folderCovers[f].includes('pixabay.com'));
+    if (foldersWithoutCover.length > 0) {
+      foldersWithoutCover.forEach((folderPath) => {
+        if (defaultFolderCovers[folderPath]) {
+          folderCovers[folderPath] = defaultFolderCovers[folderPath];
+        } else {
+          // Find root name fallback or use a general high quality travel image
+          const rootFolder = folderPath.split('/')[0];
+          folderCovers[folderPath] = defaultFolderCovers[rootFolder] || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=600&q=80';
+        }
+        hasChanges = true;
+      });
 
       if (hasChanges && (db as any).folderCovers) {
         (db as any).folderCovers.save(folderCovers);

@@ -2857,7 +2857,7 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
                     </div>
 
                     <div
-                      className={`card-hover relative border rounded-xl overflow-hidden transition-all hover:border-primary flex shadow-sm group mb-8 ${
+                      className={`card-hover relative border rounded-xl overflow-hidden transition-all hover:border-primary flex flex-col sm:flex-row shadow-sm group mb-8 ${
                         theme.card
                       } ${
                         isEven ? 'sm:mr-12' : 'sm:ml-10'
@@ -2886,13 +2886,13 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
 
                     {/* Image */}
                     {item.image && (
-                      <div className="pdf-card-media w-1/3 min-h-[172px] relative hidden sm:block">
+                      <div className="pdf-card-media w-full sm:w-1/3 h-48 sm:h-auto sm:min-h-[172px] relative">
                         <img
                           src={item.image}
                           alt={item.title}
                           className="w-full h-full object-cover"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/5" />
+                        <div className="absolute inset-0 bg-gradient-to-b sm:bg-gradient-to-r from-transparent to-black/5" />
                       </div>
                     )}
 

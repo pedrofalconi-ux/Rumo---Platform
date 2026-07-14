@@ -3,6 +3,45 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
+import AuthShell from '../../../components/auth-shell';
+
+function AuthInput({
+  label,
+  icon,
+  type = 'text',
+  value,
+  onChange,
+  placeholder,
+  trailing,
+}: {
+  label: string;
+  icon: string;
+  type?: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  trailing?: React.ReactNode;
+}) {
+  return (
+    <label className="block space-y-2">
+      <span className="text-xs font-bold uppercase tracking-[0.22em] text-white/62">{label}</span>
+      <div className="relative">
+        <span className="material-symbols-outlined pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[21px] text-white/34">
+          {icon}
+        </span>
+        <input
+          required
+          type={type}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={placeholder}
+          className="input-interactive h-16 w-full rounded-[22px] border border-white/12 bg-white/92 pl-14 pr-14 text-base font-medium text-[#0b1930] placeholder:text-[#78849a] focus:border-[#6FA8DC] focus:bg-white"
+        />
+        {trailing ? <div className="absolute right-3 top-1/2 -translate-y-1/2">{trailing}</div> : null}
+      </div>
+    </label>
+  );
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -42,79 +81,80 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen bg-surface flex items-center justify-center p-6">
-      <section className="animate-page-enter w-full max-w-md bg-white border border-outline-variant rounded-xl shadow-sm p-8">
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <img src="/rumo-mark.svg" alt="Rumo" className="h-12 w-12 rounded-full shadow-sm" />
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Rumo</p>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-on-surface opacity-55">A sua bussola</p>
-            </div>
-          </div>
-          <h1 className="font-headline-lg text-2xl font-bold text-on-surface mt-2">Entrar na plataforma</h1>
-          <p className="text-sm text-on-surface opacity-70 mt-1">Acesse sua area operacional de viagens.</p>
-        </div>
+    <AuthShell
+      mode="login"
+      eyebrow="Acesso seguro"
+      title="Bem-vindo de volta"
+      description="Entre na operacao da sua agencia para acompanhar itinerarios, usuarios e configuracoes da experiencia Rumo."
+      footer={
+        <>
+          <p>
+            Ainda nao tem conta?{' '}
+            <Link href="/register" className="font-semibold text-[#6FA8DC] transition hover:text-white">
+              Criar conta de agencia
+            </Link>
+          </p>
+          <p className="mt-2">
+            Recebeu uma viagem de uma agencia?{' '}
+            <Link href="/traveler/register" className="font-semibold text-[#6FA8DC] transition hover:text-white">
+              Criar acesso de viajante
+            </Link>
+          </p>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <AuthInput
+          label="Email ou usuario"
+          icon="mail"
+          type="email"
+          value={formData.email}
+          onChange={(value) => setFormData((prev) => ({ ...prev, email: value }))}
+          placeholder="consultor@rumo.com"
+        />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-on-surface">E-mail</label>
-            <input
-              required
-              type="email"
-              value={formData.email}
-              onChange={(event) => setFormData((prev) => ({ ...prev, email: event.target.value }))}
-              className="input-interactive border border-outline-variant rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-            />
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-xs font-bold uppercase tracking-[0.22em] text-white/62">Senha</span>
+            <span className="text-sm font-semibold text-[#6FA8DC]">Ambiente protegido</span>
           </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-on-surface">Senha</label>
-            <div className="relative">
-              <input
-                required
-                type={showPassword ? 'text' : 'password'}
-                value={formData.password}
-                onChange={(event) => setFormData((prev) => ({ ...prev, password: event.target.value }))}
-                className="input-interactive w-full border border-outline-variant rounded-lg p-3 pr-11 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-              />
+          <AuthInput
+            label="Senha"
+            icon="lock"
+            type={showPassword ? 'text' : 'password'}
+            value={formData.password}
+            onChange={(value) => setFormData((prev) => ({ ...prev, password: value }))}
+            placeholder="Digite sua senha"
+            trailing={
               <button
                 type="button"
                 onClick={() => setShowPassword((value) => !value)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full hover:bg-surface-container-low flex items-center justify-center text-on-surface opacity-70"
+                className="flex h-10 w-10 items-center justify-center rounded-full text-[#607089] transition hover:bg-[#eef4fb]"
                 title={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
               >
-                <span className="material-symbols-outlined text-[18px]">
+                <span className="material-symbols-outlined text-[20px]">
                   {showPassword ? 'visibility_off' : 'visibility'}
                 </span>
               </button>
-            </div>
-          </div>
+            }
+          />
+        </div>
 
-          {error && <p className="text-xs font-semibold text-error bg-error/10 rounded-lg p-3">{error}</p>}
+        {error ? (
+          <p className="rounded-[18px] border border-[#ff6b4a]/28 bg-[#ff6b4a]/12 px-4 py-3 text-sm font-semibold text-[#ffd6cd]">
+            {error}
+          </p>
+        ) : null}
 
-          <button
-            disabled={loading}
-            type="submit"
-            className="btn-interactive w-full bg-primary text-on-primary rounded-lg py-3 text-xs font-bold hover:opacity-95 disabled:opacity-60 transition-all"
-          >
-            {loading ? 'ENTRANDO...' : 'ENTRAR'}
-          </button>
-        </form>
-
-        <p className="text-xs text-center text-on-surface opacity-70 mt-6">
-          Ainda nao tem conta?{' '}
-          <Link href="/register" className="font-bold text-primary hover:underline">
-            Criar conta de agencia
-          </Link>
-        </p>
-        <p className="text-xs text-center text-on-surface opacity-70 mt-3">
-          Recebeu uma viagem de uma agencia?{' '}
-          <Link href="/traveler/register" className="font-bold text-primary hover:underline">
-            Criar conta de viajante
-          </Link>
-        </p>
-      </section>
-    </main>
+        <button
+          disabled={loading}
+          type="submit"
+          className="btn-interactive flex h-16 w-full items-center justify-center gap-3 rounded-[22px] bg-[linear-gradient(135deg,#6FA8DC,#4F8DDA)] px-6 text-base font-bold text-white shadow-[0_14px_40px_rgba(79,141,218,0.35)] transition disabled:cursor-not-allowed disabled:opacity-65"
+        >
+          <span>{loading ? 'Entrando...' : 'Entrar na plataforma'}</span>
+          <span className="material-symbols-outlined text-[22px]">arrow_forward</span>
+        </button>
+      </form>
+    </AuthShell>
   );
 }

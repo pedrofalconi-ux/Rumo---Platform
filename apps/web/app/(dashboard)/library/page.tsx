@@ -39,6 +39,20 @@ interface MediaSearchResult {
   credit: string;
 }
 
+// Extract all unique folder paths including parent paths
+const getAllFolderPaths = (flatFolders: string[]): string[] => {
+  const paths = new Set<string>();
+  flatFolders.forEach(folder => {
+    const parts = folder.split('/');
+    let current = '';
+    parts.forEach(part => {
+      current = current ? `${current}/${part}` : part;
+      paths.add(current);
+    });
+  });
+  return Array.from(paths).sort();
+};
+
 // Convert a list of folder paths to a sorted tree structure.
 const buildFolderTree = (flatFolders: string[]): FolderNode[] => {
   const roots: FolderNode[] = [];
@@ -995,8 +1009,9 @@ export default function LibraryPage() {
                       <div className="flex-1 flex flex-col items-center justify-center bg-gradient-to-br from-surface-container-low to-surface-container-high relative select-none overflow-hidden">
                         {item.path && (
                           <img
-                            src={folderCovers[item.path] || `https://picsum.photos/600/400?sig=${idx}`}
+                            src={folderCovers[item.path] || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=600&q=80'}
                             alt={item.name}
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
                             className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                           />
                         )}
@@ -1034,6 +1049,7 @@ export default function LibraryPage() {
                           <img
                             src={item.photo.url}
                             alt={item.name}
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
                         )}
@@ -1090,7 +1106,7 @@ export default function LibraryPage() {
                   className="border border-outline-variant rounded-lg p-2 text-xs focus:ring-1 focus:ring-primary outline-none bg-white font-semibold text-on-surface"
                 >
                   <option value="">Nenhuma (Criar na Raiz)</option>
-                  {folders.map(f => (
+                  {getAllFolderPaths(folders).map(f => (
                     <option key={f} value={f}>{f}</option>
                   ))}
                 </select>
@@ -1237,9 +1253,10 @@ export default function LibraryPage() {
 
               <div className="h-36 border border-outline-variant rounded-xl overflow-hidden bg-surface-container relative">
                 <img 
-                  src={coverUrl || folderCovers[coverFolderPath] || `https://picsum.photos/600/400?sig=1`} 
+                  src={coverUrl || folderCovers[coverFolderPath] || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=600&q=80'} 
                   className="w-full h-full object-cover" 
                   alt="Prévia da capa" 
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
                 />
                 {!coverUrl && (
                   <div className="absolute top-2 left-2 bg-black/60 text-white text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-wider z-10">

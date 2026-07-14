@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { db } from '@rumo/db';
+import { getUserById } from './server-account-store';
 
 export function getSessionIdFromRequest(request?: Request) {
   return (
@@ -12,10 +13,12 @@ export function getSessionIdFromRequest(request?: Request) {
 export async function getCurrentUser(request?: Request) {
   const requestSessionId = getSessionIdFromRequest(request);
   if (requestSessionId) {
-    return db.auth.me(requestSessionId);
+    const session = db.sessions.findOne(requestSessionId);
+    return session ? getUserById(session.userId) : null;
   }
 
   const cookieStore = await cookies();
   const sessionId = cookieStore.get('rumo_session')?.value;
-  return db.auth.me(sessionId);
+  const session = sessionId ? db.sessions.findOne(sessionId) : null;
+  return session ? getUserById(session.userId) : null;
 }
