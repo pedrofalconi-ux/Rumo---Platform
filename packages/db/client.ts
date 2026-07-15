@@ -37,7 +37,7 @@ function getRemoteMarker(filename: string) {
 
 function buildRemoteScript() {
   return `
-const url = process.env.RUMO_REMOTE_URL;
+const url = (process.env.RUMO_REMOTE_URL || '').replace(/\/$/, '');
 const token = process.env.RUMO_REMOTE_TOKEN;
 const bucket = process.env.RUMO_REMOTE_BUCKET;
 const key = process.env.RUMO_REMOTE_KEY;
@@ -111,6 +111,9 @@ function runRemoteStorage(op: 'download' | 'upload' | 'exists', remoteKey: strin
     }
   );
 
+  if (result.error) {
+    throw result.error;
+  }
   if (result.status !== 0) {
     const errorOutput = (result.stderr || result.stdout || '').trim();
     throw new Error(errorOutput || `Remote storage operation failed: ${op}`);
@@ -456,6 +459,11 @@ function writeData<T>(filePath: string, data: T): void {
       remoteDataCache.set(filePath, { value: cloneData(data), loadedAt: Date.now() });
       return;
     } catch (error) {
+      if (filename === 'ai-generations.json') {
+        console.error(`[db] Warning: Failed to persist non-critical remote file ${filename}:`, error);
+        remoteDataCache.set(filePath, { value: cloneData(data), loadedAt: Date.now() });
+        return;
+      }
       throw new Error(
         `[db] Failed to persist remote file ${filename}: ${error instanceof Error ? error.message : String(error)}`
       );
