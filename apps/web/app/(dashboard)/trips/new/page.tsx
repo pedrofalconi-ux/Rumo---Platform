@@ -1490,9 +1490,9 @@ export default function NewTripPage() {
             <div className="p-5">
               {activeLogisticsTab === 'transport' ? (
                 <div className="space-y-4">
-                  <div className="flex flex-col md:flex-row md:items-center gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[120px_1.1fr_90px_130px_90px_1.4fr] gap-2 items-center">
                     {/* Modal */}
-                    <div className="w-full md:w-[130px] shrink-0">
+                    <div className="w-full">
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm">
                           {activeTransportOption.emoji}
@@ -1505,7 +1505,7 @@ export default function NewTripPage() {
                               type: event.target.value as TransportationType,
                             }))
                           }
-                          className="w-full h-10 border border-outline-variant rounded-lg pl-9 pr-8 text-xs bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none appearance-none"
+                          className="w-full h-10 border border-outline-variant rounded-lg pl-9 pr-8 text-xs bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none appearance-none font-medium"
                         >
                           {TRANSPORT_OPTIONS.map((option) => (
                             <option key={option.type} value={option.type}>
@@ -1520,7 +1520,7 @@ export default function NewTripPage() {
                     </div>
 
                     {/* Cia Aérea */}
-                    <div className="w-full md:w-[180px] shrink-0">
+                    <div className="w-full">
                       <input
                         type="text"
                         value={transportDraft.operator}
@@ -1533,7 +1533,7 @@ export default function NewTripPage() {
                     </div>
 
                     {/* Voo # */}
-                    <div className="w-full md:w-[100px] shrink-0">
+                    <div className="w-full">
                       <input
                         type="text"
                         value={transportDraft.number}
@@ -1546,7 +1546,7 @@ export default function NewTripPage() {
                     </div>
 
                     {/* Data */}
-                    <div className="w-full md:w-[140px] shrink-0">
+                    <div className="w-full">
                       <input
                         type="date"
                         value={transportDraft.date}
@@ -1560,18 +1560,18 @@ export default function NewTripPage() {
                     </div>
 
                     {/* Adicionar */}
-                    <div className="w-full md:w-auto shrink-0 order-last md:order-none">
+                    <div className="w-full">
                       <button
                         type="button"
                         onClick={handleAddTransportation}
-                        className="w-full md:w-auto h-10 px-5 rounded-lg bg-primary text-on-primary text-xs font-bold hover:opacity-95 transition-opacity"
+                        className="w-full h-10 rounded-lg bg-primary text-on-primary text-xs font-bold hover:opacity-95 transition-opacity"
                       >
                         Adicionar
                       </button>
                     </div>
 
                     {/* Detalhes */}
-                    <div className="w-full flex-1">
+                    <div className="w-full">
                       <input
                         type="text"
                         value={transportDraft.details}
@@ -1638,9 +1638,9 @@ export default function NewTripPage() {
                     </div>
                   ) : (
                     <>
-                      <div className="flex flex-col md:flex-row md:items-center gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[200px_1fr_auto_130px] gap-2 items-center">
                         {/* Destino select */}
-                        <div className="w-full md:w-[220px] shrink-0">
+                        <div className="w-full">
                           <select
                             value={accommodationDraft.destinationCity}
                             onChange={(event) =>
@@ -1659,7 +1659,7 @@ export default function NewTripPage() {
 
                         {/* Busca autocomplete input */}
                         {!isManualAccommodation ? (
-                          <div className="w-full flex-1 flex gap-2">
+                          <div className="w-full flex gap-2">
                             <input
                               type="text"
                               value={hotelSearchTerm}
@@ -1677,20 +1677,20 @@ export default function NewTripPage() {
                             </button>
                           </div>
                         ) : (
-                          <div className="w-full flex-1 text-xs text-on-surface opacity-60 flex items-center">
+                          <div className="w-full text-xs text-on-surface opacity-60 flex items-center h-10 px-1">
                             Preenchendo acomodação manualmente
                           </div>
                         )}
 
-                        <div className="hidden md:flex items-center text-xs font-bold text-on-surface opacity-50 px-1">
+                        <div className="hidden lg:block text-xs font-bold text-on-surface opacity-50 px-1 text-center">
                           OU
                         </div>
 
-                        <div className="w-full md:w-auto shrink-0">
+                        <div className="w-full">
                           <button
                             type="button"
                             onClick={() => setIsManualAccommodation((prev) => !prev)}
-                            className="w-full md:w-auto h-10 px-4 rounded-lg border border-outline-variant text-xs font-bold hover:bg-surface-container-low transition-colors"
+                            className="w-full h-10 rounded-lg border border-outline-variant text-xs font-bold hover:bg-surface-container-low transition-colors"
                           >
                             {isManualAccommodation ? 'Usar Busca API' : 'Criar Novo'}
                           </button>
