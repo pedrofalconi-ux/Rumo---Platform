@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { createClient, type User as SupabaseAuthUser } from '@supabase/supabase-js';
 import { db } from '@rumo/db';
 
@@ -66,7 +67,7 @@ const AGENCY_SETTINGS_DEFAULTS: AgencySettings = {
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const SUPABASE_SERVER_TIMEOUT_MS = 1200;
+const SUPABASE_SERVER_TIMEOUT_MS = 5000;
 
 async function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit) {
   const controller = new AbortController();
@@ -85,6 +86,7 @@ async function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit) {
 const hasSupabaseServerAccess = Boolean(supabaseUrl && supabaseAnonKey && supabaseServiceRoleKey);
 const canUseLocalWriteFallback = process.env.NODE_ENV !== 'production' || !process.env.VERCEL;
 const canUsePersistentWriteFallback = canUseLocalWriteFallback || Boolean(supabaseUrl && supabaseServiceRoleKey);
+const canUseLegacyReadFallback = process.env.NODE_ENV !== 'production' || !process.env.VERCEL;
 
 const supabaseAdmin = hasSupabaseServerAccess
   ? createClient(supabaseUrl, supabaseServiceRoleKey, {
@@ -221,6 +223,16 @@ function ensureUserAccess(user: AccountUser, agency?: AccountAgency | null) {
     (requiresAgencyAccess &&
       (!agency || agency.subscriptionStatus !== DEFAULT_SUBSCRIPTION_STATUS || agencyExpired))
   ) {
+    throw new Error('Acesso expirado ou desativado');
+  }
+}
+
+function hasActiveUserAccess(user: AccountUser) {
+  return user.accessStatus === 'active' && new Date(user.accessExpiresAt) >= new Date();
+}
+
+function ensureUserCanSignIn(user: AccountUser) {
+  if (!hasActiveUserAccess(user)) {
     throw new Error('Acesso expirado ou desativado');
   }
 }
@@ -496,6 +508,19 @@ async function provisionLegacyUser(localRawUser: any, password: string) {
 
 export async function getUserById(id: string) {
   if (!looksLikeUuid(id)) {
+    const legacyUser = db.users.findOne(id);
+    if (legacyUser && hasSupabaseServerAccess && !canUseLegacyReadFallback) {
+      try {
+        const existing = await findSupabaseUserByEmail(legacyUser.email);
+        if (existing) return existing;
+
+        const provisioned = await provisionLegacyUser(legacyUser, randomUUID());
+        if (provisioned) return provisioned;
+      } catch (error) {
+        if (!shouldFallbackToLocal(error)) throw error;
+      }
+    }
+
     return db.users.findOne(id);
   }
 
@@ -523,63 +548,74 @@ export async function getAgencyById(id: string) {
 }
 
 export async function authenticateAccount(email: string, password: string) {
-  const localRawUser = db.users.findByEmail(email);
+  const normalizedEmail = String(email || '').trim().toLowerCase();
+  const localRawUser = canUseLegacyReadFallback ? db.users.findByEmail(normalizedEmail) : null;
   if (localRawUser && !looksLikeUuid(localRawUser.id) && !hasSupabaseServerAccess) {
     const legacyLogin = db.auth.login(email, password);
     return legacyLogin ? legacyLogin.user : null;
   }
 
-  let supabaseHealthyForRequest = hasSupabaseServerAccess;
-
   if (hasSupabaseServerAccess) {
     try {
-      const supabaseUser = await findSupabaseUserByEmail(email);
+      const authClient = createSupabaseAuthClient();
+      const { data, error } = await authClient.auth.signInWithPassword({
+        email: normalizedEmail,
+        password,
+      });
 
-      if (supabaseUser) {
-        const authClient = createSupabaseAuthClient();
-        const { data, error } = await authClient.auth.signInWithPassword({ email, password });
-
-        if (!error && data.user) {
-          const hydratedUser =
-            (await ensureSupabaseUserRow(data.user, supabaseUser)) || (await findSupabaseUserById(data.user.id));
-          if (hydratedUser) {
-            const agency = await getAgencyById(hydratedUser.agencyId);
-            ensureUserAccess(hydratedUser, agency);
-            return hydratedUser;
-          }
+      if (error) {
+        if (!canUseLegacyReadFallback) {
+          return null;
         }
 
-        const legacyRawUser = db.users.findByEmail(email);
-        if (legacyRawUser) {
-          const legacyLogin = db.auth.login(email, password);
-          if (legacyLogin) {
-            const provisioned = await provisionLegacyUser(legacyRawUser, password);
-            if (provisioned) {
-              const agency = await getAgencyById(provisioned.agencyId);
-              ensureUserAccess(provisioned, agency);
-              return provisioned;
-            }
-          }
-        }
+        throw error;
+      }
 
+      if (!data.user) {
         return null;
       }
+
+      const fallbackUser = await findSupabaseUserByEmail(normalizedEmail);
+      const hydratedUser =
+        (await ensureSupabaseUserRow(data.user, fallbackUser || undefined)) || (await findSupabaseUserById(data.user.id));
+
+      if (hydratedUser) {
+        ensureUserCanSignIn(hydratedUser);
+        return hydratedUser;
+      }
+
+      if (!canUseLegacyReadFallback) {
+        throw new Error('Usuario autenticado no Supabase, mas sem perfil de aplicacao provisionado.');
+      }
     } catch (error) {
-      if (!shouldFallbackToLocal(error)) throw error;
-      supabaseHealthyForRequest = false;
+      console.warn('[auth] Falha ao autenticar via Supabase, avaliando fallback:', error);
+      if (!canUseLegacyReadFallback || !shouldFallbackToLocal(error)) throw error;
     }
+  }
+
+  if (!canUseLegacyReadFallback) {
+    return null;
   }
 
   const legacyLogin = db.auth.login(email, password);
   if (!legacyLogin) return null;
 
-  if (localRawUser && supabaseHealthyForRequest) {
+  if (localRawUser && hasSupabaseServerAccess) {
     try {
       const provisioned = await provisionLegacyUser(localRawUser, password);
       if (provisioned) return provisioned;
-    } catch {
-      // Keep the operational login path available even if Supabase is unreachable.
+      if (!canUseLegacyReadFallback) {
+        throw new Error('Usuario legado autenticado, mas nao foi possivel promovelo ao Supabase');
+      }
+    } catch (error) {
+      if (!canUseLegacyReadFallback) {
+        throw error;
+      }
     }
+  }
+
+  if (!canUseLegacyReadFallback) {
+    throw new Error('Autenticacao legada bloqueada em producao. Faça login com um usuario sincronizado ao Supabase.');
   }
 
   return legacyLogin.user;

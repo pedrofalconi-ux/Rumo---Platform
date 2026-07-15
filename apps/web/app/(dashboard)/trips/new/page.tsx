@@ -41,6 +41,19 @@ interface MediaSearchResult {
   credit: string;
 }
 
+interface TripDocument {
+  id: string;
+  name: string;
+  url: string;
+  uploadedAt: string;
+  size: number;
+}
+
+interface PendingDocument {
+  id: string;
+  file: File;
+}
+
 interface NewTripPayload {
   id: string;
   createdDate: string;
@@ -58,6 +71,7 @@ interface NewTripPayload {
   profile: string;
   origin: string;
   coverImage: string;
+  documents?: TripDocument[];
 }
 
 interface CalendarPickerProps {
@@ -398,6 +412,7 @@ export default function NewTripPage() {
   const router = useRouter();
   const browserFallbackEnabled = canUseLocalTripFallback();
   const [loading, setLoading] = useState(false);
+  const [uploadingDocuments, setUploadingDocuments] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     origin: 'São Paulo (BR)',
@@ -417,6 +432,7 @@ export default function NewTripPage() {
 
   const [showGlobalCalendar, setShowGlobalCalendar] = useState(false);
   const [activeDestCalendarIndex, setActiveDestCalendarIndex] = useState<number | null>(null);
+  const [pendingDocuments, setPendingDocuments] = useState<PendingDocument[]>([]);
   const [libraryPhotos, setLibraryPhotos] = useState<LibraryPhoto[]>([]);
   const [folders, setFolders] = useState<string[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
@@ -590,6 +606,73 @@ export default function NewTripPage() {
     }));
   };
 
+  const handleDocumentsSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setPendingDocuments((prev) => [
+      ...prev,
+      ...files.map((file) => ({
+        id: `pending-doc-${Date.now()}-${file.name}-${Math.random().toString(36).slice(2, 8)}`,
+        file,
+      })),
+    ]);
+
+    e.target.value = '';
+  };
+
+  const handleRemovePendingDocument = (documentId: string) => {
+    setPendingDocuments((prev) => prev.filter((document) => document.id !== documentId));
+  };
+
+  const uploadDocumentsToTrip = async (tripId: string) => {
+    if (pendingDocuments.length === 0) {
+      return { documents: [] as TripDocument[], failedUploads: [] as string[] };
+    }
+
+    setUploadingDocuments(true);
+
+    try {
+      const uploadedDocuments: TripDocument[] = [];
+      const failedUploads: string[] = [];
+
+      for (const pendingDocument of pendingDocuments) {
+        const uploadData = new FormData();
+        uploadData.append('file', pendingDocument.file);
+
+        try {
+          const uploadResponse = await fetch(`/api/trips/${tripId}/documents/upload`, {
+            method: 'POST',
+            body: uploadData,
+          });
+
+          if (!uploadResponse.ok) {
+            failedUploads.push(pendingDocument.file.name);
+            continue;
+          }
+
+          uploadedDocuments.push(await uploadResponse.json());
+        } catch {
+          failedUploads.push(pendingDocument.file.name);
+        }
+      }
+
+      if (uploadedDocuments.length > 0) {
+        await fetch(`/api/trips/${tripId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ documents: uploadedDocuments }),
+        });
+      }
+
+      return { documents: uploadedDocuments, failedUploads };
+    } finally {
+      setUploadingDocuments(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -635,6 +718,13 @@ export default function NewTripPage() {
       coverImage: formData.coverImage,
       status: 'Pendente',
       itinerary: [],
+      documents: pendingDocuments.map((document) => ({
+        id: document.id,
+        name: document.file.name,
+        url: '',
+        uploadedAt: new Date().toISOString(),
+        size: document.file.size,
+      })),
     };
 
     try {
@@ -668,10 +758,24 @@ export default function NewTripPage() {
 
       if (response.ok) {
         const newTrip = await response.json();
+        let failedUploads: string[] = [];
+
+        if (pendingDocuments.length > 0) {
+          const uploadResult = await uploadDocumentsToTrip(newTrip.id);
+          failedUploads = uploadResult.failedUploads;
+        }
+
+        if (failedUploads.length > 0) {
+          alert(`A viagem foi criada, mas alguns documentos não foram enviados: ${failedUploads.join(', ')}`);
+        }
+
         router.push(`/trips/${newTrip.id}/edit`);
       } else {
         const data = await response.json().catch(() => ({}));
         if (browserFallbackEnabled && isProductionPersistenceError(String(data.error || ''))) {
+          if (pendingDocuments.length > 0) {
+            alert('A viagem foi salva no modo local, mas os documentos precisam de persistência no backend para serem anexados.');
+          }
           upsertLocalTrip(localTrip);
           router.push(`/trips/${localTrip.id}/edit`);
           return;
@@ -681,6 +785,9 @@ export default function NewTripPage() {
     } catch (error) {
       console.error(error);
       if (browserFallbackEnabled) {
+        if (pendingDocuments.length > 0) {
+          alert('A viagem foi salva no modo local, mas os documentos precisam de conexão com o backend para serem anexados.');
+        }
         upsertLocalTrip(localTrip);
         router.push(`/trips/${localTrip.id}/edit`);
         return;
@@ -1093,6 +1200,73 @@ export default function NewTripPage() {
             />
           </div>
 
+          <div className="rounded-xl border border-outline-variant bg-surface-container-low p-6 space-y-4">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h3 className="text-xs font-bold text-primary uppercase tracking-wider">
+                  Documentos da Viagem
+                </h3>
+                <p className="text-[11px] text-on-surface opacity-70 mt-1">
+                  Anexe vouchers, passagens e PDFs para o viajante visualizar no aplicativo.
+                </p>
+              </div>
+
+              <label className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-on-primary cursor-pointer hover:opacity-95">
+                <span className="material-symbols-outlined text-[16px]">attach_file</span>
+                Adicionar documentos
+                <input
+                  type="file"
+                  multiple
+                  accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx"
+                  className="hidden"
+                  onChange={handleDocumentsSelected}
+                />
+              </label>
+            </div>
+
+            {pendingDocuments.length > 0 ? (
+              <div className="space-y-2">
+                {pendingDocuments.map((document) => (
+                  <div
+                    key={document.id}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-outline-variant bg-white px-3 py-2"
+                  >
+                    <div className="min-w-0 flex items-center gap-3">
+                      <span className="material-symbols-outlined text-primary/70">
+                        {document.file.type === 'application/pdf' ? 'picture_as_pdf' : 'description'}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-semibold text-on-surface" title={document.file.name}>
+                          {document.file.name}
+                        </p>
+                        <p className="text-[10px] text-on-surface opacity-60">
+                          {(document.file.size / 1024).toFixed(0)} KB
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRemovePendingDocument(document.id)}
+                      className="rounded-full p-1 text-red-500 hover:bg-red-50 hover:text-red-700"
+                      title="Remover documento"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">close</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed border-outline-variant bg-white px-4 py-6 text-center">
+                <span className="material-symbols-outlined text-2xl text-primary/65">folder_open</span>
+                <p className="mt-2 text-xs font-semibold text-on-surface">Nenhum documento selecionado ainda.</p>
+                <p className="mt-1 text-[11px] text-on-surface opacity-60">
+                  Você pode adicionar agora ou depois, dentro da viagem criada.
+                </p>
+              </div>
+            )}
+          </div>
+
           {/* Submit and Cancel */}
           <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant">
             <Link
@@ -1109,7 +1283,7 @@ export default function NewTripPage() {
               {loading ? (
                 <>
                   <span className="material-symbols-outlined animate-spin text-[16px]">sync</span>
-                  SALVANDO NO BANCO...
+                  {uploadingDocuments ? 'ENVIANDO DOCUMENTOS...' : 'SALVANDO NO BANCO...'}
                 </>
               ) : (
                 <>

@@ -37,7 +37,7 @@ export interface TripRecord extends Record<string, unknown> {
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const hasSupabaseServerAccess = Boolean(supabaseUrl && supabaseServiceRoleKey);
-const SUPABASE_SERVER_TIMEOUT_MS = 1200;
+const SUPABASE_SERVER_TIMEOUT_MS = 5000;
 const TABLE_CACHE_TTL_MS = 30_000;
 
 const tableReadinessCache = new Map<string, { ready: boolean; checkedAt: number }>();

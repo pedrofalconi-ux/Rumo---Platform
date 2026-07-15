@@ -1289,7 +1289,7 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
     return (
       <div className="flex-1 py-20 text-center flex flex-col items-center justify-center gap-3">
         <span className="material-symbols-outlined animate-spin text-3xl text-primary">sync</span>
-        <span className="text-sm font-semibold">Buscando roteiro no banco de dados local...</span>
+        <span className="text-sm font-semibold">Buscando roteiro no banco de dados...</span>
       </div>
     );
   }

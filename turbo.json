@@ -4,6 +4,7 @@
     "build": {
       "dependsOn": ["^build"],
       "env": [
+        "GEMINI_API_KEY",
         "LLM_MAX_TOKENS",
         "LLM_MODEL",
         "LLM_PROVIDER",

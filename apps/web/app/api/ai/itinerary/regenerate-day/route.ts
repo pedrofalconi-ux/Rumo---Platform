@@ -35,7 +35,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Viagem nao encontrada' }, { status: 404 });
     }
 
-    const orchestrator = createTripAiOrchestrator(user.agencyId, user.id);
+    const orchestrator = await createTripAiOrchestrator(user.agencyId, user.id);
     const tripInput = tripRecordToInput(trip, user.agencyId);
     const { dayBlocks } = await orchestrator.regenerateDay(tripInput, day, instruction, {
       userId: user.id,

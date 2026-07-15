@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     }
 
     const replaceExisting = body.options?.replaceExisting !== false;
-    const orchestrator = createTripAiOrchestrator(user.agencyId, user.id);
+    const orchestrator = await createTripAiOrchestrator(user.agencyId, user.id);
 
     const preservedItems = replaceExisting
       ? []

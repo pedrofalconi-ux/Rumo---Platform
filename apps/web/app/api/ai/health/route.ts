@@ -11,20 +11,21 @@ export async function GET(request: NextRequest) {
     }
 
     const settings = await getAgencySettings(user.agencyId);
-    const provider = process.env.LLM_PROVIDER || 'gemini';
     const hasAnthropicKey = Boolean(process.env.ANTHROPIC_API_KEY || settings.claudeKey);
     const hasGeminiKey = Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || settings.geminiKey);
-    const orchestrator = createTripAiOrchestrator(user.agencyId, user.id);
+    const hasOpenAiKey = Boolean(process.env.OPENAI_API_KEY);
+    const orchestrator = await createTripAiOrchestrator(user.agencyId, user.id);
+    const provider = orchestrator.providerName;
 
     return NextResponse.json({
       ok: true,
       provider: orchestrator.providerName,
       model: orchestrator.modelName,
       configured:
-        provider === 'mock' ||
+        (provider === 'mock' && process.env.NODE_ENV !== 'production') ||
         (provider === 'anthropic' && hasAnthropicKey) ||
         (provider === 'gemini' && hasGeminiKey) ||
-        (provider === 'openai' && Boolean(process.env.OPENAI_API_KEY)),
+        (provider === 'openai' && hasOpenAiKey),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erro ao verificar IA';

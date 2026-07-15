@@ -18,7 +18,7 @@ export interface LibraryState {
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const hasSupabaseServerAccess = Boolean(supabaseUrl && supabaseServiceRoleKey);
-const SUPABASE_SERVER_TIMEOUT_MS = 1200;
+const SUPABASE_SERVER_TIMEOUT_MS = 5000;
 const TABLE_CACHE_TTL_MS = 30_000;
 const DEFAULT_SORT_ORDER = 2_147_483_647;
 

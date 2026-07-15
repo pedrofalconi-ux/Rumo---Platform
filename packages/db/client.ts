@@ -37,7 +37,7 @@ function getRemoteMarker(filename: string) {
 
 function buildRemoteScript() {
   return `
-const url = (process.env.RUMO_REMOTE_URL || '').replace(/\/$/, '');
+const url = (process.env.RUMO_REMOTE_URL || '').replace(/\\/$/, '');
 const token = process.env.RUMO_REMOTE_TOKEN;
 const bucket = process.env.RUMO_REMOTE_BUCKET;
 const key = process.env.RUMO_REMOTE_KEY;
