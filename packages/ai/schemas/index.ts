@@ -11,6 +11,19 @@ export const TripProfileSchema = z.enum([
   'negocios',
 ]);
 
+export const TransportationTypeSchema = z.enum([
+  'voo',
+  'barco',
+  'onibus',
+  'aluguel_carro',
+  'balsa',
+  'carro_privativo',
+  'shuttle',
+  'taxi',
+  'trem',
+  'bonde',
+]);
+
 export const TripInputSchema = z.object({
   tripId: z.string().min(1),
   agencyId: z.string().min(1),
@@ -35,6 +48,32 @@ export const TripInputSchema = z.object({
   currency: z.literal('BRL'),
   profile: TripProfileSchema,
   preferences: z.string(),
+  transportation: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        type: TransportationTypeSchema,
+        operator: z.string(),
+        number: z.string(),
+        date: z.string(),
+        details: z.string(),
+      })
+    )
+    .optional(),
+  accommodations: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        destinationCity: z.string(),
+        name: z.string(),
+        address: z.string().optional(),
+        checkIn: z.string(),
+        checkOut: z.string(),
+        placeId: z.string().optional(),
+        photos: z.array(z.string()).optional(),
+      })
+    )
+    .optional(),
   locale: z.literal('pt-BR'),
 });
 

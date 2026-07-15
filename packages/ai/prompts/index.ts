@@ -12,6 +12,22 @@ export function buildPlanTripPrompt(
         .map((d) => `${d.city}: ${d.startDate} a ${d.endDate}`)
         .join('; ')
     : 'nao informado';
+  const transportContext = input.transportation?.length
+    ? input.transportation
+        .map(
+          (transport) =>
+            `- ${transport.type.toUpperCase()}: ${transport.operator || 'Operadora nao informada'} ${transport.number || ''} em ${transport.date}${transport.details ? ` | ${transport.details}` : ''}`
+        )
+        .join('\n')
+    : 'Nenhum transporte cadastrado';
+  const accommodationContext = input.accommodations?.length
+    ? input.accommodations
+        .map(
+          (accommodation) =>
+            `- Hotel: ${accommodation.name} em ${accommodation.destinationCity} (Check-in: ${accommodation.checkIn}, Check-out: ${accommodation.checkOut})${accommodation.address ? ` | ${accommodation.address}` : ''}`
+        )
+        .join('\n')
+    : 'Nenhuma acomodacao cadastrada';
 
   return `Voce e um roteirista senior de viagens. Crie o planejamento macro de uma viagem real, com dias agrupados por regioes proximas.
 
@@ -27,6 +43,12 @@ Dados da viagem:
 - Orcamento: R$ ${input.budget.toLocaleString('pt-BR')}
 - Preferencias preenchidas pelo consultor: ${input.preferences || 'nao informado'}
 
+Contexto logistico do passageiro:
+[Logistica de Transporte]
+${transportContext}
+[Logistica de Hoteis/Acomodacao]
+${accommodationContext}
+
 Restricoes:
 ${formatConstraintsForPrompt(constraints)}
 
@@ -34,6 +56,8 @@ Regras de planejamento:
 - Cada dia deve ter uma regiao/bairro base clara para evitar deslocamentos longos.
 - Distribua pontos famosos, experiencias locais, gastronomia e tempo livre de forma realista.
 - Respeite o destino correto de cada data quando houver detalhe dos destinos por periodo.
+- Considere o dia de chegada e os meios de transporte cadastrados para encaixar check-in, traslados e inicio gradual do roteiro.
+- Quando houver hotel cadastrado, use esse hotel como ancora geografica do dia para partida pela manha e retorno no fim do dia.
 - Nao use temas genericos como "Explorando a cidade"; cite a regiao ou eixo real do dia.
 
 Retorne JSON com esta estrutura exata:
@@ -64,6 +88,21 @@ export function buildGenerateDayPrompt(
   constraints: string[]
 ): string {
   const allowedTypes = AI_BLOCK_TYPES.filter((t) => t !== 'trip_desc').join(', ');
+  const hotelDoDia = input.accommodations?.find(
+    (accommodation) =>
+      dayPlan.date >= accommodation.checkIn &&
+      dayPlan.date <= accommodation.checkOut &&
+      dayPlan.destination.toLowerCase().includes(accommodation.destinationCity.toLowerCase().split(' (')[0])
+  );
+  const transportationDoDia = input.transportation?.filter((transport) => transport.date === dayPlan.date) || [];
+  const transportationContext = transportationDoDia.length
+    ? transportationDoDia
+        .map(
+          (transport) =>
+            `- ${transport.type.toUpperCase()}: ${transport.operator || 'Operadora nao informada'} ${transport.number || ''}${transport.details ? ` | ${transport.details}` : ''}`
+        )
+        .join('\n')
+    : 'Nenhum transporte especifico neste dia';
 
   return `Gere uma trilha diaria real, detalhada e otimizada geograficamente.
 
@@ -77,6 +116,13 @@ Contexto da viagem:
 - Perfil: ${input.profile}
 - Orcamento: R$ ${input.budget.toLocaleString('pt-BR')}
 - Preferencias do usuario/consultor: ${input.preferences || 'nao informado'}
+- Transporte previsto neste dia:
+${transportationContext}
+- Hotel onde o passageiro dormira hoje: ${
+    hotelDoDia
+      ? `${hotelDoDia.name}${hotelDoDia.address ? ` (${hotelDoDia.address})` : ''}`
+      : 'Nao especificado'
+  }
 
 Restricoes:
 ${formatConstraintsForPrompt(constraints)}
@@ -98,6 +144,9 @@ Qualidade obrigatoria do roteiro:
 - Quando houver deslocamento maior que uma caminhada curta, inclua um bloco "transport" com horario, origem/destino e meio recomendado.
 - Para almoco e jantar, prefira restaurantes ou regioes reais adequados ao perfil; se citar restaurante especifico, recomende confirmar funcionamento/reserva.
 - Nao invente reservas, tickets comprados, disponibilidade, precos exatos ou promessas de acesso sem fila.
+- Se houver hotel especificado, use-o como base de partida pela manha e retorno a noite.
+- Se houver transporte no dia, inclua deslocamentos, chegada/saida, check-in/check-out e janelas realistas de transicao.
+- Recomende restaurantes, pausas e atividades de fim de tarde coerentes com a volta para o hotel informado.
 
 Retorne JSON:
 {

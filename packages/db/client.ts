@@ -399,12 +399,22 @@ if (!usersAfterNormalization.some((user) => user.role === 'platform_admin')) {
 }
 
 const existingTrips = readData<any[]>(TRIPS_FILE);
-if (existingTrips.some((trip) => !trip.agencyId)) {
+if (
+  existingTrips.some(
+    (trip) =>
+      !trip.agencyId ||
+      !Array.isArray(trip.documents) ||
+      !Array.isArray(trip.transportation) ||
+      !Array.isArray(trip.accommodations)
+  )
+) {
   writeData(
     TRIPS_FILE,
     existingTrips.map((trip) => ({
       agencyId: 'agency-default',
       documents: [],
+      transportation: [],
+      accommodations: [],
       ...trip,
     }))
   );

@@ -23,6 +23,38 @@ export const BLOCKED_AI_BLOCK_TYPES = [
 
 export type TripProfile = 'lazer' | 'lua_de_mel' | 'aventura' | 'cultural' | 'negocios';
 
+export type TransportationType =
+  | 'voo'
+  | 'barco'
+  | 'onibus'
+  | 'aluguel_carro'
+  | 'balsa'
+  | 'carro_privativo'
+  | 'shuttle'
+  | 'taxi'
+  | 'trem'
+  | 'bonde';
+
+export interface TransportationEntry {
+  id: string;
+  type: TransportationType;
+  operator: string;
+  number: string;
+  date: string;
+  details: string;
+}
+
+export interface AccommodationEntry {
+  id: string;
+  destinationCity: string;
+  name: string;
+  address?: string;
+  checkIn: string;
+  checkOut: string;
+  placeId?: string;
+  photos?: string[];
+}
+
 export type AiStatus =
   | 'NONE'
   | 'AI_GENERATING'
@@ -50,6 +82,8 @@ export interface TripInput {
   currency: 'BRL';
   profile: TripProfile;
   preferences: string;
+  transportation?: TransportationEntry[];
+  accommodations?: AccommodationEntry[];
   locale: 'pt-BR';
 }
 

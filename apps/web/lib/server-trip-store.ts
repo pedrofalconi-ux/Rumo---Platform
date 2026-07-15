@@ -27,6 +27,8 @@ export interface TripRecord extends Record<string, unknown> {
   preferences?: string;
   coverImage?: string;
   documents?: any[];
+  transportation?: any[];
+  accommodations?: any[];
   aiStatus?: string;
   aiGenerationId?: string;
   aiGeneratedAt?: string;
@@ -119,6 +121,8 @@ function mapSupabaseTrip(row: any): TripRecord {
     preferences: row.preferences || '',
     coverImage: row.cover_image || '',
     documents: Array.isArray(row.documents) ? row.documents : [],
+    transportation: Array.isArray(row.transportation) ? row.transportation : [],
+    accommodations: Array.isArray(row.accommodations) ? row.accommodations : [],
     aiStatus: row.ai_status || 'NONE',
     aiGenerationId: row.ai_generation_id || undefined,
     aiGeneratedAt: row.ai_generated_at || undefined,
@@ -154,6 +158,8 @@ function buildSupabaseTripPayload(input: Partial<TripRecord>, agencyId: string, 
     preferences: input.preferences ? String(input.preferences) : '',
     cover_image: input.coverImage ? String(input.coverImage) : null,
     documents: Array.isArray(input.documents) ? input.documents : [],
+    transportation: Array.isArray(input.transportation) ? input.transportation : [],
+    accommodations: Array.isArray(input.accommodations) ? input.accommodations : [],
     ai_status: input.aiStatus ? String(input.aiStatus) : 'NONE',
     ai_generation_id: input.aiGenerationId || null,
     ai_generated_at: input.aiGeneratedAt || null,
@@ -262,6 +268,8 @@ export async function updateTripForAgency(id: string, patch: Partial<TripRecord>
       destinations: patch.destinations || current.destinations,
       destinationsDetail: patch.destinationsDetail || current.destinationsDetail,
       documents: patch.documents || current.documents,
+      transportation: patch.transportation || current.transportation,
+      accommodations: patch.accommodations || current.accommodations,
     },
     agencyId,
     userId

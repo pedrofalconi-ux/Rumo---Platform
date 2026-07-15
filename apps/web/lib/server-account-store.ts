@@ -406,6 +406,8 @@ async function syncLegacyTrips(localAgencyId: string, supabaseAgencyId: string) 
     preferences: String(trip.preferences || ''),
     cover_image: trip.coverImage ? String(trip.coverImage) : null,
     documents: Array.isArray(trip.documents) ? trip.documents : [],
+    transportation: Array.isArray(trip.transportation) ? trip.transportation : [],
+    accommodations: Array.isArray(trip.accommodations) ? trip.accommodations : [],
     ai_status: String(trip.aiStatus || 'NONE'),
     ai_generation_id: trip.aiGenerationId ? String(trip.aiGenerationId) : null,
     ai_generated_at: trip.aiGeneratedAt || null,

@@ -54,6 +54,46 @@ interface PendingDocument {
   file: File;
 }
 
+type TransportationType =
+  | 'voo'
+  | 'barco'
+  | 'onibus'
+  | 'aluguel_carro'
+  | 'balsa'
+  | 'carro_privativo'
+  | 'shuttle'
+  | 'taxi'
+  | 'trem'
+  | 'bonde';
+
+interface TransportationEntry {
+  id: string;
+  type: TransportationType;
+  operator: string;
+  number: string;
+  date: string;
+  details: string;
+}
+
+interface AccommodationEntry {
+  id: string;
+  destinationCity: string;
+  name: string;
+  address?: string;
+  checkIn: string;
+  checkOut: string;
+  placeId?: string;
+  photos?: string[];
+}
+
+interface HotelSearchResult {
+  id: string;
+  name: string;
+  address: string;
+  placeId: string;
+  photos: string[];
+}
+
 interface NewTripPayload {
   id: string;
   createdDate: string;
@@ -72,7 +112,27 @@ interface NewTripPayload {
   origin: string;
   coverImage: string;
   documents?: TripDocument[];
+  transportation?: TransportationEntry[];
+  accommodations?: AccommodationEntry[];
 }
+
+const TRANSPORT_OPTIONS: Array<{
+  type: TransportationType;
+  label: string;
+  icon: string;
+  emoji: string;
+}> = [
+  { type: 'voo', label: 'Voo', icon: 'flight', emoji: '✈️' },
+  { type: 'barco', label: 'Barco', icon: 'directions_boat', emoji: '🚢' },
+  { type: 'onibus', label: 'Onibus', icon: 'directions_bus', emoji: '🚌' },
+  { type: 'aluguel_carro', label: 'Aluguel de Carro', icon: 'car_rental', emoji: '🚗' },
+  { type: 'balsa', label: 'Balsa', icon: 'sailing', emoji: '⛴️' },
+  { type: 'carro_privativo', label: 'Carro privativo', icon: 'local_taxi', emoji: '🚘' },
+  { type: 'shuttle', label: 'Shuttle', icon: 'airport_shuttle', emoji: '🚐' },
+  { type: 'taxi', label: 'Taxi', icon: 'local_taxi', emoji: '🚕' },
+  { type: 'trem', label: 'Trem', icon: 'train', emoji: '🚆' },
+  { type: 'bonde', label: 'Bonde', icon: 'tram', emoji: '🚋' },
+];
 
 interface CalendarPickerProps {
   isOpen: boolean;
@@ -413,6 +473,7 @@ export default function NewTripPage() {
   const browserFallbackEnabled = canUseLocalTripFallback();
   const [loading, setLoading] = useState(false);
   const [uploadingDocuments, setUploadingDocuments] = useState(false);
+  const [activeLogisticsTab, setActiveLogisticsTab] = useState<'transport' | 'hotel'>('transport');
   const [formData, setFormData] = useState({
     title: '',
     origin: 'São Paulo (BR)',
@@ -433,6 +494,31 @@ export default function NewTripPage() {
   const [showGlobalCalendar, setShowGlobalCalendar] = useState(false);
   const [activeDestCalendarIndex, setActiveDestCalendarIndex] = useState<number | null>(null);
   const [pendingDocuments, setPendingDocuments] = useState<PendingDocument[]>([]);
+  const [transportation, setTransportation] = useState<TransportationEntry[]>([]);
+  const [transportDraft, setTransportDraft] = useState<TransportationEntry>({
+    id: '',
+    type: 'voo',
+    operator: '',
+    number: '',
+    date: '',
+    details: '',
+  });
+  const [accommodations, setAccommodations] = useState<AccommodationEntry[]>([]);
+  const [accommodationDraft, setAccommodationDraft] = useState<AccommodationEntry>({
+    id: '',
+    destinationCity: '',
+    name: '',
+    address: '',
+    checkIn: '',
+    checkOut: '',
+    placeId: '',
+    photos: [],
+  });
+  const [hotelSearchTerm, setHotelSearchTerm] = useState('');
+  const [hotelSearchResults, setHotelSearchResults] = useState<HotelSearchResult[]>([]);
+  const [hotelSearchLoading, setHotelSearchLoading] = useState(false);
+  const [hotelSearchError, setHotelSearchError] = useState('');
+  const [isManualAccommodation, setIsManualAccommodation] = useState(false);
   const [libraryPhotos, setLibraryPhotos] = useState<LibraryPhoto[]>([]);
   const [folders, setFolders] = useState<string[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
@@ -466,6 +552,13 @@ export default function NewTripPage() {
     const matchesSearch = photo.name.toLowerCase().includes(searchPhoto.toLowerCase());
     return matchesFolder && matchesSearch;
   });
+
+  const availableDestinations = destinations.filter((destination) => destination.city.trim());
+  const selectedDestination = availableDestinations.find(
+    (destination) => destination.city === accommodationDraft.destinationCity
+  );
+  const activeTransportOption =
+    TRANSPORT_OPTIONS.find((option) => option.type === transportDraft.type) || TRANSPORT_OPTIONS[0];
 
   const handleCoverFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -625,6 +718,157 @@ export default function NewTripPage() {
     setPendingDocuments((prev) => prev.filter((document) => document.id !== documentId));
   };
 
+  const resetTransportDraft = () => {
+    setTransportDraft({
+      id: '',
+      type: 'voo',
+      operator: '',
+      number: '',
+      date: '',
+      details: '',
+    });
+  };
+
+  const handleAddTransportation = () => {
+    if (!transportDraft.operator.trim() || !transportDraft.date) {
+      alert('Preencha pelo menos a operadora e a data do transporte.');
+      return;
+    }
+
+    setTransportation((prev) => [
+      ...prev,
+      {
+        ...transportDraft,
+        id: `transport-${Date.now()}`,
+        operator: transportDraft.operator.trim(),
+        number: transportDraft.number.trim(),
+        details: transportDraft.details.trim(),
+      },
+    ]);
+    resetTransportDraft();
+  };
+
+  const handleRemoveTransportation = (transportId: string) => {
+    setTransportation((prev) => prev.filter((transport) => transport.id !== transportId));
+  };
+
+  const resetAccommodationDraft = (destinationCity = '') => {
+    const destination = availableDestinations.find((entry) => entry.city === destinationCity);
+    setAccommodationDraft({
+      id: '',
+      destinationCity,
+      name: '',
+      address: '',
+      checkIn: destination?.startDate || '',
+      checkOut: destination?.endDate || '',
+      placeId: '',
+      photos: [],
+    });
+    setHotelSearchTerm('');
+    setHotelSearchResults([]);
+    setHotelSearchError('');
+    setIsManualAccommodation(false);
+  };
+
+  const handleAccommodationDestinationChange = (destinationCity: string) => {
+    resetAccommodationDraft(destinationCity);
+  };
+
+  const handleHotelSearch = async () => {
+    if (!accommodationDraft.destinationCity) {
+      alert('Selecione primeiro o destino desta acomodacao.');
+      return;
+    }
+    if (!hotelSearchTerm.trim()) return;
+
+    setHotelSearchLoading(true);
+    setHotelSearchError('');
+
+    try {
+      const response = await fetch(
+        `/api/media/hotels/search?q=${encodeURIComponent(hotelSearchTerm)}&city=${encodeURIComponent(
+          accommodationDraft.destinationCity
+        )}`
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao buscar acomodacoes');
+      }
+
+      const results = Array.isArray(data.results) ? data.results : [];
+      setHotelSearchResults(results);
+      if (!results.length) {
+        setHotelSearchError('Nenhuma acomodacao encontrada para essa busca.');
+      }
+    } catch (error) {
+      console.error(error);
+      setHotelSearchError('Nao foi possivel buscar acomodacoes agora.');
+    } finally {
+      setHotelSearchLoading(false);
+    }
+  };
+
+  const handleSelectHotelResult = (result: HotelSearchResult) => {
+    setAccommodationDraft((prev) => ({
+      ...prev,
+      name: result.name,
+      address: result.address,
+      placeId: result.placeId,
+      photos: result.photos || [],
+    }));
+    setHotelSearchResults([]);
+    setHotelSearchTerm(result.name);
+    setIsManualAccommodation(false);
+  };
+
+  const handleAddAccommodation = () => {
+    if (!accommodationDraft.destinationCity) {
+      alert('Selecione o destino da acomodacao.');
+      return;
+    }
+    if (!accommodationDraft.name.trim()) {
+      alert('Informe ou selecione o nome da acomodacao.');
+      return;
+    }
+    if (!accommodationDraft.checkIn || !accommodationDraft.checkOut) {
+      alert('Preencha as datas de check-in e check-out.');
+      return;
+    }
+    if (accommodationDraft.checkIn > accommodationDraft.checkOut) {
+      alert('O check-in nao pode ser maior que o check-out.');
+      return;
+    }
+
+    const destination = availableDestinations.find(
+      (entry) => entry.city === accommodationDraft.destinationCity
+    );
+    if (
+      destination &&
+      (accommodationDraft.checkIn < destination.startDate ||
+        accommodationDraft.checkOut > destination.endDate)
+    ) {
+      alert('A hospedagem precisa caber dentro do periodo do destino selecionado.');
+      return;
+    }
+
+    setAccommodations((prev) => [
+      ...prev,
+      {
+        ...accommodationDraft,
+        id: `accommodation-${Date.now()}`,
+        name: accommodationDraft.name.trim(),
+        address: accommodationDraft.address?.trim(),
+      },
+    ]);
+    resetAccommodationDraft(accommodationDraft.destinationCity);
+  };
+
+  const handleRemoveAccommodation = (accommodationId: string) => {
+    setAccommodations((prev) =>
+      prev.filter((accommodation) => accommodation.id !== accommodationId)
+    );
+  };
+
   const uploadDocumentsToTrip = async (tripId: string) => {
     if (pendingDocuments.length === 0) {
       return { documents: [] as TripDocument[], failedUploads: [] as string[] };
@@ -658,13 +902,17 @@ export default function NewTripPage() {
       }
 
       if (uploadedDocuments.length > 0) {
-        await fetch(`/api/trips/${tripId}`, {
+        const attachResponse = await fetch(`/api/trips/${tripId}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ documents: uploadedDocuments }),
         });
+
+        if (!attachResponse.ok) {
+          failedUploads.push(...uploadedDocuments.map((document) => document.name));
+        }
       }
 
       return { documents: uploadedDocuments, failedUploads };
@@ -718,6 +966,8 @@ export default function NewTripPage() {
       coverImage: formData.coverImage,
       status: 'Pendente',
       itinerary: [],
+      transportation,
+      accommodations,
       documents: pendingDocuments.map((document) => ({
         id: document.id,
         name: document.file.name,
@@ -753,6 +1003,8 @@ export default function NewTripPage() {
           profile: formData.profile,
           origin: formData.origin,
           coverImage: formData.coverImage,
+          transportation,
+          accommodations,
         }),
       });
 
@@ -1198,6 +1450,391 @@ export default function NewTripPage() {
               placeholder="Ex: Alimentação vegana, preferência por hotéis boutique, sem escadas."
               className="input-interactive border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all resize-none"
             />
+          </div>
+
+          <div className="rounded-xl border border-outline-variant bg-white overflow-hidden">
+            <div className="px-5 py-4 border-b border-outline-variant bg-surface-container-low">
+              <h3 className="text-xs font-bold text-primary uppercase tracking-wider">
+                Logística da Viagem
+              </h3>
+              <p className="text-[11px] text-on-surface opacity-70 mt-1">
+                Cadastre transportes e hospedagens para dar contexto completo à IA.
+              </p>
+            </div>
+
+            <div className="px-5 pt-4 flex gap-2 border-b border-outline-variant">
+              <button
+                type="button"
+                onClick={() => setActiveLogisticsTab('transport')}
+                className={`px-3 py-2 text-xs font-bold rounded-t-lg border border-b-0 transition-colors ${
+                  activeLogisticsTab === 'transport'
+                    ? 'bg-white text-primary border-outline-variant'
+                    : 'bg-surface-container-low text-on-surface opacity-70 border-transparent'
+                }`}
+              >
+                Transporte
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveLogisticsTab('hotel')}
+                className={`px-3 py-2 text-xs font-bold rounded-t-lg border border-b-0 transition-colors ${
+                  activeLogisticsTab === 'hotel'
+                    ? 'bg-white text-primary border-outline-variant'
+                    : 'bg-surface-container-low text-on-surface opacity-70 border-transparent'
+                }`}
+              >
+                Hotel
+              </button>
+            </div>
+
+            <div className="p-5">
+              {activeLogisticsTab === 'transport' ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-[180px_1.2fr_0.9fr_0.9fr] gap-3">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[11px] font-semibold text-on-surface opacity-75">Modal</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm">
+                          {activeTransportOption.emoji}
+                        </span>
+                        <select
+                          value={transportDraft.type}
+                          onChange={(event) =>
+                            setTransportDraft((prev) => ({
+                              ...prev,
+                              type: event.target.value as TransportationType,
+                            }))
+                          }
+                          className="w-full border border-outline-variant rounded-lg p-2.5 pl-9 text-xs bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                        >
+                          {TRANSPORT_OPTIONS.map((option) => (
+                            <option key={option.type} value={option.type}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[11px] font-semibold text-on-surface opacity-75">
+                        Cia. Aérea / Operadora
+                      </label>
+                      <input
+                        type="text"
+                        value={transportDraft.operator}
+                        onChange={(event) =>
+                          setTransportDraft((prev) => ({ ...prev, operator: event.target.value }))
+                        }
+                        placeholder="Ex: LATAM, Trenitalia, Cometa"
+                        className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[11px] font-semibold text-on-surface opacity-75">
+                        Voo # / Codigo
+                      </label>
+                      <input
+                        type="text"
+                        value={transportDraft.number}
+                        onChange={(event) =>
+                          setTransportDraft((prev) => ({ ...prev, number: event.target.value }))
+                        }
+                        placeholder="Ex: LA8072"
+                        className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[11px] font-semibold text-on-surface opacity-75">Data</label>
+                      <input
+                        type="date"
+                        value={transportDraft.date}
+                        min={formData.startDate || undefined}
+                        max={formData.endDate || undefined}
+                        onChange={(event) =>
+                          setTransportDraft((prev) => ({ ...prev, date: event.target.value }))
+                        }
+                        className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3 items-end">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[11px] font-semibold text-on-surface opacity-75">Detalhes</label>
+                      <input
+                        type="text"
+                        value={transportDraft.details}
+                        onChange={(event) =>
+                          setTransportDraft((prev) => ({ ...prev, details: event.target.value }))
+                        }
+                        placeholder="Insira detalhes do voo, traslado ou observacoes"
+                        className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleAddTransportation}
+                      className="h-[42px] px-4 rounded-lg bg-primary text-on-primary text-xs font-bold hover:opacity-95"
+                    >
+                      Adicionar
+                    </button>
+                  </div>
+
+                  {transportation.length > 0 ? (
+                    <div className="space-y-2">
+                      {transportation.map((transport) => {
+                        const option = TRANSPORT_OPTIONS.find((item) => item.type === transport.type);
+                        return (
+                          <div
+                            key={transport.id}
+                            className="flex items-start justify-between gap-3 rounded-lg border border-outline-variant bg-surface-container-low px-3 py-3"
+                          >
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-on-surface">
+                                {option?.emoji} {option?.label} • {transport.operator}
+                                {transport.number ? ` ${transport.number}` : ''}
+                              </p>
+                              <p className="text-[11px] text-on-surface opacity-70 mt-1">
+                                {transport.date}
+                              </p>
+                              {transport.details && (
+                                <p className="text-[11px] text-on-surface opacity-70 mt-1">
+                                  {transport.details}
+                                </p>
+                              )}
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveTransportation(transport.id)}
+                              className="rounded-full p-1 text-red-500 hover:bg-red-50 hover:text-red-700"
+                              title="Remover transporte"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">delete</span>
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="rounded-lg border border-dashed border-outline-variant p-4 text-[11px] text-on-surface opacity-65">
+                      Nenhum transporte adicionado ainda.
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {availableDestinations.length === 0 ? (
+                    <div className="rounded-lg border border-dashed border-amber-300 bg-amber-50 px-4 py-4 text-xs text-amber-900">
+                      Para adicionar as acomodações, você precisa primeiro adicionar o(s) destino(s).
+                    </div>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="flex flex-col gap-1">
+                          <label className="text-[11px] font-semibold text-on-surface opacity-75">Destino</label>
+                          <select
+                            value={accommodationDraft.destinationCity}
+                            onChange={(event) =>
+                              handleAccommodationDestinationChange(event.target.value)
+                            }
+                            className="border border-outline-variant rounded-lg p-2.5 text-xs bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                          >
+                            <option value="">Selecione o destino</option>
+                            {availableDestinations.map((destination) => (
+                              <option key={destination.city} value={destination.city}>
+                                {destination.city}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="flex items-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setIsManualAccommodation((prev) => !prev)}
+                            className="h-[42px] px-4 rounded-lg border border-outline-variant text-xs font-bold hover:bg-surface-container-low"
+                          >
+                            {isManualAccommodation ? 'Usar busca' : 'Criar novo'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {!isManualAccommodation && (
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
+                            <input
+                              type="text"
+                              value={hotelSearchTerm}
+                              onChange={(event) => setHotelSearchTerm(event.target.value)}
+                              placeholder="Buscar hotel ou acomodacao"
+                              className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleHotelSearch}
+                              disabled={hotelSearchLoading}
+                              className="h-[42px] px-4 rounded-lg bg-primary text-on-primary text-xs font-bold disabled:opacity-60"
+                            >
+                              {hotelSearchLoading ? 'Buscando...' : 'Buscar hotel'}
+                            </button>
+                          </div>
+
+                          {hotelSearchError && (
+                            <p className="text-[11px] font-semibold text-error">{hotelSearchError}</p>
+                          )}
+
+                          {hotelSearchResults.length > 0 && (
+                            <div className="space-y-2 rounded-lg border border-outline-variant bg-surface-container-low p-3">
+                              {hotelSearchResults.map((result) => (
+                                <button
+                                  key={result.id}
+                                  type="button"
+                                  onClick={() => handleSelectHotelResult(result)}
+                                  className="w-full rounded-lg border border-outline-variant bg-white p-3 text-left hover:border-primary hover:bg-primary/5"
+                                >
+                                  <p className="text-xs font-bold text-on-surface">{result.name}</p>
+                                  <p className="text-[11px] text-on-surface opacity-70 mt-1">
+                                    {result.address}
+                                  </p>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="flex flex-col gap-1 md:col-span-2">
+                          <label className="text-[11px] font-semibold text-on-surface opacity-75">
+                            Nome da acomodacao
+                          </label>
+                          <input
+                            type="text"
+                            value={accommodationDraft.name}
+                            onChange={(event) =>
+                              setAccommodationDraft((prev) => ({ ...prev, name: event.target.value }))
+                            }
+                            placeholder="Ex: Copacabana Palace"
+                            className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                          />
+                        </div>
+
+                        <div className="flex flex-col gap-1 md:col-span-2">
+                          <label className="text-[11px] font-semibold text-on-surface opacity-75">Endereco</label>
+                          <input
+                            type="text"
+                            value={accommodationDraft.address || ''}
+                            onChange={(event) =>
+                              setAccommodationDraft((prev) => ({ ...prev, address: event.target.value }))
+                            }
+                            placeholder="Endereco completo ou referencia"
+                            className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                          />
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                          <label className="text-[11px] font-semibold text-on-surface opacity-75">Check-in</label>
+                          <input
+                            type="date"
+                            value={accommodationDraft.checkIn}
+                            min={selectedDestination?.startDate || formData.startDate || undefined}
+                            max={selectedDestination?.endDate || formData.endDate || undefined}
+                            onChange={(event) =>
+                              setAccommodationDraft((prev) => ({ ...prev, checkIn: event.target.value }))
+                            }
+                            className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                          />
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                          <label className="text-[11px] font-semibold text-on-surface opacity-75">Check-out</label>
+                          <input
+                            type="date"
+                            value={accommodationDraft.checkOut}
+                            min={selectedDestination?.startDate || formData.startDate || undefined}
+                            max={selectedDestination?.endDate || formData.endDate || undefined}
+                            onChange={(event) =>
+                              setAccommodationDraft((prev) => ({ ...prev, checkOut: event.target.value }))
+                            }
+                            className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      {accommodationDraft.photos && accommodationDraft.photos.length > 0 && (
+                        <div className="grid grid-cols-3 gap-2">
+                          {accommodationDraft.photos.slice(0, 3).map((photo, index) => (
+                            <div
+                              key={`${accommodationDraft.placeId || accommodationDraft.name}-${index}`}
+                              className="aspect-[4/3] overflow-hidden rounded-lg border border-outline-variant bg-surface-container-low"
+                            >
+                              <img
+                                src={photo}
+                                alt={`Foto de ${accommodationDraft.name || 'acomodacao'}`}
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={handleAddAccommodation}
+                          className="h-[42px] px-4 rounded-lg bg-primary text-on-primary text-xs font-bold hover:opacity-95"
+                        >
+                          Adicionar acomodacao
+                        </button>
+                      </div>
+
+                      {accommodations.length > 0 ? (
+                        <div className="space-y-2">
+                          {accommodations.map((accommodation) => (
+                            <div
+                              key={accommodation.id}
+                              className="flex items-start justify-between gap-3 rounded-lg border border-outline-variant bg-surface-container-low px-3 py-3"
+                            >
+                              <div className="min-w-0">
+                                <p className="text-xs font-bold text-on-surface">
+                                  {accommodation.name} • {accommodation.destinationCity}
+                                </p>
+                                <p className="text-[11px] text-on-surface opacity-70 mt-1">
+                                  {accommodation.checkIn} a {accommodation.checkOut}
+                                </p>
+                                {accommodation.address && (
+                                  <p className="text-[11px] text-on-surface opacity-70 mt-1">
+                                    {accommodation.address}
+                                  </p>
+                                )}
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveAccommodation(accommodation.id)}
+                                className="rounded-full p-1 text-red-500 hover:bg-red-50 hover:text-red-700"
+                                title="Remover acomodacao"
+                              >
+                                <span className="material-symbols-outlined text-[16px]">delete</span>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="rounded-lg border border-dashed border-outline-variant p-4 text-[11px] text-on-surface opacity-65">
+                          Nenhuma acomodacao adicionada ainda.
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="rounded-xl border border-outline-variant bg-surface-container-low p-6 space-y-4">

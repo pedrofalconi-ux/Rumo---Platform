@@ -14,6 +14,8 @@ export function normalizeTripInput(input: TripInput): TripInput {
     ...parsed,
     preferences: parsed.preferences.slice(0, 2000),
     destinations: parsed.destinations.map((d) => d.trim()).filter(Boolean),
+    transportation: Array.isArray(parsed.transportation) ? parsed.transportation : [],
+    accommodations: Array.isArray(parsed.accommodations) ? parsed.accommodations : [],
   };
 }
 
@@ -40,6 +42,12 @@ export function tripRecordToInput(trip: Record<string, unknown>, agencyId: strin
       ? profile
       : 'lazer') as TripInput['profile'],
     preferences: String(trip.preferences || ''),
+    transportation: Array.isArray(trip.transportation)
+      ? (trip.transportation as TripInput['transportation'])
+      : [],
+    accommodations: Array.isArray(trip.accommodations)
+      ? (trip.accommodations as TripInput['accommodations'])
+      : [],
     locale: 'pt-BR',
   });
 }
