@@ -142,7 +142,8 @@ function ensureDbFile(filename: string, initialData: any) {
       }
       return getRemoteMarker(filename);
     } catch (error) {
-      console.warn(`[db] Remote persistence unavailable for ${filename}, falling back to local file.`, error);
+      console.warn(`[db] Remote persistence bootstrap failed for ${filename}. Reads may fall back to local seed until storage recovers.`, error);
+      return getRemoteMarker(filename);
     }
   }
   return filePath;
@@ -455,8 +456,9 @@ function writeData<T>(filePath: string, data: T): void {
       remoteDataCache.set(filePath, { value: cloneData(data), loadedAt: Date.now() });
       return;
     } catch (error) {
-      console.warn(`[db] Failed to write remote file ${filename}. Falling back to local seed.`, error);
-      filePath = path.join(DATA_DIR, filename);
+      throw new Error(
+        `[db] Failed to persist remote file ${filename}: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 

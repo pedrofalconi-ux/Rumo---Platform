@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { db } from '@rumo/db';
 import { composeItinerary, tripRecordToInput } from '@rumo/ai';
 import { getCurrentUser } from '../../../../../lib/server-auth';
 import { createTripAiOrchestrator } from '../../../../../lib/ai/create-orchestrator';
 import { selectImagesForItinerary } from '../../../../../lib/media/select-itinerary-images';
+import { findTripById, updateTripForAgency } from '../../../../../lib/server-trip-store';
 
 export async function POST(request: Request) {
   let tripIdForError: string | undefined;
@@ -30,8 +30,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const trip = db.trips.findOne(tripId);
-    if (!trip || trip.agencyId !== user.agencyId) {
+    const trip = await findTripById(tripId, user.agencyId);
+    if (!trip) {
       return NextResponse.json({ error: 'Viagem nao encontrada' }, { status: 404 });
     }
 
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
           (item: { meta?: { aiGenerated?: boolean } }) => !item.meta?.aiGenerated
         );
 
-    db.trips.update(tripId, {
+    await updateTripForAgency(tripId, {
       itinerary: preservedItems,
       aiStatus: 'AI_GENERATING',
       aiResponse: {
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
           failedDays: [],
         },
       },
-    });
+    }, user.agencyId, user.id);
 
     const tripInput = tripRecordToInput(trip, user.agencyId);
     const result = await orchestrator.generateFullItinerary(tripInput, {
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
         const partialItinerary = composeItinerary(plan, dayResults);
         const mergedPartialItinerary = [...preservedItems, ...partialItinerary];
 
-        db.trips.update(tripId, {
+        await updateTripForAgency(tripId, {
           itinerary: mergedPartialItinerary,
           aiStatus: 'AI_GENERATING',
           aiGenerationId: generationId,
@@ -86,7 +86,7 @@ export async function POST(request: Request) {
             },
           },
           aiGeneratedAt: new Date().toISOString(),
-        });
+        }, user.agencyId, user.id);
       },
     });
 
@@ -96,14 +96,17 @@ export async function POST(request: Request) {
       ? aiItineraryWithImages
       : [...preservedItems, ...aiItineraryWithImages];
 
-    const updated = db.trips.update(tripId, {
+    const updated = await updateTripForAgency(tripId, {
       itinerary: mergedItinerary,
       aiStatus: 'AI_DRAFT',
       aiGenerationId: result.meta.generationId,
       aiPrompt: tripInput,
       aiResponse: result.meta,
       aiGeneratedAt: new Date().toISOString(),
-    });
+    }, user.agencyId, user.id);
+    if (!updated) {
+      return NextResponse.json({ error: 'Viagem nao encontrada ao finalizar geracao' }, { status: 404 });
+    }
 
     return NextResponse.json({
       tripId,
@@ -117,7 +120,10 @@ export async function POST(request: Request) {
     const message = error instanceof Error ? error.message : 'Erro desconhecido';
 
     if (tripIdForError) {
-      db.trips.update(tripIdForError, { aiStatus: 'AI_FAILED' });
+      const user = await getCurrentUser(request).catch(() => null);
+      if (user) {
+        await updateTripForAgency(tripIdForError, { aiStatus: 'AI_FAILED' }, user.agencyId, user.id);
+      }
     }
 
     const isValidation = message.includes('JSON') || message.includes('Block type');

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { db } from '@rumo/db';
 import { getCurrentUser } from '../../../../../lib/server-auth';
+import { findTripById, updateTripForAgency } from '../../../../../lib/server-trip-store';
 
 export async function POST(request: Request) {
   try {
@@ -24,14 +24,17 @@ export async function POST(request: Request) {
       );
     }
 
-    const trip = db.trips.findOne(tripId);
-    if (!trip || trip.agencyId !== user.agencyId) {
+    const trip = await findTripById(tripId, user.agencyId);
+    if (!trip) {
       return NextResponse.json({ error: 'Viagem nao encontrada' }, { status: 404 });
     }
 
-    const updated = db.trips.update(tripId, {
+    const updated = await updateTripForAgency(tripId, {
       aiStatus: 'AI_REVIEWED',
-    });
+    }, user.agencyId, user.id);
+    if (!updated) {
+      return NextResponse.json({ error: 'Viagem nao encontrada' }, { status: 404 });
+    }
 
     return NextResponse.json({
       tripId,

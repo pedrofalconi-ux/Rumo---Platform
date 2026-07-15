@@ -84,6 +84,7 @@ async function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit) {
 
 const hasSupabaseServerAccess = Boolean(supabaseUrl && supabaseAnonKey && supabaseServiceRoleKey);
 const canUseLocalWriteFallback = process.env.NODE_ENV !== 'production' || !process.env.VERCEL;
+const canUsePersistentWriteFallback = canUseLocalWriteFallback || Boolean(supabaseUrl && supabaseServiceRoleKey);
 
 const supabaseAdmin = hasSupabaseServerAccess
   ? createClient(supabaseUrl, supabaseServiceRoleKey, {
@@ -329,6 +330,7 @@ async function ensureSupabaseAgency(localAgencyId: string, localUser?: any) {
     accessExpiresAt: localAgency?.accessExpiresAt || localUser?.accessExpiresAt || DEFAULT_ACCESS_EXPIRY,
     defaultCurrency: 'BRL',
     notificationEmail: '',
+    legacyAgencyId: localAgencyId || null,
   };
 
   const { data, error } = await admin
@@ -348,6 +350,70 @@ async function ensureSupabaseAgency(localAgencyId: string, localUser?: any) {
   return normalizeAgencyRow(data);
 }
 
+async function syncLegacyTrips(localAgencyId: string, supabaseAgencyId: string) {
+  if (!hasSupabaseServerAccess) return;
+
+  const admin = requireSupabaseAdmin();
+  const { data: existingTrips, error: existingTripsError } = await admin
+    .from('itineraries')
+    .select('id, metadata')
+    .eq('agency_id', supabaseAgencyId);
+
+  if (existingTripsError) {
+    throw existingTripsError;
+  }
+
+  const existingLegacyTripIds = new Set(
+    (existingTrips || [])
+      .map((trip: any) => trip.metadata?.legacyTripId)
+      .filter((value: unknown): value is string => typeof value === 'string' && value.length > 0)
+  );
+
+  const legacyTrips = db.trips.findMany(localAgencyId);
+  const missingTrips = legacyTrips.filter((trip: any) => !existingLegacyTripIds.has(String(trip.id)));
+
+  if (missingTrips.length === 0) return;
+
+  const payload = missingTrips.map((trip: any) => ({
+    agency_id: supabaseAgencyId,
+    agent_id: null,
+    title: String(trip.name || 'Viagem'),
+    client_name: String(trip.clientName || ''),
+    destination: Array.isArray(trip.destinations) && trip.destinations.length > 0 ? String(trip.destinations[0]) : '',
+    destinations: Array.isArray(trip.destinations) ? trip.destinations.map(String) : [],
+    destinations_detail: Array.isArray(trip.destinationsDetail) ? trip.destinationsDetail : [],
+    origin: String(trip.origin || ''),
+    start_date: String(trip.startDate || new Date().toISOString().slice(0, 10)),
+    end_date: String(trip.endDate || trip.startDate || new Date().toISOString().slice(0, 10)),
+    travelers: Array.isArray(trip.travelers) ? Math.max(1, trip.travelers.length) : 1,
+    travelers_data: Array.isArray(trip.travelers) ? trip.travelers.map(String) : ['DR'],
+    budget: Number(trip.budget || 0),
+    currency: 'BRL',
+    status: String(trip.status || 'Pendente'),
+    profile: trip.profile ? String(trip.profile) : null,
+    preferences: String(trip.preferences || ''),
+    cover_image: trip.coverImage ? String(trip.coverImage) : null,
+    documents: Array.isArray(trip.documents) ? trip.documents : [],
+    ai_status: String(trip.aiStatus || 'NONE'),
+    ai_generation_id: trip.aiGenerationId ? String(trip.aiGenerationId) : null,
+    ai_generated_at: trip.aiGeneratedAt || null,
+    ai_prompt: trip.aiPrompt || null,
+    ai_response: trip.aiResponse || null,
+    content: {
+      items: Array.isArray(trip.itinerary) ? trip.itinerary : [],
+    },
+    metadata: {
+      legacyTripId: String(trip.id),
+      legacyAgencyId: localAgencyId,
+      source: 'legacy-json',
+      createdDate: trip.createdDate || null,
+    },
+  }));
+
+  const { error } = await admin.from('itineraries').insert(payload);
+  if (error) throw error;
+}
+
 async function provisionLegacyUser(localRawUser: any, password: string) {
   if (!hasSupabaseServerAccess || !localRawUser?.email) {
     return null;
@@ -356,6 +422,9 @@ async function provisionLegacyUser(localRawUser: any, password: string) {
   const admin = requireSupabaseAdmin();
   const agency = await ensureSupabaseAgency(localRawUser.agencyId, localRawUser);
   const agencyId = agency?.id || localRawUser.agencyId;
+  if (agency?.id && localRawUser.agencyId && !looksLikeUuid(localRawUser.agencyId)) {
+    await syncLegacyTrips(localRawUser.agencyId, agency.id);
+  }
 
   const existing = await findSupabaseUserByEmail(localRawUser.email);
   if (existing) {
@@ -455,7 +524,7 @@ export async function getAgencyById(id: string) {
 
 export async function authenticateAccount(email: string, password: string) {
   const localRawUser = db.users.findByEmail(email);
-  if (localRawUser && !looksLikeUuid(localRawUser.id)) {
+  if (localRawUser && !looksLikeUuid(localRawUser.id) && !hasSupabaseServerAccess) {
     const legacyLogin = db.auth.login(email, password);
     return legacyLogin ? legacyLogin.user : null;
   }
@@ -524,7 +593,7 @@ export async function registerAgencyAccount(data: {
   password: string;
 }) {
   if (!hasSupabaseServerAccess) {
-    if (!canUseLocalWriteFallback) {
+    if (!canUsePersistentWriteFallback) {
       throw persistenceUnavailableError();
     }
     return db.auth.register({
@@ -597,7 +666,7 @@ export async function registerAgencyAccount(data: {
     if (userError) throw userError;
     return normalizeUserRow(userData);
   } catch (error) {
-    if (canUseLocalWriteFallback && shouldFallbackToLocal(error)) {
+    if (canUsePersistentWriteFallback && shouldFallbackToLocal(error)) {
       return db.auth.register({
         ...data,
         emailConfirm: data.email,
@@ -647,7 +716,7 @@ export async function createAgencyUser(
   }
 ) {
   if (!hasSupabaseServerAccess) {
-    if (!canUseLocalWriteFallback) {
+    if (!canUsePersistentWriteFallback) {
       throw persistenceUnavailableError();
     }
     return db.users.create({
@@ -698,7 +767,7 @@ export async function createAgencyUser(
     if (userError) throw userError;
     return normalizeUserRow(userData);
   } catch (error) {
-    if (canUseLocalWriteFallback && shouldFallbackToLocal(error)) {
+    if (canUsePersistentWriteFallback && shouldFallbackToLocal(error)) {
       return db.users.create({
         ...data,
         agencyId,
@@ -722,7 +791,7 @@ export async function updateAgencyUser(
   }
 ) {
   if (!hasSupabaseServerAccess) {
-    if (!canUseLocalWriteFallback) {
+    if (!canUsePersistentWriteFallback) {
       throw persistenceUnavailableError();
     }
     return db.users.update(userId, patch);
@@ -767,7 +836,7 @@ export async function updateAgencyUser(
     if (error) throw error;
     return normalizeUserRow(data);
   } catch (error) {
-    if (canUseLocalWriteFallback && shouldFallbackToLocal(error)) {
+    if (canUsePersistentWriteFallback && shouldFallbackToLocal(error)) {
       return db.users.update(userId, patch);
     }
 
@@ -777,7 +846,7 @@ export async function updateAgencyUser(
 
 export async function deleteAgencyUser(userId: string) {
   if (!hasSupabaseServerAccess) {
-    if (!canUseLocalWriteFallback) {
+    if (!canUsePersistentWriteFallback) {
       throw persistenceUnavailableError();
     }
     return db.users.delete(userId);
@@ -792,7 +861,7 @@ export async function deleteAgencyUser(userId: string) {
 
     return true;
   } catch (error) {
-    if (canUseLocalWriteFallback && shouldFallbackToLocal(error)) {
+    if (canUsePersistentWriteFallback && shouldFallbackToLocal(error)) {
       return db.users.delete(userId);
     }
 
@@ -814,7 +883,7 @@ export async function updateAgencySettings(
   patch: Partial<AgencySettings>
 ) {
   if (!hasSupabaseServerAccess) {
-    if (!canUseLocalWriteFallback) {
+    if (!canUsePersistentWriteFallback) {
       throw persistenceUnavailableError();
     }
     return db.settings.update({ ...patch, agencyId });
@@ -858,7 +927,7 @@ export async function updateAgencySettings(
     if (error) throw error;
     return normalizeAgencySettings(normalizeAgencyRow(data));
   } catch (error) {
-    if (canUseLocalWriteFallback && shouldFallbackToLocal(error)) {
+    if (canUsePersistentWriteFallback && shouldFallbackToLocal(error)) {
       return db.settings.update({ ...patch, agencyId });
     }
 
@@ -897,7 +966,7 @@ export async function updateAgency(
   }
 ) {
   if (!hasSupabaseServerAccess) {
-    if (!canUseLocalWriteFallback) {
+    if (!canUsePersistentWriteFallback) {
       throw persistenceUnavailableError();
     }
     return db.agencies.update(agencyId, patch);
@@ -926,7 +995,7 @@ export async function updateAgency(
     if (error) throw error;
     return normalizeAgencyRow(data);
   } catch (error) {
-    if (canUseLocalWriteFallback && shouldFallbackToLocal(error)) {
+    if (canUsePersistentWriteFallback && shouldFallbackToLocal(error)) {
       return db.agencies.update(agencyId, patch);
     }
 

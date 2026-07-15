@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@rumo/db';
+import { getAgencyById } from '../../../../../lib/server-account-store';
+import { findTripById } from '../../../../../lib/server-trip-store';
 
 export async function GET(request: Request, { params }: { params: Promise<{ token: string }> }) {
   try {
@@ -9,12 +11,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
       return NextResponse.json({ error: 'Convite invalido ou expirado' }, { status: 404 });
     }
 
-    const trip = db.trips.findOne(invite.tripId);
+    const trip = await findTripById(invite.tripId, invite.agencyId);
     if (!trip || trip.agencyId !== invite.agencyId) {
       return NextResponse.json({ error: 'Viagem nao encontrada' }, { status: 404 });
     }
 
-    const agency = db.agencies.findOne(trip.agencyId);
+    const agency = await getAgencyById(trip.agencyId);
     if (!agency) {
       return NextResponse.json({ error: 'Agencia nao encontrada' }, { status: 404 });
     }

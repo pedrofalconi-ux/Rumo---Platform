@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@rumo/db';
 import { getCurrentUser } from '../../../../../lib/server-auth';
+import { findTripById } from '../../../../../lib/server-trip-store';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -8,7 +9,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     if (!user) return NextResponse.json({ error: 'Nao autenticado' }, { status: 401 });
 
     const resolvedParams = await params;
-    const trip = db.trips.findOne(resolvedParams.id);
+    const trip = await findTripById(resolvedParams.id, user.agencyId);
     if (!trip || trip.agencyId !== user.agencyId) {
       return NextResponse.json({ error: 'Viagem nao encontrada' }, { status: 404 });
     }
@@ -25,7 +26,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     if (!user) return NextResponse.json({ error: 'Nao autenticado' }, { status: 401 });
 
     const resolvedParams = await params;
-    const trip = db.trips.findOne(resolvedParams.id);
+    const trip = await findTripById(resolvedParams.id, user.agencyId);
     if (!trip || trip.agencyId !== user.agencyId) {
       return NextResponse.json({ error: 'Viagem nao encontrada' }, { status: 404 });
     }

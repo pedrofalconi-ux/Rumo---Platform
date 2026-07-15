@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { db } from '@rumo/db';
 import { getCurrentUser } from '../../../../lib/server-auth';
 import { convertUrlToBase64 } from '../../../../lib/media/base64-converter';
+import { deleteTripForAgency, findTripById, updateTripForAgency } from '../../../../lib/server-trip-store';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -9,8 +9,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     if (!user) return NextResponse.json({ error: 'Nao autenticado' }, { status: 401 });
 
     const resolvedParams = await params;
-    const trip = db.trips.findOne(resolvedParams.id);
-    if (!trip || trip.agencyId !== user.agencyId) {
+    const trip = await findTripById(resolvedParams.id, user.agencyId);
+    if (!trip) {
       return NextResponse.json({ error: 'Viagem nao encontrada' }, { status: 404 });
     }
     return NextResponse.json(trip);
@@ -26,8 +26,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     if (!user) return NextResponse.json({ error: 'Nao autenticado' }, { status: 401 });
 
     const resolvedParams = await params;
-    const trip = db.trips.findOne(resolvedParams.id);
-    if (!trip || trip.agencyId !== user.agencyId) {
+    const trip = await findTripById(resolvedParams.id, user.agencyId);
+    if (!trip) {
       return NextResponse.json({ error: 'Viagem nao encontrada para atualizar' }, { status: 404 });
     }
 
@@ -52,7 +52,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       );
     }
 
-    const updated = db.trips.update(resolvedParams.id, body);
+    const updated = await updateTripForAgency(resolvedParams.id, body, user.agencyId, user.id);
+    if (!updated) {
+      return NextResponse.json({ error: 'Viagem nao encontrada para atualizar' }, { status: 404 });
+    }
     return NextResponse.json(updated);
   } catch (error) {
     console.error('Erro ao salvar alteracoes da viagem:', error);
@@ -67,12 +70,12 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     if (!user) return NextResponse.json({ error: 'Nao autenticado' }, { status: 401 });
 
     const resolvedParams = await params;
-    const trip = db.trips.findOne(resolvedParams.id);
-    if (!trip || trip.agencyId !== user.agencyId) {
+    const trip = await findTripById(resolvedParams.id, user.agencyId);
+    if (!trip) {
       return NextResponse.json({ error: 'Viagem nao encontrada para deletar' }, { status: 404 });
     }
 
-    const success = db.trips.delete(resolvedParams.id);
+    const success = await deleteTripForAgency(resolvedParams.id, user.agencyId);
     return NextResponse.json({ success });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erro ao deletar viagem';

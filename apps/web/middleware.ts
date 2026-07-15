@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const publicPaths = ['/login', '/register'];
+const publicPaths = ['/login', '/register', '/traveler/register'];
 
 export function middleware(request: NextRequest) {
   const session = request.cookies.get('rumo_session')?.value;
@@ -10,10 +10,6 @@ export function middleware(request: NextRequest) {
 
   if (!session && !isPublicPath && !pathname.startsWith('/api') && pathname !== '/favicon.ico') {
     return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  if (session && isPublicPath) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   return NextResponse.next();

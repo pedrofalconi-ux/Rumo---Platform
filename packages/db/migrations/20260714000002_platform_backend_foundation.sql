@@ -21,7 +21,18 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION public.write_audit_log() RETURNS trigger AS $$
+DECLARE
+  resolved_agency_id uuid;
 BEGIN
+  resolved_agency_id := COALESCE(
+    NULLIF(COALESCE(to_jsonb(NEW), '{}'::jsonb)->>'agency_id', '')::uuid,
+    NULLIF(COALESCE(to_jsonb(OLD), '{}'::jsonb)->>'agency_id', '')::uuid,
+    CASE
+      WHEN TG_TABLE_NAME = 'agencies' THEN COALESCE(NEW.id, OLD.id)
+      ELSE NULL
+    END
+  );
+
   INSERT INTO public.audit_logs (
     id,
     agency_id,
@@ -34,7 +45,7 @@ BEGIN
   )
   VALUES (
     public.gen_ulid(),
-    COALESCE(NEW.agency_id, OLD.agency_id),
+    resolved_agency_id,
     TG_TABLE_NAME,
     COALESCE(NEW.id, OLD.id),
     TG_OP,

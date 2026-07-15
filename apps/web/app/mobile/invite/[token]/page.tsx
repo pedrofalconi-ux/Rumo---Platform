@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import { db } from '@rumo/db';
 import Link from 'next/link';
+import { getAgencyById } from '../../../../lib/server-account-store';
+import { findTripById } from '../../../../lib/server-trip-store';
 
 export default async function MobileInvitePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -9,12 +11,12 @@ export default async function MobileInvitePage({ params }: { params: Promise<{ t
     notFound();
   }
 
-  const trip = db.trips.findOne(invite.tripId);
+  const trip = await findTripById(invite.tripId, invite.agencyId);
   if (!trip || trip.agencyId !== invite.agencyId) {
     notFound();
   }
 
-  const agency = db.agencies.findOne(trip.agencyId);
+  const agency = await getAgencyById(trip.agencyId);
   if (!agency) {
     notFound();
   }

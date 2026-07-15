@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
-import { db } from '@rumo/db';
 import { getCurrentUser } from '../../../lib/server-auth';
 import { convertUrlToBase64 } from '../../../lib/media/base64-converter';
+import { createTripForAgency, listTripsForAgency } from '../../../lib/server-trip-store';
 
 export async function GET(request: Request) {
   try {
     const user = await getCurrentUser(request);
     if (!user) return NextResponse.json({ error: 'Nao autenticado' }, { status: 401 });
-    const trips = db.trips.findMany(user.agencyId);
+    const trips = await listTripsForAgency(user.agencyId);
     return NextResponse.json(trips);
   } catch (error) {
     return NextResponse.json({ error: 'Erro ao buscar viagens' }, { status: 500 });
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const newTrip = db.trips.create({ ...body, agencyId: user.agencyId });
+    const newTrip = await createTripForAgency(body, user.agencyId, user.id);
     return NextResponse.json(newTrip);
   } catch (error) {
     console.error('Erro ao criar viagem:', error);

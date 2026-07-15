@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { getCurrentUser } from '../../../../../../lib/server-auth';
-import { db } from '@rumo/db';
+import { findTripById } from '../../../../../../lib/server-trip-store';
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -15,7 +15,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const tripId = resolvedParams.id;
     
     // Check if trip exists and belongs to the user's agency
-    const trip = db.trips.findOne(tripId);
+    const trip = await findTripById(tripId, user.agencyId);
     if (!trip || trip.agencyId !== user.agencyId) {
       return NextResponse.json({ error: 'Viagem não encontrada' }, { status: 404 });
     }

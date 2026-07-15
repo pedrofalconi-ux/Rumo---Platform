@@ -182,18 +182,31 @@ export class MockProvider implements LLMProvider {
 
     let raw: unknown;
 
-    if (userPayload.includes('planejamento macro')) {
+    const isPlan = Object.is(params.schema, TripPlanSchema) || 
+                   userPayload.toLowerCase().includes('planejamento macro') || 
+                   userPayload.toLowerCase().includes('tripdescription') || 
+                   userPayload.toLowerCase().includes('highlights');
+
+    const isDay = Object.is(params.schema, DayBlocksSchema) || 
+                  userPayload.toLowerCase().includes('blocos de conteúdo') || 
+                  userPayload.toLowerCase().includes('blocos de conteudo') || 
+                  userPayload.toLowerCase().includes('daydescription') || 
+                  userPayload.toLowerCase().includes('daysummary') || 
+                  userPayload.toLowerCase().includes('estimateddurationminutes') ||
+                  userPayload.toLowerCase().includes('recommendedstarttime');
+
+    if (isPlan) {
       raw = buildMockPlan(mockInput);
       TripPlanSchema.parse(raw);
-    } else if (userPayload.includes('blocos de conteúdo') || userPayload.includes('blocos de conteudo')) {
-      const dayMatch = userPayload.match(/Dia (\d+)/);
+    } else if (isDay) {
+      const dayMatch = userPayload.match(/Dia (\d+)/i) || userPayload.match(/day (\d+)/i);
       const dayNum = Number(dayMatch?.[1] || 1);
       const plan = buildMockPlan(mockInput);
       const dayPlan = plan.days.find((d) => d.day === dayNum) || plan.days[0];
       raw = buildMockDayBlocks(mockInput, dayPlan);
       DayBlocksSchema.parse(raw);
     } else {
-      throw new Error('MockProvider: prompt não reconhecido');
+      throw new Error(`MockProvider: prompt ou schema não reconhecido. Schema: ${params.schema?.constructor?.name || typeof params.schema}`);
     }
 
     const data = params.schema.parse(raw);
