@@ -44,6 +44,7 @@ export interface AgencySettings {
   claudeKey: string;
   geminiKey: string;
   pixabayKey: string;
+  unsplashKey: string;
   notificationEmail: string;
 }
 
@@ -61,6 +62,7 @@ const AGENCY_SETTINGS_DEFAULTS: AgencySettings = {
   claudeKey: '',
   geminiKey: '',
   pixabayKey: '',
+  unsplashKey: '',
   notificationEmail: '',
 };
 
@@ -171,6 +173,7 @@ function normalizeAgencySettings(
     claudeKey: String(settings.claudeKey || AGENCY_SETTINGS_DEFAULTS.claudeKey),
     geminiKey: String(settings.geminiKey || AGENCY_SETTINGS_DEFAULTS.geminiKey),
     pixabayKey: String(settings.pixabayKey || AGENCY_SETTINGS_DEFAULTS.pixabayKey),
+    unsplashKey: String(settings.unsplashKey || AGENCY_SETTINGS_DEFAULTS.unsplashKey),
     notificationEmail: String(settings.notificationEmail || AGENCY_SETTINGS_DEFAULTS.notificationEmail),
   };
 }
@@ -953,6 +956,7 @@ export async function updateAgencySettings(
           claudeKey: merged.claudeKey,
           geminiKey: merged.geminiKey,
           pixabayKey: merged.pixabayKey,
+          unsplashKey: merged.unsplashKey,
           notificationEmail: merged.notificationEmail,
           subscriptionStatus: merged.subscriptionStatus,
           accessExpiresAt: merged.accessExpiresAt,

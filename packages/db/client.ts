@@ -330,6 +330,7 @@ const initialSettings = {
   tboKey: '',
   claudeKey: '',
   pixabayKey: '',
+  unsplashKey: '',
   notificationEmail: 'alertas@horizonenterprise.com',
 };
 

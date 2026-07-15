@@ -1490,9 +1490,9 @@ export default function NewTripPage() {
             <div className="p-5">
               {activeLogisticsTab === 'transport' ? (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-[180px_1.2fr_0.9fr_0.9fr] gap-3">
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[11px] font-semibold text-on-surface opacity-75">Modal</label>
+                  <div className="flex flex-col md:flex-row md:items-center gap-2">
+                    {/* Modal */}
+                    <div className="w-full md:w-[130px] shrink-0">
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm">
                           {activeTransportOption.emoji}
@@ -1505,7 +1505,7 @@ export default function NewTripPage() {
                               type: event.target.value as TransportationType,
                             }))
                           }
-                          className="w-full border border-outline-variant rounded-lg p-2.5 pl-9 text-xs bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                          className="w-full h-10 border border-outline-variant rounded-lg pl-9 pr-8 text-xs bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none appearance-none"
                         >
                           {TRANSPORT_OPTIONS.map((option) => (
                             <option key={option.type} value={option.type}>
@@ -1513,41 +1513,40 @@ export default function NewTripPage() {
                             </option>
                           ))}
                         </select>
+                        <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[16px] pointer-events-none opacity-60">
+                          keyboard_arrow_down
+                        </span>
                       </div>
                     </div>
 
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[11px] font-semibold text-on-surface opacity-75">
-                        Cia. Aérea / Operadora
-                      </label>
+                    {/* Cia Aérea */}
+                    <div className="w-full md:w-[180px] shrink-0">
                       <input
                         type="text"
                         value={transportDraft.operator}
                         onChange={(event) =>
                           setTransportDraft((prev) => ({ ...prev, operator: event.target.value }))
                         }
-                        placeholder="Ex: LATAM, Trenitalia, Cometa"
-                        className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                        placeholder={transportDraft.type === 'voo' ? 'Cia. Aérea' : 'Operadora'}
+                        className="w-full h-10 border border-outline-variant rounded-lg px-3 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                       />
                     </div>
 
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[11px] font-semibold text-on-surface opacity-75">
-                        Voo # / Codigo
-                      </label>
+                    {/* Voo # */}
+                    <div className="w-full md:w-[100px] shrink-0">
                       <input
                         type="text"
                         value={transportDraft.number}
                         onChange={(event) =>
                           setTransportDraft((prev) => ({ ...prev, number: event.target.value }))
                         }
-                        placeholder="Ex: LA8072"
-                        className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                        placeholder={transportDraft.type === 'voo' ? 'Voo #' : 'Código'}
+                        className="w-full h-10 border border-outline-variant rounded-lg px-3 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                       />
                     </div>
 
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[11px] font-semibold text-on-surface opacity-75">Data</label>
+                    {/* Data */}
+                    <div className="w-full md:w-[140px] shrink-0">
                       <input
                         type="date"
                         value={transportDraft.date}
@@ -1556,32 +1555,37 @@ export default function NewTripPage() {
                         onChange={(event) =>
                           setTransportDraft((prev) => ({ ...prev, date: event.target.value }))
                         }
-                        className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                        className="w-full h-10 border border-outline-variant rounded-lg px-3 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                       />
                     </div>
-                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3 items-end">
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[11px] font-semibold text-on-surface opacity-75">Detalhes</label>
+                    {/* Adicionar */}
+                    <div className="w-full md:w-auto shrink-0 order-last md:order-none">
+                      <button
+                        type="button"
+                        onClick={handleAddTransportation}
+                        className="w-full md:w-auto h-10 px-5 rounded-lg bg-primary text-on-primary text-xs font-bold hover:opacity-95 transition-opacity"
+                      >
+                        Adicionar
+                      </button>
+                    </div>
+
+                    {/* Detalhes */}
+                    <div className="w-full flex-1">
                       <input
                         type="text"
                         value={transportDraft.details}
                         onChange={(event) =>
                           setTransportDraft((prev) => ({ ...prev, details: event.target.value }))
                         }
-                        placeholder="Insira detalhes do voo, traslado ou observacoes"
-                        className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                        placeholder={
+                          transportDraft.type === 'voo'
+                            ? 'Insira detalhes do voo'
+                            : 'Insira detalhes do transporte'
+                        }
+                        className="w-full h-10 border border-outline-variant rounded-lg px-3 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                       />
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={handleAddTransportation}
-                      className="h-[42px] px-4 rounded-lg bg-primary text-on-primary text-xs font-bold hover:opacity-95"
-                    >
-                      Adicionar
-                    </button>
                   </div>
 
                   {transportation.length > 0 ? (
@@ -1634,17 +1638,17 @@ export default function NewTripPage() {
                     </div>
                   ) : (
                     <>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div className="flex flex-col gap-1">
-                          <label className="text-[11px] font-semibold text-on-surface opacity-75">Destino</label>
+                      <div className="flex flex-col md:flex-row md:items-center gap-3">
+                        {/* Destino select */}
+                        <div className="w-full md:w-[220px] shrink-0">
                           <select
                             value={accommodationDraft.destinationCity}
                             onChange={(event) =>
                               handleAccommodationDestinationChange(event.target.value)
                             }
-                            className="border border-outline-variant rounded-lg p-2.5 text-xs bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                            className="w-full h-10 border border-outline-variant rounded-lg px-3 text-xs bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                           >
-                            <option value="">Selecione o destino</option>
+                            <option value="">Inserir o destino</option>
                             {availableDestinations.map((destination) => (
                               <option key={destination.city} value={destination.city}>
                                 {destination.city}
@@ -1653,43 +1657,55 @@ export default function NewTripPage() {
                           </select>
                         </div>
 
-                        <div className="flex items-end gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setIsManualAccommodation((prev) => !prev)}
-                            className="h-[42px] px-4 rounded-lg border border-outline-variant text-xs font-bold hover:bg-surface-container-low"
-                          >
-                            {isManualAccommodation ? 'Usar busca' : 'Criar novo'}
-                          </button>
-                        </div>
-                      </div>
-
-                      {!isManualAccommodation && (
-                        <div className="space-y-3">
-                          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
+                        {/* Busca autocomplete input */}
+                        {!isManualAccommodation ? (
+                          <div className="w-full flex-1 flex gap-2">
                             <input
                               type="text"
                               value={hotelSearchTerm}
                               onChange={(event) => setHotelSearchTerm(event.target.value)}
-                              placeholder="Buscar hotel ou acomodacao"
-                              className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                              placeholder="Procurar acomodação"
+                              className="w-full h-10 border border-outline-variant rounded-lg px-3 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                             />
                             <button
                               type="button"
                               onClick={handleHotelSearch}
                               disabled={hotelSearchLoading}
-                              className="h-[42px] px-4 rounded-lg bg-primary text-on-primary text-xs font-bold disabled:opacity-60"
+                              className="h-10 px-4 rounded-lg bg-primary text-on-primary text-xs font-bold disabled:opacity-60 hover:opacity-95 shrink-0"
                             >
-                              {hotelSearchLoading ? 'Buscando...' : 'Buscar hotel'}
+                              {hotelSearchLoading ? 'Buscando...' : 'Buscar'}
                             </button>
                           </div>
+                        ) : (
+                          <div className="w-full flex-1 text-xs text-on-surface opacity-60 flex items-center">
+                            Preenchendo acomodação manualmente
+                          </div>
+                        )}
 
+                        <div className="hidden md:flex items-center text-xs font-bold text-on-surface opacity-50 px-1">
+                          OU
+                        </div>
+
+                        <div className="w-full md:w-auto shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setIsManualAccommodation((prev) => !prev)}
+                            className="w-full md:w-auto h-10 px-4 rounded-lg border border-outline-variant text-xs font-bold hover:bg-surface-container-low transition-colors"
+                          >
+                            {isManualAccommodation ? 'Usar Busca API' : 'Criar Novo'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Search Results Display */}
+                      {!isManualAccommodation && (
+                        <div className="space-y-3">
                           {hotelSearchError && (
-                            <p className="text-[11px] font-semibold text-error">{hotelSearchError}</p>
+                            <p className="text-[11px] font-semibold text-error mt-2">{hotelSearchError}</p>
                           )}
 
                           {hotelSearchResults.length > 0 && (
-                            <div className="space-y-2 rounded-lg border border-outline-variant bg-surface-container-low p-3">
+                            <div className="space-y-2 rounded-lg border border-outline-variant bg-surface-container-low p-3 mt-2">
                               {hotelSearchResults.map((result) => (
                                 <button
                                   key={result.id}

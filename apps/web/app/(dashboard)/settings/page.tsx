@@ -10,6 +10,7 @@ interface SettingsForm {
   tboKey: string;
   claudeKey: string;
   pixabayKey: string;
+  unsplashKey: string;
   notificationEmail: string;
 }
 
@@ -21,6 +22,7 @@ const emptySettings: SettingsForm = {
   tboKey: '',
   claudeKey: '',
   pixabayKey: '',
+  unsplashKey: '',
   notificationEmail: '',
 };
 
@@ -243,6 +245,31 @@ export default function SettingsPage() {
                   onChange={handleChange}
                   className="input-interactive border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-primary outline-none"
                 />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold">Pixabay API Key</label>
+                <input
+                  type="password"
+                  name="pixabayKey"
+                  value={formData.pixabayKey}
+                  onChange={handleChange}
+                  className="input-interactive border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-primary outline-none"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold">Unsplash Access Key</label>
+                <input
+                  type="password"
+                  name="unsplashKey"
+                  value={formData.unsplashKey}
+                  onChange={handleChange}
+                  className="input-interactive border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-primary outline-none"
+                />
+                <p className="text-[11px] text-on-surface opacity-60">
+                  Opcional. Quando preenchida, a busca de fotos prioriza o Unsplash antes do Pixabay.
+                </p>
               </div>
 
             </div>

@@ -141,6 +141,7 @@ Qualidade obrigatoria do roteiro:
 - O title deve ser apenas o nome real do ponto/atividade, sem horario; o backend adicionara o horario visualmente.
 - O subTitle deve explicar a funcao do bloco, por exemplo "Visita essencial", "Almoco recomendado", "Caminhada curta", "Fim de tarde".
 - O details deve ter 3 a 5 frases praticas: o que fazer ali, por que esse horario e recomendado, uma dica concreta, e cuidados como ingresso/reserva/filas quando fizer sentido.
+- Preencha imageSearchQuery em ingles, com 1 a 3 palavras, simples e especificas para busca de imagem. Exemplos: "Colosseum Rome", "Eiffel Tower", "Gelato Italy", "Airplane Flight".
 - Quando houver deslocamento maior que uma caminhada curta, inclua um bloco "transport" com horario, origem/destino e meio recomendado.
 - Para almoco e jantar, prefira restaurantes ou regioes reais adequados ao perfil; se citar restaurante especifico, recomende confirmar funcionamento/reserva.
 - Nao invente reservas, tickets comprados, disponibilidade, precos exatos ou promessas de acesso sem fila.
@@ -155,7 +156,7 @@ Retorne JSON:
     "title": "titulo especifico do dia com regiao real",
     "subTitle": "cidade/regiao do dia",
     "details": "resumo realista do dia em 2-3 frases, explicando a logica geografica da trilha",
-    "imageSearchQuery": "consulta curta para foto do destino/tema do dia"
+    "imageSearchQuery": "termo curto em ingles para foto do destino/tema do dia"
   },
   "blocks": [
     {
@@ -163,7 +164,7 @@ Retorne JSON:
       "title": "nome real do local ou atividade",
       "subTitle": "papel do bloco no dia",
       "details": "3-5 frases com horario recomendado, motivo, descricao breve e dicas praticas",
-      "imageSearchQuery": "nome do local + cidade para buscar foto real",
+      "imageSearchQuery": "termo curto em ingles, 1 a 3 palavras, para buscar foto real",
       "location": {
         "name": "nome real do ponto visitado",
         "address": "endereco, bairro ou regiao aproximada",

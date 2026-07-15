@@ -10,6 +10,7 @@ const agencyEditableFields = [
   'tboKey',
   'claudeKey',
   'pixabayKey',
+  'unsplashKey',
   'notificationEmail',
 ] as const;
 
@@ -37,7 +38,14 @@ export async function GET() {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Nao autenticado' }, { status: 401 });
     if (user.role === 'platform_admin') {
-      return NextResponse.json({ agencyName: 'Rumo Admin', logoUrl: '', defaultCurrency: 'BRL', notificationEmail: '' });
+      return NextResponse.json({
+        agencyName: 'Rumo Admin',
+        logoUrl: '',
+        defaultCurrency: 'BRL',
+        pixabayKey: '',
+        unsplashKey: '',
+        notificationEmail: '',
+      });
     }
     return NextResponse.json(sanitizeAgencySettings(await getAgencySettings(user.agencyId)));
   } catch (error) {

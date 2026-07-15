@@ -90,7 +90,11 @@ export async function POST(request: Request) {
       },
     });
 
-    const aiItineraryWithImages = await selectImagesForItinerary(result.itinerary, user.agencyId);
+    const aiItineraryWithImages = await selectImagesForItinerary(result.itinerary, user.agencyId, {
+      startDate: tripInput.startDate,
+      destinations: tripInput.destinations,
+      destinationsDetail: tripInput.destinationsDetail,
+    });
 
     const mergedItinerary = replaceExisting
       ? aiItineraryWithImages

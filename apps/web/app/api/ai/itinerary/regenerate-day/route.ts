@@ -44,7 +44,12 @@ export async function POST(request: Request) {
     const existingItinerary = trip.itinerary || [];
     const mergedItinerary = await selectImagesForItinerary(
       mergeDayIntoItinerary(existingItinerary, day, dayBlocks),
-      user.agencyId
+      user.agencyId,
+      {
+        startDate: tripInput.startDate,
+        destinations: tripInput.destinations,
+        destinationsDetail: tripInput.destinationsDetail,
+      }
     );
 
     const updated = await updateTripForAgency(tripId, {
