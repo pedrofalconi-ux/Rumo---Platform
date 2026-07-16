@@ -14,7 +14,7 @@ import { useRouter } from "expo-router";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { BottomTabInset, Brand, MaxContentWidth, Spacing } from "@/constants/theme";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
 import {
@@ -106,7 +106,7 @@ export default function HomeScreen() {
           styles.card,
           {
             backgroundColor: theme.backgroundElement,
-            borderColor: pressed ? "#004782" : theme.backgroundSelected,
+            borderColor: pressed ? Brand.coral : theme.backgroundSelected,
             opacity: pressed ? 0.92 : 1,
           },
         ]}
@@ -166,7 +166,8 @@ export default function HomeScreen() {
         </ThemedView>
 
         <ThemedView style={styles.buttonPlaceholder}>
-          <ThemedText style={styles.buttonText}>Abrir trilha da viagem →</ThemedText>
+          <ThemedText style={styles.buttonText}>Explorar roteiro</ThemedText>
+          <ThemedText style={styles.buttonArrow}>→</ThemedText>
         </ThemedView>
       </Pressable>
     );
@@ -177,28 +178,28 @@ export default function HomeScreen() {
       <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
         <ThemedView style={[styles.headerContainer, { borderColor: theme.backgroundSelected }]}>
           <ThemedView style={styles.agencyInfo}>
-            <ThemedText style={styles.agencyName} type="subtitle">
-              Minhas viagens
-            </ThemedText>
+            <ThemedText style={styles.headerEyebrow}>RUMO DO VIAJANTE</ThemedText>
+            <ThemedText style={styles.agencyName} type="subtitle">Olá, {user?.fullName?.split(" ")[0] || "viajante"}.</ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
-              {user?.fullName || "Viajante"}
+              Sua próxima história começa aqui.
             </ThemedText>
           </ThemedView>
           <Pressable onPress={() => setImportOpen(true)} style={styles.headerAction}>
-            <ThemedText style={styles.headerActionText}>Importar</ThemedText>
+            <ThemedText style={styles.headerActionText}>+ Convite</ThemedText>
           </Pressable>
           <Pressable onPress={signOut} style={[styles.headerAction, styles.logoutAction]}>
             <ThemedText style={styles.logoutActionText}>Sair</ThemedText>
           </Pressable>
         </ThemedView>
 
-        <ThemedText style={styles.sectionTitle} type="title">
-          Trilhas liberadas para você
-        </ThemedText>
+        <View style={styles.sectionHeading}>
+          <ThemedText style={styles.sectionTitle} type="title">Suas viagens</ThemedText>
+          <ThemedText style={styles.tripCount}>{trips.length} {trips.length === 1 ? "roteiro" : "roteiros"}</ThemedText>
+        </View>
 
         {loading ? (
           <ThemedView style={styles.centerContainer}>
-            <ActivityIndicator size="large" color="#004782" />
+            <ActivityIndicator size="large" color={Brand.coral} />
             <ThemedText style={styles.loadingText}>Carregando suas viagens...</ThemedText>
           </ThemedView>
         ) : (
@@ -313,21 +314,23 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.three,
-    borderBottomWidth: 1,
+    paddingVertical: 20,
+    borderBottomWidth: 0,
     gap: Spacing.two,
   },
   agencyInfo: {
     flex: 1,
   },
   agencyName: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#004782",
+    fontSize: 24,
+    fontWeight: "900",
+    color: Brand.navy,
+    letterSpacing: -0.6,
   },
+  headerEyebrow: { fontSize: 9, fontWeight: "800", letterSpacing: 1.6, color: Brand.coral, marginBottom: 3 },
   headerAction: {
-    backgroundColor: "#004782",
-    borderRadius: 999,
+    backgroundColor: Brand.coral,
+    borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
@@ -337,20 +340,16 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   logoutAction: {
-    backgroundColor: "#E9EEF4",
+    backgroundColor: "#E8EFED",
   },
   logoutActionText: {
-    color: "#004782",
+    color: Brand.navy,
     fontSize: 12,
     fontWeight: "700",
   },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    paddingHorizontal: Spacing.four,
-    marginTop: Spacing.four,
-    marginBottom: Spacing.two,
-  },
+  sectionHeading: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: Spacing.four, marginTop: Spacing.four, marginBottom: Spacing.two },
+  sectionTitle: { fontSize: 24, lineHeight: 30, fontWeight: "900", color: Brand.navy, letterSpacing: -0.6 },
+  tripCount: { fontSize: 10, fontWeight: "800", color: "#667176", letterSpacing: .7, textTransform: "uppercase" },
   listContent: {
     paddingHorizontal: Spacing.four,
     paddingBottom: BottomTabInset + Spacing.four,
@@ -358,9 +357,9 @@ const styles = StyleSheet.create({
   },
   card: {
     borderWidth: 1,
-    borderRadius: 12,
-    padding: Spacing.three,
-    shadowColor: "#000",
+    borderRadius: 20,
+    padding: 18,
+    shadowColor: Brand.navy,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -389,7 +388,7 @@ const styles = StyleSheet.create({
     marginRight: Spacing.two,
   },
   tripAgencyFallbackText: {
-    color: "#004782",
+    color: "#183B4E",
     fontSize: 12,
     fontWeight: "800",
   },
@@ -428,11 +427,15 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.three,
     borderTopWidth: 1,
     borderTopColor: "#E8EDF2",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   buttonText: {
-    color: "#004782",
-    fontWeight: "700",
+    color: Brand.navy,
+    fontWeight: "800",
   },
+  buttonArrow: { color: Brand.coral, fontSize: 20, fontWeight: "800" },
   emptyContainer: {
     marginTop: Spacing.six,
     borderRadius: 16,
@@ -453,7 +456,7 @@ const styles = StyleSheet.create({
   },
   emptyButton: {
     marginTop: Spacing.one,
-    backgroundColor: "#004782",
+    backgroundColor: Brand.coral,
     borderRadius: 999,
     paddingHorizontal: 18,
     paddingVertical: 12,
@@ -523,7 +526,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   confirmButton: {
-    backgroundColor: "#004782",
+    backgroundColor: Brand.coral,
     borderRadius: 12,
     paddingHorizontal: 18,
     paddingVertical: 12,
@@ -536,4 +539,3 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
 });
-

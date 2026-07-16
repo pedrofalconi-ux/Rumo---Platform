@@ -105,7 +105,7 @@ function DocumentCard({
         onPress={handleOpen}
         style={({ pressed }) => [
           styles.openButton,
-          { backgroundColor: pressed ? "#003a6a" : "#004782", opacity: pressed ? 0.92 : 1 },
+          { backgroundColor: pressed ? "#DF5A2C" : "#F26B3A", opacity: pressed ? 0.92 : 1 },
         ]}
       >
         <ThemedText style={styles.openButtonText}>
@@ -171,7 +171,7 @@ export default function DocumentsScreen() {
 
         {loading ? (
           <View style={styles.loadingState}>
-            <ActivityIndicator size="large" color="#004782" />
+            <ActivityIndicator size="large" color="#F26B3A" />
             <ThemedText style={styles.loadingText} themeColor="textSecondary">
               Carregando documentos das suas viagens...
             </ThemedText>
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     textTransform: "uppercase",
     letterSpacing: 0.8,
-    color: "#004782",
+    color: "#183B4E",
     marginBottom: Spacing.one,
   },
   card: {
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "700",
     textTransform: "uppercase",
-    color: "#004782",
+    color: "#183B4E",
     letterSpacing: 0.6,
   },
   cardTitle: {

@@ -1010,6 +1010,17 @@ export default function NewTripPage() {
 
       if (response.ok) {
         const newTrip = await response.json();
+        const tripForCache: NewTripPayload = {
+          ...localTrip,
+          ...newTrip,
+          documents: Array.isArray(newTrip.documents) ? newTrip.documents : localTrip.documents,
+          transportation: Array.isArray(newTrip.transportation)
+            ? newTrip.transportation
+            : localTrip.transportation,
+          accommodations: Array.isArray(newTrip.accommodations)
+            ? newTrip.accommodations
+            : localTrip.accommodations,
+        };
         let failedUploads: string[] = [];
 
         if (pendingDocuments.length > 0) {
@@ -1021,6 +1032,7 @@ export default function NewTripPage() {
           alert(`A viagem foi criada, mas alguns documentos não foram enviados: ${failedUploads.join(', ')}`);
         }
 
+        upsertLocalTrip(tripForCache);
         router.push(`/trips/${newTrip.id}/edit`);
       } else {
         const data = await response.json().catch(() => ({}));

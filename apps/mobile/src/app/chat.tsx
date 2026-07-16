@@ -56,7 +56,7 @@ function MessageBubble({
           style={[
             styles.bubble,
             isMe
-              ? { backgroundColor: '#004782' }
+              ? { backgroundColor: '#183B4E' }
               : { backgroundColor: theme.backgroundElement, borderColor: theme.backgroundSelected, borderWidth: 1 },
           ]}
         >
@@ -114,7 +114,7 @@ export default function ChatScreen() {
           style={[styles.header, { borderBottomColor: theme.backgroundSelected }]}
         >
           <View style={styles.agentInfo}>
-            <View style={[styles.agentAvatar, { backgroundColor: '#004782' }]}>
+            <View style={[styles.agentAvatar, { backgroundColor: '#183B4E' }]}>
               <ThemedText style={styles.agentAvatarText}>D</ThemedText>
             </View>
             <View>
@@ -201,8 +201,8 @@ export default function ChatScreen() {
                 {
                   backgroundColor: inputText.trim()
                     ? pressed
-                      ? '#003a6a'
-                      : '#004782'
+                      ? '#DF5A2C'
+                      : '#F26B3A'
                     : theme.backgroundSelected,
                 },
               ]}
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#004782',
+    backgroundColor: '#183B4E',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,

@@ -27,3 +27,25 @@ export function assertAllowedBlocks(
     }
   }
 }
+
+export function sanitizeAllowedBlocks<T extends { type: string; title?: string; details?: string }>(
+  blocks: T[],
+  blockedTypes: string[]
+): Array<T & { type: AiBlockType; details?: string }> {
+  return blocks.map((block) => {
+    if (!blockedTypes.includes(block.type) && isAllowedAiBlockType(block.type)) {
+      return block as T & { type: AiBlockType };
+    }
+
+    const reason = blockedTypes.includes(block.type)
+      ? `Tipo "${block.type}" convertido automaticamente para texto por nao ser permitido.`
+      : `Tipo "${block.type}" convertido automaticamente para texto por nao existir no catalogo da IA.`;
+
+    return {
+      ...block,
+      type: 'text',
+      details: [reason, block.details].filter(Boolean).join(' '),
+      title: block.title || 'Orientacao do roteiro',
+    };
+  });
+}

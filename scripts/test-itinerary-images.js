@@ -6,6 +6,7 @@ async function main() {
     buildImageQueryCandidates,
     sanitizeImageQuery,
     simplifyImageQuery,
+    translateImageQuery,
   } = mediaModule;
 
   const scenarios = [
@@ -60,6 +61,21 @@ async function main() {
       destination: 'Paris',
       expected: ['visita ao louvre museum', 'louvre museum', 'paris'],
     },
+    {
+      name: 'Termos em portugues geram alternativa simples em ingles',
+      item: {
+        id: '4',
+        day: 3,
+        type: 'places',
+        title: 'Almoco na praia de Tambaú',
+        meta: {
+          originalTitle: 'Almoco na praia de Tambau',
+          imageSearchQuery: 'Almoco na praia de Tambau',
+        },
+      },
+      destination: 'Joao Pessoa',
+      expected: ['almoco na praia', 'lunch beach tambau', 'joao pessoa'],
+    },
   ];
 
   let failures = 0;
@@ -84,6 +100,7 @@ async function main() {
   console.log('\nSanitizacao rapida:');
   console.log(`  sanitizeImageQuery("Eiffel Tower, Paris 2026!") -> "${sanitizeImageQuery('Eiffel Tower, Paris 2026!')}"`);
   console.log(`  simplifyImageQuery("Visita ao Louvre Museum Rue de Rivoli") -> "${simplifyImageQuery('Visita ao Louvre Museum Rue de Rivoli')}"`);
+  console.log(`  translateImageQuery("Almoco na praia de Tambau") -> "${translateImageQuery('Almoco na praia de Tambau')}"`);
 
   if (failures > 0) {
     console.error(`\nFalha em ${failures} cenario(s).`);

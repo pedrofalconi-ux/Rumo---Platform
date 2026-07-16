@@ -92,13 +92,17 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="flex-1 space-y-8">
+    <div className="flex-1 space-y-7 max-w-[1480px] mx-auto animate-page-enter">
       {/* Top Banner */}
-      <div>
-        <h2 className="font-headline-lg text-2xl font-bold text-primary tracking-tight">DASHBOARD</h2>
-        <p className="text-on-surface opacity-75 text-sm mt-1">
-          Bem-vindo de volta, {user?.fullName || 'consultor'}! Visao geral operacional da sua agencia de viagens.
-        </p>
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-5">
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-full bg-primary/8 px-3 py-1 text-[10px] font-bold uppercase tracking-[.18em] text-primary"><span className="h-1.5 w-1.5 rounded-full bg-coral" />Central de operações</div>
+          <h2 className="mt-3 text-3xl sm:text-[38px] leading-tight font-extrabold text-primary tracking-[-.04em]">Olá, {user?.fullName?.split(' ')[0] || 'consultor'}.</h2>
+          <p className="text-on-surface/55 text-sm mt-2">Aqui está o pulso da sua agência hoje.</p>
+        </div>
+        <Link href="/trips/new" className="btn-interactive inline-flex items-center justify-center gap-2 rounded-xl bg-coral px-5 py-3 text-xs font-bold text-white shadow-[0_10px_24px_rgba(242,107,58,.20)]">
+          <span className="material-symbols-outlined text-[18px]">add</span> Nova viagem
+        </Link>
       </div>
 
       {loading ? (
@@ -109,48 +113,48 @@ export default function DashboardPage() {
       ) : (
         <>
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Active Trips */}
-            <div className="scroll-reveal bg-white border border-outline-variant p-6 rounded-xl shadow-sm flex items-center gap-4">
-              <div className="w-12 h-12 bg-primary-container-alt text-primary rounded-full flex items-center justify-center">
+            <div className="scroll-reveal rumo-card p-5 rounded-2xl flex items-center gap-4">
+              <div className="w-11 h-11 bg-primary text-white rounded-xl flex items-center justify-center">
                 <span className="material-symbols-outlined text-[28px]">flight_takeoff</span>
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-on-surface opacity-60">Viagens Ativas</span>
-                <p className="text-2xl font-bold text-on-surface">{stats.activeTrips}</p>
+                <span className="text-[9px] uppercase font-bold tracking-[.14em] text-on-surface/45">Viagens ativas</span>
+                <p className="text-2xl font-extrabold text-primary">{stats.activeTrips}</p>
               </div>
             </div>
 
             {/* Total Trips */}
-            <div className="scroll-reveal scroll-reveal-delay-100 bg-white border border-outline-variant p-6 rounded-xl shadow-sm flex items-center gap-4">
-              <div className="w-12 h-12 bg-surface-container-high text-secondary rounded-full flex items-center justify-center">
+            <div className="scroll-reveal scroll-reveal-delay-100 rumo-card p-5 rounded-2xl flex items-center gap-4">
+              <div className="w-11 h-11 bg-[#e8efed] text-primary rounded-xl flex items-center justify-center">
                 <span className="material-symbols-outlined text-[28px]">route</span>
               </div>
               <div>
                 <span className="text-[10px] uppercase font-bold tracking-wider text-on-surface opacity-60">Total Roteiros</span>
-                <p className="text-2xl font-bold text-on-surface">{stats.totalTrips}</p>
+                <p className="text-2xl font-extrabold text-primary">{stats.totalTrips}</p>
               </div>
             </div>
 
             {/* Clients */}
-            <div className="scroll-reveal scroll-reveal-delay-200 bg-white border border-outline-variant p-6 rounded-xl shadow-sm flex items-center gap-4">
-              <div className="w-12 h-12 bg-status-active text-success rounded-full flex items-center justify-center">
+            <div className="scroll-reveal scroll-reveal-delay-200 rumo-card p-5 rounded-2xl flex items-center gap-4">
+              <div className="w-11 h-11 bg-[#e7f2e9] text-success rounded-xl flex items-center justify-center">
                 <span className="material-symbols-outlined text-[28px]">groups</span>
               </div>
               <div>
                 <span className="text-[10px] uppercase font-bold tracking-wider text-on-surface opacity-60">Clientes Ativos</span>
-                <p className="text-2xl font-bold text-on-surface">{stats.totalClients}</p>
+                <p className="text-2xl font-extrabold text-primary">{stats.totalClients}</p>
               </div>
             </div>
 
             {/* Users */}
-            <div className="scroll-reveal scroll-reveal-delay-300 bg-white border border-outline-variant p-6 rounded-xl shadow-sm flex items-center gap-4">
-              <div className="w-12 h-12 bg-status-quoted text-error rounded-full flex items-center justify-center">
+            <div className="scroll-reveal scroll-reveal-delay-300 rumo-card p-5 rounded-2xl flex items-center gap-4">
+              <div className="w-11 h-11 bg-[#fff0e9] text-coral rounded-xl flex items-center justify-center">
                 <span className="material-symbols-outlined text-[28px]">shield</span>
               </div>
               <div>
                 <span className="text-[10px] uppercase font-bold tracking-wider text-on-surface opacity-60">Agentes / Usuários</span>
-                <p className="text-2xl font-bold text-on-surface">{stats.totalUsers}</p>
+                <p className="text-2xl font-extrabold text-primary">{stats.totalUsers}</p>
               </div>
             </div>
           </div>
@@ -158,7 +162,7 @@ export default function DashboardPage() {
           {/* Quick Actions and Recent Activity */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Quick Actions */}
-            <div className="scroll-reveal scroll-reveal-delay-150 bg-white border border-outline-variant p-6 rounded-xl shadow-sm">
+            <div className="scroll-reveal scroll-reveal-delay-150 rumo-card p-6 rounded-2xl">
               <h3 className="font-bold text-sm text-primary uppercase tracking-wider mb-4">Ações Rápidas</h3>
               <div className="grid grid-cols-2 gap-3">
                 <Link
@@ -193,20 +197,20 @@ export default function DashboardPage() {
             </div>
 
             {/* Quick Summary / IA Agent status */}
-            <div className="scroll-reveal scroll-reveal-delay-250 bg-white border border-outline-variant p-6 rounded-xl shadow-sm flex flex-col justify-between">
+            <div className="scroll-reveal scroll-reveal-delay-250 bg-primary text-white p-6 rounded-2xl shadow-[0_16px_40px_rgba(24,59,78,.16)] flex flex-col justify-between">
               <div>
-                <h3 className="font-bold text-sm text-primary uppercase tracking-wider mb-4">Assistente IA</h3>
-                <div className="flex gap-4 items-start bg-surface-container-low p-4 rounded-lg">
-                  <span className="material-symbols-outlined text-[36px] text-primary animate-pulse">auto_awesome</span>
+                <h3 className="font-bold text-sm text-white uppercase tracking-wider mb-4">Copiloto Rumo</h3>
+                <div className="flex gap-4 items-start bg-white/[.08] p-4 rounded-xl border border-white/10">
+                  <span className="material-symbols-outlined text-[36px] text-coral animate-pulse">auto_awesome</span>
                   <div className="space-y-1">
-                    <p className="text-xs font-bold">IA Roteirista Ativa</p>
-                    <p className="text-xs text-on-surface opacity-85 leading-relaxed">
+                    <p className="text-xs font-bold text-white">IA roteirista ativa</p>
+                    <p className="text-xs text-white/65 leading-relaxed">
                       Gerador de roteiros inteligentes conectado e pronto para processar dados de destino, clima e eventos em tempo real.
                     </p>
                   </div>
                 </div>
               </div>
-              <div className="pt-4 border-t border-outline-variant flex items-center justify-between text-xs text-on-surface opacity-75">
+              <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs text-white/55">
                 <span>Versão do Motor: Claude 3.5 Sonnet</span>
                 <span className="flex items-center gap-1">
                   <span className="w-2.5 h-2.5 bg-success rounded-full"></span>
@@ -217,7 +221,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Rumo News Section */}
-          <div className="scroll-reveal scroll-reveal-delay-300 bg-white border border-outline-variant p-6 rounded-xl shadow-sm">
+          <div className="scroll-reveal scroll-reveal-delay-300 rumo-card p-6 rounded-2xl">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary text-[24px]">newspaper</span>

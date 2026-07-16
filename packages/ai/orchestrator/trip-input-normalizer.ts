@@ -10,12 +10,25 @@ export function countTripDays(startDate: string, endDate: string): number {
 
 export function normalizeTripInput(input: TripInput): TripInput {
   const parsed = TripInputSchema.parse(input);
+  const normalizedDestinations = parsed.destinations.map((d) => d.trim()).filter(Boolean);
+
   return {
     ...parsed,
     preferences: parsed.preferences.slice(0, 2000),
-    destinations: parsed.destinations.map((d) => d.trim()).filter(Boolean),
-    transportation: Array.isArray(parsed.transportation) ? parsed.transportation : [],
-    accommodations: Array.isArray(parsed.accommodations) ? parsed.accommodations : [],
+    destinations: normalizedDestinations.length ? normalizedDestinations : ['Destino'],
+    endDate: parsed.endDate || parsed.startDate,
+    transportation: Array.isArray(parsed.transportation)
+      ? parsed.transportation.filter((transport) => transport.type && (transport.date || transport.operator || transport.details))
+      : [],
+    accommodations: Array.isArray(parsed.accommodations)
+      ? parsed.accommodations.filter(
+          (accommodation) =>
+            accommodation.name ||
+            accommodation.destinationCity ||
+            accommodation.checkIn ||
+            accommodation.checkOut
+        )
+      : [],
   };
 }
 

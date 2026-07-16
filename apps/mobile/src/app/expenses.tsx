@@ -84,9 +84,9 @@ function AddExpenseModal({
                   styles.categoryChip,
                   {
                     backgroundColor:
-                      category === cat.value ? '#004782' : theme.backgroundElement,
+                      category === cat.value ? '#183B4E' : theme.backgroundElement,
                     borderColor:
-                      category === cat.value ? '#004782' : theme.backgroundSelected,
+                      category === cat.value ? '#183B4E' : theme.backgroundSelected,
                   },
                 ]}
               >
@@ -131,9 +131,9 @@ function AddExpenseModal({
                   styles.currencyChip,
                   {
                     backgroundColor:
-                      currency === cur ? '#004782' : theme.backgroundElement,
+                      currency === cur ? '#183B4E' : theme.backgroundElement,
                     borderColor:
-                      currency === cur ? '#004782' : theme.backgroundSelected,
+                      currency === cur ? '#183B4E' : theme.backgroundSelected,
                   },
                 ]}
               >
@@ -357,14 +357,14 @@ const styles = StyleSheet.create({
   },
   headerTitle: { fontSize: 22, fontWeight: '700' },
   addButton: {
-    backgroundColor: '#004782',
+    backgroundColor: '#F26B3A',
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
     borderRadius: 8,
   },
   addButtonText: { color: '#fff', fontWeight: '700', fontSize: 13 },
   totalCard: {
-    backgroundColor: '#004782',
+    backgroundColor: '#183B4E',
     marginHorizontal: Spacing.four,
     marginVertical: Spacing.three,
     borderRadius: 12,
@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  sectionTitle: { fontSize: 13, fontWeight: '700', color: '#004782' },
+  sectionTitle: { fontSize: 13, fontWeight: '800', color: '#183B4E' },
   sectionTotal: { fontSize: 12, fontWeight: '600' },
   expenseCard: {
     flexDirection: 'row',
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
   expenseInfo: { flex: 1 },
   expenseDesc: { fontSize: 13, fontWeight: '600' },
   expenseRight: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-  expenseAmount: { fontSize: 13, fontWeight: '700', color: '#004782' },
+  expenseAmount: { fontSize: 13, fontWeight: '800', color: '#183B4E' },
   deleteIcon: { fontSize: 14 },
   empty: {
     flex: 1,
@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
   emptyEmoji: { fontSize: 48 },
   emptyText: { fontSize: 16, fontWeight: '600' },
   emptyAddBtn: {
-    backgroundColor: '#004782',
+    backgroundColor: '#F26B3A',
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.two,
     borderRadius: 8,
@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   modalTitle: { fontSize: 18, fontWeight: '700', marginBottom: Spacing.two },
-  label: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, color: '#004782' },
+  label: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, color: '#183B4E' },
   categoryRow: { flexDirection: 'row', marginBottom: Spacing.two },
   categoryChip: {
     flexDirection: 'row',
@@ -476,7 +476,7 @@ const styles = StyleSheet.create({
   },
   addBtn: {
     flex: 1,
-    backgroundColor: '#004782',
+    backgroundColor: '#F26B3A',
     borderRadius: 8,
     padding: Spacing.two,
     alignItems: 'center',

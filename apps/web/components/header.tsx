@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { useUIStore } from '../lib/ui-store';
 import { useNotificationStore } from '../lib/notification-store';
 
@@ -25,6 +26,7 @@ function formatRelativeTime(dateString: string) {
 }
 
 export default function Header() {
+  const pathname = usePathname();
   const [user, setUser] = useState<SessionUser | null>(null);
   const { toggleSidebar } = useUIStore();
 
@@ -75,8 +77,22 @@ export default function Header() {
     .join('')
     .toUpperCase();
 
+  const sectionName = pathname.startsWith('/trips')
+    ? 'Viagens'
+    : pathname.startsWith('/library')
+      ? 'Biblioteca'
+      : pathname.startsWith('/users')
+        ? 'Equipe'
+        : pathname.startsWith('/settings')
+          ? 'Configurações'
+          : pathname.startsWith('/security')
+            ? 'Segurança'
+            : pathname.startsWith('/admin')
+              ? 'Admin SaaS'
+              : 'Visão geral';
+
   return (
-    <header className="h-16 sticky top-0 bg-surface/95 backdrop-blur-xs border-b border-outline-variant flex justify-between items-center px-4 sm:px-6 z-40">
+    <header className="h-[72px] sticky top-0 bg-[#f5f3ee]/90 backdrop-blur-xl border-b border-primary/8 flex justify-between items-center px-4 sm:px-6 lg:px-8 z-40">
       <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
         {/* Hamburger menu for mobile/tablet */}
         <button
@@ -88,14 +104,19 @@ export default function Header() {
           <span className="material-symbols-outlined text-[24px]">menu</span>
         </button>
 
+        <div className="hidden sm:block min-w-[120px]">
+          <p className="text-[9px] uppercase tracking-[.2em] font-bold text-on-surface/40">Rumo workspace</p>
+          <p className="text-sm font-bold text-primary mt-0.5">{sectionName}</p>
+        </div>
+        <div className="hidden sm:block h-7 w-px bg-primary/10" />
         {/* Search Bar */}
-        <div className="relative max-w-xs sm:max-w-md w-full">
+        <div className="relative max-w-xs sm:max-w-sm w-full">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface opacity-75 text-[20px]">
             search
           </span>
           <input
-            className="w-full bg-surface-container-low border border-outline rounded-lg py-1.5 pl-9 pr-3 text-xs sm:text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
-            placeholder="Pesquisar..."
+            className="w-full bg-white/70 border border-primary/10 rounded-xl py-2 pl-9 pr-3 text-xs focus:ring-2 focus:ring-primary/15 focus:border-primary/30 outline-none transition-all shadow-sm"
+            placeholder="Buscar viagens, clientes..."
             type="text"
           />
         </div>
@@ -250,7 +271,7 @@ export default function Header() {
               {displayRole}
             </p>
           </div>
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-primary overflow-hidden bg-primary text-on-primary flex items-center justify-center text-xs font-bold">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden bg-primary text-on-primary flex items-center justify-center text-xs font-bold shadow-[0_4px_12px_rgba(24,59,78,.16)] ring-2 ring-white">
             {user?.avatarUrl ? (
               <img className="w-full h-full object-cover" alt={displayName} src={user.avatarUrl} />
             ) : (

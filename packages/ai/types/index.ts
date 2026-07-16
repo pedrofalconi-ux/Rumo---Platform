@@ -38,19 +38,19 @@ export type TransportationType =
 export interface TransportationEntry {
   id: string;
   type: TransportationType;
-  operator: string;
-  number: string;
-  date: string;
-  details: string;
+  operator?: string;
+  number?: string;
+  date?: string;
+  details?: string;
 }
 
 export interface AccommodationEntry {
   id: string;
-  destinationCity: string;
-  name: string;
+  destinationCity?: string;
+  name?: string;
   address?: string;
-  checkIn: string;
-  checkOut: string;
+  checkIn?: string;
+  checkOut?: string;
   placeId?: string;
   photos?: string[];
 }

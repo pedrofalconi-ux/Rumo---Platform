@@ -69,21 +69,6 @@ const AGENCY_SETTINGS_DEFAULTS: AgencySettings = {
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const SUPABASE_SERVER_TIMEOUT_MS = 5000;
-
-async function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), SUPABASE_SERVER_TIMEOUT_MS);
-
-  try {
-    return await fetch(input, {
-      ...init,
-      signal: controller.signal,
-    });
-  } finally {
-    clearTimeout(timeout);
-  }
-}
 
 const hasSupabaseServerAccess = Boolean(supabaseUrl && supabaseAnonKey && supabaseServiceRoleKey);
 const canUseLocalWriteFallback = process.env.NODE_ENV !== 'production' || !process.env.VERCEL;
@@ -95,9 +80,6 @@ const supabaseAdmin = hasSupabaseServerAccess
       auth: {
         persistSession: false,
         autoRefreshToken: false,
-      },
-      global: {
-        fetch: fetchWithTimeout,
       },
     })
   : null;
@@ -111,9 +93,6 @@ function createSupabaseAuthClient() {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
-    },
-    global: {
-      fetch: fetchWithTimeout,
     },
   });
 }
@@ -147,7 +126,7 @@ function slugify(value: string) {
 }
 
 function looksLikeUuid(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }
 
 function daysFromNow(days: number) {

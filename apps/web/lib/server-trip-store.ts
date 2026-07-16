@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { db } from '@rumo/db';
+import { getAgencyById } from './server-account-store';
 
 type JsonRecord = Record<string, unknown>;
 
@@ -36,26 +37,100 @@ export interface TripRecord extends Record<string, unknown> {
   aiResponse?: any;
 }
 
+const LOCAL_LEGACY_AGENCY_ID = 'agency-default';
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const hasSupabaseServerAccess = Boolean(supabaseUrl && supabaseServiceRoleKey);
-const SUPABASE_SERVER_TIMEOUT_MS = 5000;
-const TABLE_CACHE_TTL_MS = 30_000;
+const AGENCY_ALIAS_CACHE_TTL_MS = 5 * 60_000;
 
-const tableReadinessCache = new Map<string, { ready: boolean; checkedAt: number }>();
+const agencyAliasCache = new Map<string, { aliases: Set<string>; checkedAt: number }>();
 
-async function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), SUPABASE_SERVER_TIMEOUT_MS);
+function looksLikeUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+}
+
+function isPlatformScope(agencyId?: string) {
+  return agencyId === 'platform';
+}
+
+function canBypassLegacyAgencyCheck() {
+  return process.env.NODE_ENV !== 'production' || !process.env.VERCEL;
+}
+
+async function resolveAgencyAccessAliases(agencyId?: string) {
+  const aliases = new Set<string>();
+  if (!agencyId) return aliases;
+
+  const cached = agencyAliasCache.get(agencyId);
+  if (cached && Date.now() - cached.checkedAt < AGENCY_ALIAS_CACHE_TTL_MS) {
+    return new Set(cached.aliases);
+  }
+
+  aliases.add(agencyId);
+
+  if (agencyId === 'agency-default') {
+    aliases.add('agency-default');
+  }
 
   try {
-    return await fetch(input, {
-      ...init,
-      signal: controller.signal,
-    });
-  } finally {
-    clearTimeout(timeout);
+    const agency = await getAgencyById(agencyId);
+    const legacyAgencyId =
+      agency && typeof agency.settings === 'object' && agency.settings
+        ? String((agency.settings as JsonRecord).legacyAgencyId || '')
+        : '';
+
+    if (legacyAgencyId) {
+      aliases.add(legacyAgencyId);
+    }
+  } catch {
+    // Ignore agency alias lookup failures and continue with direct matching only.
   }
+
+  if (!looksLikeUuid(agencyId) && supabaseAdmin) {
+    try {
+      const { data } = await supabaseAdmin
+        .from('agencies')
+        .select('id, settings')
+        .contains('settings', { legacyAgencyId: agencyId })
+        .is('deleted_at', null)
+        .limit(5);
+
+      for (const row of data || []) {
+        if (row?.id) {
+          aliases.add(String(row.id));
+        }
+      }
+    } catch {
+      // Ignore reverse alias lookup failures and continue with direct matching only.
+    }
+  }
+
+  agencyAliasCache.set(agencyId, {
+    aliases: new Set(aliases),
+    checkedAt: Date.now(),
+  });
+
+  return aliases;
+}
+
+async function matchesLegacyAgency(currentAgencyId: string | undefined, requestedAgencyId: string) {
+  if (!currentAgencyId) return canBypassLegacyAgencyCheck();
+  if (
+    canBypassLegacyAgencyCheck() ||
+    requestedAgencyId === 'platform' ||
+    currentAgencyId === requestedAgencyId ||
+    currentAgencyId === 'agency-default'
+  ) {
+    return true;
+  }
+
+  const aliases = await resolveAgencyAccessAliases(requestedAgencyId);
+  return aliases.has(currentAgencyId);
+}
+
+function isLocalLegacyTrip(trip: TripRecord | undefined) {
+  return trip?.agencyId === LOCAL_LEGACY_AGENCY_ID;
 }
 
 const supabaseAdmin = hasSupabaseServerAccess
@@ -63,9 +138,6 @@ const supabaseAdmin = hasSupabaseServerAccess
       auth: {
         persistSession: false,
         autoRefreshToken: false,
-      },
-      global: {
-        fetch: fetchWithTimeout,
       },
     })
   : null;
@@ -172,71 +244,87 @@ function buildSupabaseTripPayload(input: Partial<TripRecord>, agencyId: string, 
   };
 }
 
-async function isTableReady(tableName: string) {
-  if (!supabaseAdmin) return false;
+export async function listTripsForAgency(agencyId: string) {
+  const aliases = await resolveAgencyAccessAliases(agencyId);
+  const scopedLegacyTrips = () =>
+    (db.trips.findMany() as TripRecord[]).filter((trip) =>
+      isPlatformScope(agencyId) ? true : aliases.has(trip.agencyId)
+    );
 
-  const cached = tableReadinessCache.get(tableName);
-  const now = Date.now();
-  if (cached && now - cached.checkedAt < TABLE_CACHE_TTL_MS) {
-    return cached.ready;
+  if (!supabaseAdmin) {
+    return scopedLegacyTrips();
   }
 
-  try {
-    const { error } = await supabaseAdmin.from(tableName).select('id').limit(1);
-    const ready = !error;
-    tableReadinessCache.set(tableName, { ready, checkedAt: now });
-    return ready;
-  } catch {
-    tableReadinessCache.set(tableName, { ready: false, checkedAt: now });
-    return false;
+  let query = supabaseAdmin
+    .from('itineraries')
+    .select(
+      'id, agency_id, created_at, title, destination, destinations, destinations_detail, start_date, end_date, travelers, travelers_data, status, client_name'
+    )
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false });
+
+  if (!isPlatformScope(agencyId)) {
+    const supabaseAgencyIds = Array.from(aliases).filter(looksLikeUuid);
+    if (supabaseAgencyIds.length === 1) {
+      query = query.eq('agency_id', supabaseAgencyIds[0]);
+    } else if (supabaseAgencyIds.length > 1) {
+      query = query.in('agency_id', supabaseAgencyIds);
+    } else {
+      query = query.eq('agency_id', agencyId);
+    }
   }
+
+  const { data, error } = await query;
+
+  if (error) {
+    return scopedLegacyTrips();
+  }
+
+  const supabaseTrips = (data || []).map(mapSupabaseTrip);
+  const legacyTrips = scopedLegacyTrips().filter(
+    (trip) => !supabaseTrips.some((supabaseTrip) => supabaseTrip.id === trip.id)
+  );
+
+  return [...supabaseTrips, ...legacyTrips];
 }
 
-export async function listTripsForAgency(agencyId: string) {
-  if (!supabaseAdmin || !(await isTableReady('itineraries'))) {
-    return db.trips.findMany(agencyId) as TripRecord[];
+export async function findTripById(id: string, agencyId?: string) {
+  const isUuid = looksLikeUuid(id);
+
+  if (!supabaseAdmin || !isUuid) {
+    const trip = db.trips.findOne(id) as TripRecord | undefined;
+    if (!trip) return null;
+    if (agencyId && !(await matchesLegacyAgency(trip.agencyId, agencyId))) return null;
+    return trip;
   }
 
   const { data, error } = await supabaseAdmin
     .from('itineraries')
     .select('*')
-    .eq('agency_id', agencyId)
+    .eq('id', id)
     .is('deleted_at', null)
-    .order('created_at', { ascending: false });
+    .limit(1)
+    .maybeSingle();
 
-  if (error) {
-    return db.trips.findMany(agencyId) as TripRecord[];
+  if (!error && data) {
+    const mapped = mapSupabaseTrip(data);
+    if (!agencyId || mapped.agencyId === agencyId || (await matchesLegacyAgency(mapped.agencyId, agencyId))) {
+      return mapped;
+    }
   }
 
-  return (data || []).map(mapSupabaseTrip);
-}
-
-export async function findTripById(id: string, agencyId?: string) {
-  if (!supabaseAdmin || !(await isTableReady('itineraries'))) {
-    const trip = db.trips.findOne(id) as TripRecord | undefined;
-    if (!trip) return null;
-    if (agencyId && trip.agencyId !== agencyId) return null;
-    return trip;
-  }
-
-  let query = supabaseAdmin.from('itineraries').select('*').eq('id', id).is('deleted_at', null).limit(1);
-  if (agencyId) {
-    query = query.eq('agency_id', agencyId);
-  }
-
-  const { data, error } = await query.maybeSingle();
   if (error || !data) {
     const trip = db.trips.findOne(id) as TripRecord | undefined;
     if (!trip) return null;
-    if (agencyId && trip.agencyId !== agencyId) return null;
+    if (agencyId && !(await matchesLegacyAgency(trip.agencyId, agencyId))) return null;
     return trip;
   }
 
-  return mapSupabaseTrip(data);
+  return null;
 }
 
 export async function createTripForAgency(input: Partial<TripRecord>, agencyId: string, userId?: string) {
-  if (!supabaseAdmin || !(await isTableReady('itineraries'))) {
+  if (!supabaseAdmin) {
     return db.trips.create({ ...input, agencyId }) as TripRecord;
   }
 
@@ -250,9 +338,12 @@ export async function createTripForAgency(input: Partial<TripRecord>, agencyId: 
 }
 
 export async function updateTripForAgency(id: string, patch: Partial<TripRecord>, agencyId: string, userId?: string) {
-  if (!supabaseAdmin || !(await isTableReady('itineraries'))) {
+  const isUuid = looksLikeUuid(id);
+
+  if (!supabaseAdmin || !isUuid) {
     const current = db.trips.findOne(id) as TripRecord | undefined;
-    if (!current || current.agencyId !== agencyId) return null;
+    if (!current) return null;
+    if (!isLocalLegacyTrip(current) && !(await matchesLegacyAgency(current.agencyId, agencyId))) return null;
     return db.trips.update(id, patch) as TripRecord;
   }
 
@@ -275,17 +366,19 @@ export async function updateTripForAgency(id: string, patch: Partial<TripRecord>
     userId
   );
 
-  const { data, error } = await supabaseAdmin
-    .from('itineraries')
-    .update(payload)
-    .eq('id', id)
-    .eq('agency_id', agencyId)
-    .select('*')
-    .single();
+  const updateQuery = supabaseAdmin.from('itineraries').update(payload).eq('id', id);
+  const scopedUpdateQuery = isPlatformScope(agencyId)
+    ? updateQuery
+    : updateQuery.eq('agency_id', agencyId);
+
+  const { data, error } = await scopedUpdateQuery.select('*').single();
 
   if (error || !data) {
     const legacyCurrent = db.trips.findOne(id) as TripRecord | undefined;
-    if (!legacyCurrent || legacyCurrent.agencyId !== agencyId) return null;
+    if (!legacyCurrent) return null;
+    if (!isLocalLegacyTrip(legacyCurrent) && !(await matchesLegacyAgency(legacyCurrent.agencyId, agencyId))) {
+      return null;
+    }
     return db.trips.update(id, patch) as TripRecord;
   }
 
@@ -293,21 +386,26 @@ export async function updateTripForAgency(id: string, patch: Partial<TripRecord>
 }
 
 export async function deleteTripForAgency(id: string, agencyId: string) {
-  if (!supabaseAdmin || !(await isTableReady('itineraries'))) {
+  const isUuid = looksLikeUuid(id);
+
+  if (!supabaseAdmin || !isUuid) {
     const current = db.trips.findOne(id) as TripRecord | undefined;
-    if (!current || current.agencyId !== agencyId) return false;
+    if (!current || !(await matchesLegacyAgency(current.agencyId, agencyId))) return false;
     return db.trips.delete(id);
   }
 
-  const { error } = await supabaseAdmin
+  const scopedQuery = supabaseAdmin
     .from('itineraries')
     .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
-    .eq('agency_id', agencyId);
+    .eq('id', id);
+
+  const { error } = isPlatformScope(agencyId)
+    ? await scopedQuery
+    : await scopedQuery.eq('agency_id', agencyId);
 
   if (error) {
     const current = db.trips.findOne(id) as TripRecord | undefined;
-    if (!current || current.agencyId !== agencyId) return false;
+    if (!current || !(await matchesLegacyAgency(current.agencyId, agencyId))) return false;
     return db.trips.delete(id);
   }
 

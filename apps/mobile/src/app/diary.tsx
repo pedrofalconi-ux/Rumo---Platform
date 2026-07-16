@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: { fontSize: 22, fontWeight: '700' },
   addButton: {
-    backgroundColor: '#004782',
+    backgroundColor: '#F26B3A',
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
     borderRadius: 8,
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   dayBadge: {
-    backgroundColor: '#004782',
+    backgroundColor: '#183B4E',
     paddingHorizontal: Spacing.two,
     paddingVertical: 2,
     borderRadius: 4,
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
   expandText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#004782',
+    color: '#183B4E',
     marginTop: -4,
   },
   empty: {
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
   emptyTitle: { fontSize: 16, fontWeight: '600' },
   emptySubtitle: { textAlign: 'center', lineHeight: 20 },
   emptyAddBtn: {
-    backgroundColor: '#004782',
+    backgroundColor: '#F26B3A',
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.two,
     borderRadius: 8,
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    color: '#004782',
+    color: '#183B4E',
   },
   input: {
     borderWidth: 1,
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
   },
   addBtn: {
     flex: 1,
-    backgroundColor: '#004782',
+    backgroundColor: '#F26B3A',
     borderRadius: 8,
     padding: Spacing.two,
     alignItems: 'center',

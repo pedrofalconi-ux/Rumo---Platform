@@ -31,6 +31,45 @@ const STOP_WORDS = new Set([
   'visita',
   'walking',
 ]);
+const IMAGE_QUERY_TRANSLATIONS: Record<string, string> = {
+  almoco: 'lunch',
+  jantar: 'dinner',
+  cafe: 'cafe',
+  manha: 'morning',
+  tarde: 'afternoon',
+  noite: 'night',
+  por: 'by',
+  do: '',
+  da: '',
+  de: '',
+  e: '',
+  praia: 'beach',
+  centro: 'center',
+  historico: 'historic',
+  igreja: 'church',
+  mercado: 'market',
+  museu: 'museum',
+  mirante: 'viewpoint',
+  parque: 'park',
+  orla: 'waterfront',
+  hotel: 'hotel',
+  aeroporto: 'airport',
+  voo: 'flight',
+  traslado: 'transfer',
+  chegada: 'arrival',
+  saida: 'departure',
+  restaurante: 'restaurant',
+  marina: 'marina',
+  rua: 'street',
+  ponte: 'bridge',
+  trem: 'train',
+  metro: 'metro',
+  metrô: 'metro',
+  passeio: 'tour',
+  trilha: 'trail',
+};
+let hasWarnedMissingUnsplashKey = false;
+let hasWarnedMissingPixabayKey = false;
 
 interface PhotoRecord {
   id: string;
@@ -149,11 +188,15 @@ export function buildImageQueryCandidates(
   return uniqueQueries([
     sanitizeImageQuery(metaQuery),
     simplifyImageQuery(metaQuery),
+    translateImageQuery(metaQuery),
     sanitizeImageQuery(location?.name || ''),
     simplifyImageQuery(location?.name || ''),
+    translateImageQuery(location?.name || ''),
     sanitizeImageQuery(originalTitle),
     simplifyImageQuery(originalTitle),
+    translateImageQuery(originalTitle),
     sanitizeImageQuery(destinationFallback),
+    translateImageQuery(destinationFallback),
   ]);
 }
 
@@ -247,6 +290,18 @@ async function findOnlinePhoto(
     settings.pixabayKey ||
     FALLBACK_PIXABAY_KEY;
 
+  if (!unsplashKey && !hasWarnedMissingUnsplashKey) {
+    hasWarnedMissingUnsplashKey = true;
+    console.warn(`[Images] UNSPLASH_ACCESS_KEY ausente; usando fallback para query "${query}"`);
+  }
+  if (!pixabayKey && !hasWarnedMissingPixabayKey) {
+    hasWarnedMissingPixabayKey = true;
+    console.warn(`[Images] PIXABAY_API_KEY ausente; nenhuma imagem online sera buscada para "${query}"`);
+  }
+  if (!pixabayKey) {
+    return null;
+  }
+
   const unsplashPhoto = await findUnsplashPhoto(query, unsplashKey);
   if (unsplashPhoto) {
     return unsplashPhoto;
@@ -274,7 +329,10 @@ async function findUnsplashPhoto(query: string, accessKey: string): Promise<Onli
       },
       next: { revalidate: 60 * 60 },
     });
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.warn(`[Unsplash] Erro na API: ${response.status} para query "${query}"`);
+      return null;
+    }
 
     const data = (await response.json()) as { results?: UnsplashPhoto[] };
     const first = (data.results || []).find(
@@ -289,7 +347,8 @@ async function findUnsplashPhoto(query: string, accessKey: string): Promise<Onli
       credit: first?.user?.name || 'Unsplash',
       source: 'unsplash',
     };
-  } catch {
+  } catch (error) {
+    console.error(`[Unsplash] Erro na requisicao para query "${query}":`, error);
     return null;
   }
 }
@@ -305,7 +364,10 @@ async function findPixabayPhoto(query: string, key: string): Promise<OnlinePhoto
     pixabayUrl.searchParams.set('per_page', '3');
 
     const response = await fetch(pixabayUrl, { next: { revalidate: 60 * 60 } });
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.warn(`[Pixabay] Erro na API: ${response.status} para query "${query}"`);
+      return null;
+    }
 
     const data = await response.json();
     const hit = ((data.hits || []) as PixabayHit[]).find(
@@ -317,7 +379,8 @@ async function findPixabayPhoto(query: string, key: string): Promise<OnlinePhoto
 
     const base64Url = await convertUrlToBase64(url);
     return { url: base64Url, credit: hit?.user || 'Pixabay', source: 'pixabay' };
-  } catch {
+  } catch (error) {
+    console.error(`[Pixabay] Erro na requisicao para query "${query}":`, error);
     return null;
   }
 }
@@ -363,7 +426,13 @@ export function sanitizeImageQuery(value: string): string {
     .split(/\s+/)
     .filter(Boolean);
 
-  return tokens.slice(0, 4).join(' ').trim();
+  const limitedTokens = tokens.slice(0, 4);
+
+  while (limitedTokens.length > 0 && STOP_WORDS.has(limitedTokens[limitedTokens.length - 1])) {
+    limitedTokens.pop();
+  }
+
+  return limitedTokens.join(' ').trim();
 }
 
 export function simplifyImageQuery(value: string): string {
@@ -372,6 +441,17 @@ export function simplifyImageQuery(value: string): string {
     .filter((token) => token.length > 2 && !STOP_WORDS.has(token));
 
   return tokens.slice(0, 3).join(' ').trim();
+}
+
+export function translateImageQuery(value: string): string {
+  const tokens = normalize(value)
+    .replace(/[^a-z\s]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((token) => IMAGE_QUERY_TRANSLATIONS[token] ?? token)
+    .filter((token) => token && token.length > 2 && !STOP_WORDS.has(token));
+
+  return uniqueQueries(tokens).slice(0, 3).join(' ').trim();
 }
 
 function normalize(value: string): string {

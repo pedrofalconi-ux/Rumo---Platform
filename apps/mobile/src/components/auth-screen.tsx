@@ -13,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { MaxContentWidth, Spacing } from "@/constants/theme";
+import { Brand, MaxContentWidth, Spacing } from "@/constants/theme";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
 
@@ -64,7 +64,10 @@ export function AuthScreen() {
         >
           <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
             <View style={styles.brandBlock}>
-              <ThemedText style={styles.eyebrow}>RUMO</ThemedText>
+              <View style={styles.brandRow}>
+                <View style={styles.brandMark}><ThemedText style={styles.brandMarkText}>R</ThemedText></View>
+                <View><ThemedText style={styles.eyebrow}>RUMO</ThemedText><ThemedText style={styles.brandCaption}>SUA VIAGEM, NO SEU RITMO</ThemedText></View>
+              </View>
               <ThemedText style={styles.title} type="title">
                 Área do viajante
               </ThemedText>
@@ -87,7 +90,7 @@ export function AuthScreen() {
                   onPress={() => setMode("login")}
                   style={[
                     styles.modeButton,
-                    { backgroundColor: mode === "login" ? "#004782" : "transparent" },
+                    { backgroundColor: mode === "login" ? Brand.navy : "transparent" },
                   ]}
                 >
                   <ThemedText style={[styles.modeText, mode === "login" && styles.modeTextActive]}>
@@ -98,7 +101,7 @@ export function AuthScreen() {
                   onPress={() => setMode("register")}
                   style={[
                     styles.modeButton,
-                    { backgroundColor: mode === "register" ? "#004782" : "transparent" },
+                    { backgroundColor: mode === "register" ? Brand.navy : "transparent" },
                   ]}
                 >
                   <ThemedText style={[styles.modeText, mode === "register" && styles.modeTextActive]}>
@@ -251,29 +254,35 @@ const styles = StyleSheet.create({
   brandBlock: {
     gap: Spacing.two,
   },
+  brandRow: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: Spacing.two },
+  brandMark: { width: 44, height: 44, borderRadius: 14, backgroundColor: Brand.navy, alignItems: "center", justifyContent: "center" },
+  brandMarkText: { color: Brand.white, fontSize: 19, fontWeight: "900" },
+  brandCaption: { color: "#667176", fontSize: 8, fontWeight: "700", letterSpacing: 1.3, marginTop: 2 },
   eyebrow: {
     fontSize: 12,
     fontWeight: "900",
-    color: "#004782",
+    color: Brand.navy,
     letterSpacing: 2,
   },
   title: {
-    fontSize: 30,
-    fontWeight: "800",
+    fontSize: 34,
+    lineHeight: 40,
+    fontWeight: "900",
+    letterSpacing: -1,
   },
   subtitle: {
     fontSize: 15,
     lineHeight: 22,
   },
   card: {
-    borderRadius: 18,
+    borderRadius: 24,
     borderWidth: 1,
     padding: Spacing.four,
     gap: Spacing.three,
   },
   modeRow: {
     flexDirection: "row",
-    backgroundColor: "#E9EEF4",
+    backgroundColor: "#E8EFED",
     borderRadius: 999,
     padding: 4,
     marginBottom: Spacing.one,
@@ -287,7 +296,7 @@ const styles = StyleSheet.create({
   modeText: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#004782",
+    color: Brand.navy,
   },
   modeTextActive: {
     color: "#fff",
@@ -301,7 +310,7 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderRadius: 12,
+    borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 14,
     fontSize: 15,
@@ -318,7 +327,7 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     marginTop: Spacing.one,
-    backgroundColor: "#004782",
+    backgroundColor: Brand.coral,
     borderRadius: 14,
     minHeight: 52,
     alignItems: "center",
@@ -335,4 +344,3 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 });
-

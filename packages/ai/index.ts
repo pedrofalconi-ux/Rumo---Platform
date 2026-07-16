@@ -7,3 +7,12 @@ export { tripRecordToInput, normalizeTripInput, countTripDays } from './orchestr
 export { composeItinerary } from './orchestrator/compose-itinerary';
 export { createLLMProvider, resolveOrchestratorConfig } from './providers/factory';
 export type { GenerationLogger } from './orchestrator/ai-orchestrator';
+export type {
+  CuratedPoi,
+  PoiRetriever,
+  PoiRetrievalRequest,
+  PoiRetrievalResult,
+  PoiType,
+} from './rag/poi-retriever';
+export { POI_TYPES, uncoveredPoiResult } from './rag/poi-retriever';
+export { buildPoiPromptContext } from './rag/poi-prompt-context';

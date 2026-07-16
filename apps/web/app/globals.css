@@ -1,27 +1,27 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #002B5F;
+  --color-primary: #183B4E;
   --color-on-primary: #ffffff;
-  --color-outline-variant: #C7D2E3;
-  --color-primary-container: #003B78;
-  --color-surface-tint: #003B78;
-  --color-coral: #FF6B4A;
-  --color-sky-compass: #6FA8DC;
-  --color-ice-blue: #EAF3FF;
+  --color-outline-variant: #DDE2DE;
+  --color-primary-container: #214E64;
+  --color-surface-tint: #183B4E;
+  --color-coral: #F26B3A;
+  --color-sky-compass: #79A9A4;
+  --color-ice-blue: #EDF4F2;
   --color-tertiary-fixed: #ffdcc4;
   --color-surface-dim: #d9dae0;
-  --color-surface: #F6F8FC;
+  --color-surface: #F5F3EE;
   --color-on-secondary-fixed-variant: #3f35a3;
   --color-tertiary: #6f3800;
-  --color-on-primary-container: #c1d9ff;
-  --color-primary-container-alt: rgba(0, 43, 95, 0.09);
-  --color-on-surface: #171A21;
-  --color-on-background: #171A21;
-  --color-surface-container: #EEF2F8;
-  --color-surface-container-high: #E6ECF5;
-  --color-surface-container-highest: #DDE6F2;
-  --color-surface-container-low: #F3F6FB;
+  --color-on-primary-container: #D9E9E5;
+  --color-primary-container-alt: rgba(24, 59, 78, 0.09);
+  --color-on-surface: #172126;
+  --color-on-background: #172126;
+  --color-surface-container: #ECEAE4;
+  --color-surface-container-high: #E5E3DC;
+  --color-surface-container-highest: #DAD8D0;
+  --color-surface-container-low: #F8F7F3;
   --color-surface-container-lowest: #ffffff;
   --color-outline: #727782;
   
@@ -32,14 +32,28 @@
   --color-status-draft: #E6F1FB;
   --color-success: #0F6E56;
   
-  --font-sans: var(--font-inter), Arial, Helvetica, sans-serif;
-  --font-geist: var(--font-geist), monospace;
+  --font-sans: "Inter", "Avenir Next", "Segoe UI", Arial, Helvetica, sans-serif;
+  --font-geist: "SFMono-Regular", Consolas, monospace;
 }
 
 body {
   background-color: var(--color-surface);
   color: var(--color-on-surface);
   font-family: var(--font-sans);
+}
+
+::selection { background: rgba(242, 107, 58, .22); color: #183B4E; }
+
+.app-shell {
+  background:
+    radial-gradient(circle at 92% 4%, rgba(121, 169, 164, .12), transparent 24rem),
+    var(--color-surface);
+}
+
+.rumo-card {
+  background: rgba(255, 255, 255, .88);
+  border: 1px solid rgba(24, 59, 78, .10);
+  box-shadow: 0 1px 2px rgba(24, 59, 78, .04), 0 12px 32px rgba(24, 59, 78, .045);
 }
 
 .material-symbols-outlined {
@@ -49,9 +63,9 @@ body {
 }
 
 .sidebar-active {
-  background-color: rgba(0, 43, 95, 0.1);
-  color: #002B5F;
-  border-left: 4px solid #FF6B4A;
+  background-color: rgba(255, 255, 255, 0.11);
+  color: #ffffff;
+  box-shadow: inset 3px 0 0 #F26B3A;
 }
 
 .table-row-hover:hover {
@@ -140,7 +154,7 @@ body {
 
 .btn-interactive:hover {
   transform: translateY(-1.5px) scale(1.02);
-  box-shadow: 0 6px 16px rgba(0, 43, 95, 0.1);
+  box-shadow: 0 8px 22px rgba(24, 59, 78, 0.14);
 }
 
 .btn-interactive:active {
@@ -209,4 +223,3 @@ body {
   background: radial-gradient(circle, rgba(111, 168, 220, 0.16), transparent 70%);
   filter: blur(18px);
 }
-

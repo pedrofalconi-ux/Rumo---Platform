@@ -91,7 +91,7 @@ export default function TripDetailsScreen() {
   if (loading) {
     return (
       <ThemedView style={[styles.centerContainer, { backgroundColor: theme.background }]}>
-        <ActivityIndicator size="large" color="#004782" />
+        <ActivityIndicator size="large" color="#F26B3A" />
         <ThemedText style={styles.loadingText}>Carregando detalhes do roteiro...</ThemedText>
       </ThemedView>
     );
@@ -200,7 +200,7 @@ export default function TripDetailsScreen() {
 
                       return (
                         <View key={item.id} style={styles.itemWrapper}>
-                          <View style={[styles.itemBadge, { borderColor: "#004782" }]}>
+                          <View style={[styles.itemBadge, { borderColor: "#183B4E" }]}>
                             <ThemedText style={styles.itemBadgeEmoji}>{emoji}</ThemedText>
                           </View>
 
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.four,
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.two,
-    backgroundColor: "#004782",
+    backgroundColor: "#183B4E",
     borderRadius: 8,
   },
   backButtonText: {
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.half,
   },
   backLinkText: {
-    color: "#004782",
+    color: "#183B4E",
     fontWeight: "700",
     fontSize: 14,
   },
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerAgencyFallbackText: {
-    color: "#004782",
+    color: "#183B4E",
     fontWeight: "800",
     fontSize: 10,
   },
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
   metaTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#004782",
+    color: "#183B4E",
     marginBottom: Spacing.half,
   },
   documentsCard: {
@@ -388,7 +388,7 @@ const styles = StyleSheet.create({
   documentsTitle: {
     fontSize: 14,
     fontWeight: "800",
-    color: "#004782",
+    color: "#183B4E",
   },
   documentRow: {
     flexDirection: "row",
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "#004782",
+    backgroundColor: "#F26B3A",
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
@@ -515,7 +515,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "800",
     textTransform: "uppercase",
-    color: "#004782",
+    color: "#183B4E",
     letterSpacing: 0.5,
   },
   cardTitle: {

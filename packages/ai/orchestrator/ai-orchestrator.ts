@@ -11,11 +11,13 @@ import { DayBlocksSchema, TripPlanSchema } from '../schemas';
 import { SYSTEM_BASE } from '../prompts/system-base';
 import { buildGenerateDayPrompt, buildPlanTripPrompt } from '../prompts';
 import { buildRuleContext } from '../rules/travel-rules';
-import { assertAllowedBlocks } from '../validators/block-registry';
+import { sanitizeAllowedBlocks } from '../validators/block-registry';
 import { createLLMProvider, resolveOrchestratorConfig } from '../providers/factory';
 import type { LLMProvider } from '../providers/types';
 import { composeItinerary, mergeDayIntoItinerary } from './compose-itinerary';
 import { countTripDays, normalizeTripInput } from './trip-input-normalizer';
+import type { PoiRetriever } from '../rag/poi-retriever';
+import { uncoveredPoiResult } from '../rag/poi-retriever';
 
 export interface GenerationLogger {
   log(entry: {
@@ -44,7 +46,8 @@ export class AiOrchestrator {
   constructor(
     config?: Partial<AiOrchestratorConfig>,
     private logger: GenerationLogger = noopLogger,
-    private logContext?: { userId: string }
+    private logContext?: { userId: string },
+    private poiRetriever?: PoiRetriever
   ) {
     const resolved = resolveOrchestratorConfig(config);
     this.provider = createLLMProvider(resolved);
@@ -84,16 +87,11 @@ export class AiOrchestrator {
     let tokensOut = 0;
 
     const planPrompt = buildPlanTripPrompt(input, ruleCtx.constraints, totalDays);
-    const planHash = hashPrompt(planPrompt);
+    const planGeneration = await this.generatePlanWithRecovery(input, totalDays, planPrompt);
+    const plan = planGeneration.plan;
 
-    const planResult = await this.provider.generate({
-      system: SYSTEM_BASE,
-      user: planPrompt,
-      schema: TripPlanSchema,
-    });
-
-    tokensIn += planResult.usage.tokensIn;
-    tokensOut += planResult.usage.tokensOut;
+    tokensIn += planGeneration.tokensIn;
+    tokensOut += planGeneration.tokensOut;
 
     this.logger.log({
       stage: 'plan',
@@ -102,34 +100,29 @@ export class AiOrchestrator {
       userId: context?.userId || this.logContext?.userId || 'system',
       provider: this.provider.name,
       model: this.provider.model,
-      promptHash: planHash,
+      promptHash: hashPrompt(planPrompt),
       promptSnapshot: { prompt: planPrompt, input },
-      responseSnapshot: planResult.data,
-      tokensIn: planResult.usage.tokensIn,
-      tokensOut: planResult.usage.tokensOut,
-      latencyMs: planResult.latencyMs,
+      responseSnapshot: plan,
+      tokensIn: planGeneration.tokensIn,
+      tokensOut: planGeneration.tokensOut,
+      latencyMs: planGeneration.latencyMs,
       success: true,
+      error: planGeneration.recoveredFrom,
     });
 
-    const plan = planResult.data as TripPlan;
     const dayResults: DayBlocks[] = [];
     const failedDays: Array<{ day: number; error: string }> = [];
 
     for (const dayPlan of plan.days) {
-      const dayPrompt = buildGenerateDayPrompt(input, dayPlan, ruleCtx.constraints);
+      const poiContext = await this.retrievePois(input, dayPlan);
+      const dayPrompt = buildGenerateDayPrompt(input, dayPlan, ruleCtx.constraints, poiContext);
 
       try {
-        const dayResult = await this.provider.generate({
-          system: SYSTEM_BASE,
-          user: dayPrompt,
-          schema: DayBlocksSchema,
-        });
+        const dayGeneration = await this.generateDayWithRecovery(input, dayPlan, dayPrompt, ruleCtx.blockedTypes);
+        dayResults.push(dayGeneration.dayBlocks);
 
-        assertAllowedBlocks(dayResult.data.blocks, ruleCtx.blockedTypes);
-        dayResults.push(dayResult.data as DayBlocks);
-
-        tokensIn += dayResult.usage.tokensIn;
-        tokensOut += dayResult.usage.tokensOut;
+        tokensIn += dayGeneration.tokensIn;
+        tokensOut += dayGeneration.tokensOut;
 
         this.logger.log({
           stage: 'day',
@@ -140,16 +133,17 @@ export class AiOrchestrator {
           model: this.provider.model,
           promptHash: hashPrompt(dayPrompt),
           promptSnapshot: { prompt: dayPrompt, day: dayPlan.day },
-          responseSnapshot: dayResult.data,
-          tokensIn: dayResult.usage.tokensIn,
-          tokensOut: dayResult.usage.tokensOut,
-          latencyMs: dayResult.latencyMs,
+          responseSnapshot: dayGeneration.dayBlocks,
+          tokensIn: dayGeneration.tokensIn,
+          tokensOut: dayGeneration.tokensOut,
+          latencyMs: dayGeneration.latencyMs,
           success: true,
+          error: dayGeneration.recoveredFrom,
         });
 
         await context?.onDayGenerated?.({
           plan,
-          dayBlocks: dayResult.data as DayBlocks,
+          dayBlocks: dayGeneration.dayBlocks,
           dayResults: [...dayResults],
           failedDays: [...failedDays],
           generationId,
@@ -181,9 +175,7 @@ export class AiOrchestrator {
     }
 
     if (dayResults.length === 0) {
-      throw new Error(
-        failedDays[0]?.error || 'Nenhum dia do roteiro foi gerado pela IA'
-      );
+      throw new Error(failedDays[0]?.error || 'Nenhum dia do roteiro foi gerado pela IA');
     }
 
     const itinerary = composeItinerary(plan, dayResults);
@@ -231,29 +223,20 @@ export class AiOrchestrator {
     const totalDays = countTripDays(input.startDate, input.endDate);
 
     const planPrompt = buildPlanTripPrompt(input, ruleCtx.constraints, totalDays);
-    const planResult = await this.provider.generate({
-      system: SYSTEM_BASE,
-      user: planPrompt,
-      schema: TripPlanSchema,
-    });
+    const planGeneration = await this.generatePlanWithRecovery(input, totalDays, planPrompt);
+    const dayPlan = planGeneration.plan.days.find((entry) => entry.day === day);
 
-    const dayPlan = (planResult.data as TripPlan).days.find((d) => d.day === day);
     if (!dayPlan) {
-      throw new Error(`Dia ${day} não encontrado no plano da viagem`);
+      throw new Error(`Dia ${day} nao encontrado no plano da viagem`);
     }
 
-    let dayPrompt = buildGenerateDayPrompt(input, dayPlan, ruleCtx.constraints);
+    const poiContext = await this.retrievePois(input, dayPlan);
+    let dayPrompt = buildGenerateDayPrompt(input, dayPlan, ruleCtx.constraints, poiContext);
     if (instruction?.trim()) {
-      dayPrompt += `\n\nInstrução adicional do consultor: ${instruction.trim().slice(0, 500)}`;
+      dayPrompt += `\n\nInstrucao adicional do consultor: ${instruction.trim().slice(0, 500)}`;
     }
 
-    const dayResult = await this.provider.generate({
-      system: SYSTEM_BASE,
-      user: dayPrompt,
-      schema: DayBlocksSchema,
-    });
-
-    assertAllowedBlocks(dayResult.data.blocks, ruleCtx.blockedTypes);
+    const dayGeneration = await this.generateDayWithRecovery(input, dayPlan, dayPrompt, ruleCtx.blockedTypes);
 
     this.logger.log({
       stage: 'day',
@@ -264,30 +247,335 @@ export class AiOrchestrator {
       model: this.provider.model,
       promptHash: hashPrompt(dayPrompt),
       promptSnapshot: { prompt: dayPrompt, instruction },
-      responseSnapshot: dayResult.data,
-      tokensIn: dayResult.usage.tokensIn,
-      tokensOut: dayResult.usage.tokensOut,
-      latencyMs: dayResult.latencyMs,
+      responseSnapshot: dayGeneration.dayBlocks,
+      tokensIn: dayGeneration.tokensIn,
+      tokensOut: dayGeneration.tokensOut,
+      latencyMs: dayGeneration.latencyMs,
       success: true,
+      error: dayGeneration.recoveredFrom,
     });
 
     return {
-      dayBlocks: dayResult.data as DayBlocks,
+      dayBlocks: dayGeneration.dayBlocks,
       meta: { model: this.provider.model, provider: this.provider.name },
     };
+  }
+
+  private async generatePlanWithRecovery(
+    input: TripInput,
+    totalDays: number,
+    prompt: string
+  ): Promise<{ plan: TripPlan; tokensIn: number; tokensOut: number; latencyMs: number; recoveredFrom?: string }> {
+    const started = Date.now();
+
+    try {
+      const result = await this.provider.generate({
+        system: SYSTEM_BASE,
+        user: prompt,
+        schema: TripPlanSchema,
+      });
+
+      return {
+        plan: ensurePlanCompleteness(result.data as TripPlan, input, totalDays),
+        tokensIn: result.usage.tokensIn,
+        tokensOut: result.usage.tokensOut,
+        latencyMs: result.latencyMs,
+      };
+    } catch (error) {
+      const firstError = error instanceof Error ? error.message : String(error);
+      const retryPrompt = `${prompt}\n\nSua resposta anterior veio parcial ou invalida. Corrija e retorne JSON completo. Erro observado: ${firstError.slice(0, 800)}`;
+
+      try {
+        const retry = await this.provider.generate({
+          system: SYSTEM_BASE,
+          user: retryPrompt,
+          schema: TripPlanSchema,
+        });
+
+        return {
+          plan: ensurePlanCompleteness(retry.data as TripPlan, input, totalDays),
+          tokensIn: retry.usage.tokensIn,
+          tokensOut: retry.usage.tokensOut,
+          latencyMs: Date.now() - started,
+          recoveredFrom: firstError,
+        };
+      } catch (retryError) {
+        const retryMessage = retryError instanceof Error ? retryError.message : String(retryError);
+
+        return {
+          plan: buildFallbackTripPlan(input, totalDays),
+          tokensIn: 0,
+          tokensOut: 0,
+          latencyMs: Date.now() - started,
+          recoveredFrom: `${firstError} | fallback aplicado apos nova falha: ${retryMessage}`,
+        };
+      }
+    }
+  }
+
+  private async retrievePois(input: TripInput, dayPlan: TripPlan['days'][number]) {
+    if (!this.poiRetriever) return uncoveredPoiResult(dayPlan.destination);
+
+    try {
+      return await this.poiRetriever.retrieve({ input, dayPlan, limit: 16 });
+    } catch (error) {
+      console.warn('[ai] Recuperacao de POIs falhou; fallback seguro ativado.', error);
+      return uncoveredPoiResult(dayPlan.destination);
+    }
+  }
+
+  private async generateDayWithRecovery(
+    input: TripInput,
+    dayPlan: TripPlan['days'][number],
+    prompt: string,
+    blockedTypes: string[]
+  ): Promise<{ dayBlocks: DayBlocks; tokensIn: number; tokensOut: number; latencyMs: number; recoveredFrom?: string }> {
+    const started = Date.now();
+
+    try {
+      const result = await this.provider.generate({
+        system: SYSTEM_BASE,
+        user: prompt,
+        schema: DayBlocksSchema,
+      });
+
+      return {
+        dayBlocks: ensureDayBlocksCompleteness(result.data as DayBlocks, input, dayPlan, blockedTypes),
+        tokensIn: result.usage.tokensIn,
+        tokensOut: result.usage.tokensOut,
+        latencyMs: result.latencyMs,
+      };
+    } catch (error) {
+      const firstError = error instanceof Error ? error.message : String(error);
+      const retryPrompt = `${prompt}\n\nSua resposta anterior veio parcial ou invalida. Corrija e retorne JSON completo, mantendo o dia ${dayPlan.day}. Erro observado: ${firstError.slice(0, 800)}`;
+
+      try {
+        const retry = await this.provider.generate({
+          system: SYSTEM_BASE,
+          user: retryPrompt,
+          schema: DayBlocksSchema,
+        });
+
+        return {
+          dayBlocks: ensureDayBlocksCompleteness(retry.data as DayBlocks, input, dayPlan, blockedTypes),
+          tokensIn: retry.usage.tokensIn,
+          tokensOut: retry.usage.tokensOut,
+          latencyMs: Date.now() - started,
+          recoveredFrom: firstError,
+        };
+      } catch (retryError) {
+        const retryMessage = retryError instanceof Error ? retryError.message : String(retryError);
+
+        return {
+          dayBlocks: buildFallbackDayBlocks(input, dayPlan, `${firstError} | ${retryMessage}`),
+          tokensIn: 0,
+          tokensOut: 0,
+          latencyMs: Date.now() - started,
+          recoveredFrom: `${firstError} | fallback aplicado apos nova falha: ${retryMessage}`,
+        };
+      }
+    }
   }
 }
 
 export function createAiOrchestrator(
   config?: Partial<AiOrchestratorConfig>,
   logger?: GenerationLogger,
-  logContext?: { userId: string }
+  logContext?: { userId: string },
+  poiRetriever?: PoiRetriever
 ): AiOrchestrator {
-  return new AiOrchestrator(config, logger, logContext);
+  return new AiOrchestrator(config, logger, logContext, poiRetriever);
 }
 
 function hashPrompt(prompt: string): string {
   return createHash('sha256').update(prompt).digest('hex').slice(0, 16);
+}
+
+function ensurePlanCompleteness(plan: TripPlan, input: TripInput, totalDays: number): TripPlan {
+  const fallbackPlan = buildFallbackTripPlan(input, totalDays);
+
+  return {
+    tripDescription: {
+      title: plan.tripDescription?.title || fallbackPlan.tripDescription.title,
+      summary: plan.tripDescription?.summary || fallbackPlan.tripDescription.summary,
+      highlights:
+        plan.tripDescription?.highlights?.filter(Boolean).length
+          ? plan.tripDescription.highlights.filter(Boolean)
+          : fallbackPlan.tripDescription.highlights,
+    },
+    days: Array.from({ length: totalDays }, (_, index) => {
+      const day = index + 1;
+      const existing = plan.days.find((entry) => entry.day === day);
+      const fallback = fallbackPlan.days[index];
+
+      return {
+        day,
+        date: existing?.date || fallback.date,
+        destination: existing?.destination || fallback.destination,
+        theme: existing?.theme || fallback.theme,
+        focus: existing?.focus?.length ? existing.focus : fallback.focus,
+      };
+    }),
+  };
+}
+
+function ensureDayBlocksCompleteness(
+  dayBlocks: DayBlocks,
+  input: TripInput,
+  dayPlan: TripPlan['days'][number],
+  blockedTypes: string[]
+): DayBlocks {
+  const sanitizedBlocks = sanitizeAllowedBlocks(dayBlocks.blocks || [], blockedTypes).map((block, index) => ({
+    ...block,
+    title: block.title?.trim() || `Experiencia ${index + 1}`,
+    details:
+      block.details?.trim() ||
+      `Atividade sugerida para ${dayPlan.destination}, com detalhes finos a confirmar pelo consultor.`,
+    estimatedDurationMinutes: block.estimatedDurationMinutes || inferBlockDuration(block.type),
+    recommendedStartTime: block.recommendedStartTime || inferBlockStartTime(index),
+  }));
+
+  if (sanitizedBlocks.length === 0) {
+    return buildFallbackDayBlocks(input, dayPlan, 'Nenhum bloco valido retornado pela IA');
+  }
+
+  return {
+    day: dayPlan.day,
+    daySummary: {
+      title: dayBlocks.daySummary?.title || `Dia ${dayPlan.day} - ${dayPlan.theme}`,
+      subTitle: dayBlocks.daySummary?.subTitle || dayPlan.destination,
+      details:
+        dayBlocks.daySummary?.details ||
+        `Dia estruturado em ${dayPlan.destination}, com foco em ${dayPlan.theme.toLowerCase()}.`,
+      imageSearchQuery:
+        dayBlocks.daySummary?.imageSearchQuery ||
+        `${dayPlan.destination} ${dayPlan.theme}`.trim(),
+    },
+    blocks: sanitizedBlocks,
+  };
+}
+
+function buildFallbackTripPlan(input: TripInput, totalDays: number): TripPlan {
+  return {
+    tripDescription: {
+      title: input.title,
+      summary: `Roteiro estruturado para ${input.clientName}, com foco em ${input.destinations.join(', ')} e ritmo realista de viagem.`,
+      highlights: input.destinations.slice(0, 4),
+    },
+    days: Array.from({ length: totalDays }, (_, index) => {
+      const day = index + 1;
+      const date = addDaysIso(input.startDate, index);
+      const destination = resolveDestinationForDate(input, date);
+
+      return {
+        day,
+        date,
+        destination,
+        theme: `Exploracao organizada de ${destination}`,
+        focus: [destination, 'ritmo equilibrado', 'experiencias reais'],
+      };
+    }),
+  };
+}
+
+function buildFallbackDayBlocks(
+  input: TripInput,
+  dayPlan: TripPlan['days'][number],
+  failureReason?: string
+): DayBlocks {
+  const destination = dayPlan.destination || resolveDestinationForDate(input, dayPlan.date);
+  const hotelBase = input.accommodations?.find(
+    (entry) => entry.destinationCity && destination.toLowerCase().includes(entry.destinationCity.toLowerCase())
+  );
+
+  return {
+    day: dayPlan.day,
+    daySummary: {
+      title: `Dia ${dayPlan.day} - ${dayPlan.theme || destination}`,
+      subTitle: destination,
+      details: `Dia reconstruido automaticamente para evitar roteiro parcial. O consultor pode refinar nomes especificos e horarios finos.${failureReason ? ` Motivo tecnico: ${failureReason.slice(0, 180)}.` : ''}`,
+      imageSearchQuery: destination,
+    },
+    blocks: [
+      {
+        type: 'text',
+        title: hotelBase?.name ? `Saida de ${hotelBase.name}` : `Inicio do dia em ${destination}`,
+        subTitle: 'Base do roteiro',
+        details: 'Comece o dia organizando deslocamentos, ingressos e prioridades da regiao escolhida. Use este bloco como ancora operacional antes de sair.',
+        estimatedDurationMinutes: 45,
+        recommendedStartTime: '08:00',
+        imageSearchQuery: destination,
+      },
+      {
+        type: 'places',
+        title: dayPlan.theme || `Exploracao de ${destination}`,
+        subTitle: 'Circuito principal',
+        details: `Percorra os pontos principais de ${destination} mantendo foco em proximidade geografica e pausas realistas. Ajuste os POIs finais conforme disponibilidade confirmada pelo consultor.`,
+        estimatedDurationMinutes: 180,
+        recommendedStartTime: '09:00',
+        imageSearchQuery: destination,
+      },
+      {
+        type: 'text',
+        title: `Almoco recomendado em ${destination}`,
+        subTitle: 'Pausa funcional',
+        details: 'Escolha um restaurante real proximo ao circuito do dia, priorizando avaliacao recente, perfil do cliente e facilidade logistica. Confirmar funcionamento e reserva antes de usar nome proprio.',
+        estimatedDurationMinutes: 90,
+        recommendedStartTime: '12:30',
+        imageSearchQuery: `${destination} restaurant`,
+      },
+      {
+        type: 'activity',
+        title: `Tarde livre orientada em ${destination}`,
+        subTitle: 'Exploracao complementar',
+        details: 'Use a tarde para complementar o eixo do dia com compras, mirantes, museus ou caminhada curta, sem depender de deslocamentos longos entre bairros.',
+        estimatedDurationMinutes: 180,
+        recommendedStartTime: '14:30',
+        imageSearchQuery: destination,
+      },
+      {
+        type: 'text',
+        title: hotelBase?.name ? `Retorno para ${hotelBase.name}` : `Encerramento do dia em ${destination}`,
+        subTitle: 'Fechamento',
+        details: 'Finalize o dia com retorno organizado, tempo para descanso e preparacao do proximo deslocamento ou jantar.',
+        estimatedDurationMinutes: 60,
+        recommendedStartTime: '18:30',
+        imageSearchQuery: `${destination} night`,
+      },
+    ],
+  };
+}
+
+function resolveDestinationForDate(input: TripInput, date: string): string {
+  const detailed = input.destinationsDetail?.find(
+    (entry) => entry.startDate && entry.endDate && date >= entry.startDate && date <= entry.endDate
+  );
+
+  return detailed?.city || input.destinations[0] || 'Destino';
+}
+
+function addDaysIso(isoDate: string, days: number): string {
+  const date = new Date(`${isoDate}T12:00:00`);
+  date.setDate(date.getDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function inferBlockDuration(type: DayBlocks['blocks'][number]['type']): number {
+  switch (type) {
+    case 'transport':
+      return 45;
+    case 'text':
+      return 30;
+    case 'suggested_places':
+      return 60;
+    default:
+      return 90;
+  }
+}
+
+function inferBlockStartTime(index: number): string {
+  const hour = Math.min(21, 9 + index * 2);
+  return `${String(hour).padStart(2, '0')}:00`;
 }
 
 export { mergeDayIntoItinerary };

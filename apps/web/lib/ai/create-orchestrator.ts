@@ -6,6 +6,7 @@ import {
 } from '@rumo/ai';
 import { db } from '@rumo/db';
 import { getAgencySettings } from '../server-account-store';
+import { supabasePoiRetriever } from '../server-poi-store';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
@@ -39,7 +40,7 @@ const supabaseAdmin = hasSupabaseServerAccess
   : null;
 
 function isUuid(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }
 
 function resolveProvider(
@@ -130,6 +131,7 @@ export async function createTripAiOrchestrator(
       maxTokens: overrides?.maxTokens,
     },
     logger,
-    { userId }
+    { userId },
+    supabasePoiRetriever
   );
 }

@@ -9,18 +9,30 @@ import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    text: '#172126',
+    background: '#F5F3EE',
+    backgroundElement: '#FFFFFF',
+    backgroundSelected: '#DDE2DE',
+    textSecondary: '#667176',
+    primary: '#183B4E',
+    primarySoft: '#E8EFED',
+    accent: '#F26B3A',
+    accentSoft: '#FFF0E9',
+    success: '#0F6E56',
+    border: '#DDE2DE',
   },
   dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    text: '#F7F6F1',
+    background: '#102B38',
+    backgroundElement: '#183B4E',
+    backgroundSelected: '#315568',
+    textSecondary: '#AFC1C5',
+    primary: '#F7F6F1',
+    primarySoft: '#294C5E',
+    accent: '#FF7A47',
+    accentSoft: '#553526',
+    success: '#70C6A8',
+    border: '#315568',
   },
 } as const;
 
@@ -59,6 +71,22 @@ export const Spacing = {
   four: 24,
   five: 32,
   six: 64,
+} as const;
+
+export const Radius = {
+  small: 10,
+  medium: 14,
+  large: 20,
+  pill: 999,
+} as const;
+
+export const Brand = {
+  navy: '#183B4E',
+  navyDeep: '#102B38',
+  coral: '#F26B3A',
+  sand: '#F5F3EE',
+  mineral: '#79A9A4',
+  white: '#FFFFFF',
 } as const;
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;

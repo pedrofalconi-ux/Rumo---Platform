@@ -8,6 +8,7 @@ import {
   canUseLocalTripFallback,
   findLocalTrip,
   isProductionPersistenceError,
+  readLocalTrips,
   upsertLocalTrip,
 } from '@/lib/trip-local-store';
 
@@ -521,9 +522,14 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
         upsertLocalTrip(data);
       } else {
         const localTrip = browserFallbackEnabled ? findLocalTrip<Trip>(tripId) : null;
-        if (localTrip) {
-          setTrip(localTrip);
-          setItems(localTrip.itinerary || []);
+        const cachedTrip =
+          !localTrip && browserFallbackEnabled
+            ? readLocalTrips<Trip>().find((candidate) => candidate.id === tripId) || null
+            : null;
+        const fallbackTrip = localTrip || cachedTrip;
+        if (fallbackTrip) {
+          setTrip(fallbackTrip);
+          setItems(fallbackTrip.itinerary || []);
         } else {
           alert('Viagem não encontrada no banco.');
           router.push('/trips');
@@ -532,9 +538,14 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
     } catch (error) {
       console.error(error);
       const localTrip = browserFallbackEnabled ? findLocalTrip<Trip>(tripId) : null;
-      if (localTrip) {
-        setTrip(localTrip);
-        setItems(localTrip.itinerary || []);
+      const cachedTrip =
+        !localTrip && browserFallbackEnabled
+          ? readLocalTrips<Trip>().find((candidate) => candidate.id === tripId) || null
+          : null;
+      const fallbackTrip = localTrip || cachedTrip;
+      if (fallbackTrip) {
+        setTrip(fallbackTrip);
+        setItems(fallbackTrip.itinerary || []);
       } else {
         alert('Nao foi possivel carregar a viagem no backend.');
         router.push('/trips');

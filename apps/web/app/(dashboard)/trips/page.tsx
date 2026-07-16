@@ -8,6 +8,7 @@ import {
   mergeTripsById,
   readLocalTrips,
   removeLocalTrip,
+  writeLocalTrips,
 } from '../../../lib/trip-local-store';
 
 interface ItineraryItem {
@@ -49,7 +50,9 @@ export default function TripsPage() {
       const localTrips = readLocalTrips<Trip>();
       if (response.ok) {
         const data = await response.json();
-        setTrips(mergeTripsById(data, localTrips));
+        const mergedTrips = mergeTripsById(data, localTrips);
+        setTrips(mergedTrips);
+        writeLocalTrips(mergedTrips);
       } else {
         setTrips(localTrips);
       }

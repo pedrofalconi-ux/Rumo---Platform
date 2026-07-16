@@ -1,6 +1,8 @@
 import type { TripInput } from '../types';
 import { AI_BLOCK_TYPES } from '../types';
 import { formatConstraintsForPrompt } from '../rules/travel-rules';
+import type { PoiRetrievalResult } from '../rag/poi-retriever';
+import { buildPoiPromptContext } from '../rag/poi-prompt-context';
 
 export function buildPlanTripPrompt(
   input: TripInput,
@@ -16,7 +18,7 @@ export function buildPlanTripPrompt(
     ? input.transportation
         .map(
           (transport) =>
-            `- ${transport.type.toUpperCase()}: ${transport.operator || 'Operadora nao informada'} ${transport.number || ''} em ${transport.date}${transport.details ? ` | ${transport.details}` : ''}`
+            `- ${transport.type.toUpperCase()}: ${transport.operator || 'Operadora nao informada'}${transport.number ? ` ${transport.number}` : ''}${transport.date ? ` em ${transport.date}` : ''}${transport.details ? ` | ${transport.details}` : ''}`
         )
         .join('\n')
     : 'Nenhum transporte cadastrado';
@@ -24,7 +26,7 @@ export function buildPlanTripPrompt(
     ? input.accommodations
         .map(
           (accommodation) =>
-            `- Hotel: ${accommodation.name} em ${accommodation.destinationCity} (Check-in: ${accommodation.checkIn}, Check-out: ${accommodation.checkOut})${accommodation.address ? ` | ${accommodation.address}` : ''}`
+            `- Hotel: ${accommodation.name || 'Hospedagem nao especificada'}${accommodation.destinationCity ? ` em ${accommodation.destinationCity}` : ''}${accommodation.checkIn || accommodation.checkOut ? ` (Check-in: ${accommodation.checkIn || 'a confirmar'}, Check-out: ${accommodation.checkOut || 'a confirmar'})` : ''}${accommodation.address ? ` | ${accommodation.address}` : ''}`
         )
         .join('\n')
     : 'Nenhuma acomodacao cadastrada';
@@ -85,21 +87,28 @@ As datas devem ser consecutivas a partir de ${input.startDate}.`;
 export function buildGenerateDayPrompt(
   input: TripInput,
   dayPlan: { day: number; date: string; destination: string; theme: string; focus: string[] },
-  constraints: string[]
+  constraints: string[],
+  poiContext?: PoiRetrievalResult
 ): string {
   const allowedTypes = AI_BLOCK_TYPES.filter((t) => t !== 'trip_desc').join(', ');
   const hotelDoDia = input.accommodations?.find(
     (accommodation) =>
-      dayPlan.date >= accommodation.checkIn &&
-      dayPlan.date <= accommodation.checkOut &&
-      dayPlan.destination.toLowerCase().includes(accommodation.destinationCity.toLowerCase().split(' (')[0])
+      Boolean(accommodation.checkIn) &&
+      Boolean(accommodation.checkOut) &&
+      Boolean(accommodation.destinationCity) &&
+      dayPlan.date >= accommodation.checkIn! &&
+      dayPlan.date <= accommodation.checkOut! &&
+      dayPlan.destination
+        .toLowerCase()
+        .includes(accommodation.destinationCity!.toLowerCase().split(' (')[0])
   );
-  const transportationDoDia = input.transportation?.filter((transport) => transport.date === dayPlan.date) || [];
+  const transportationDoDia =
+    input.transportation?.filter((transport) => transport.date && transport.date === dayPlan.date) || [];
   const transportationContext = transportationDoDia.length
     ? transportationDoDia
         .map(
           (transport) =>
-            `- ${transport.type.toUpperCase()}: ${transport.operator || 'Operadora nao informada'} ${transport.number || ''}${transport.details ? ` | ${transport.details}` : ''}`
+            `- ${transport.type.toUpperCase()}: ${transport.operator || 'Operadora nao informada'}${transport.number ? ` ${transport.number}` : ''}${transport.details ? ` | ${transport.details}` : ''}`
         )
         .join('\n')
     : 'Nenhum transporte especifico neste dia';
@@ -129,11 +138,16 @@ ${formatConstraintsForPrompt(constraints)}
 
 Tipos de bloco permitidos (campo "type"): ${allowedTypes}
 
+Grounding factual do destino:
+${buildPoiPromptContext(poiContext)}
+
 Qualidade obrigatoria do roteiro:
 - O roteiro deve ocupar um dia inteiro, normalmente entre 08:00 e 22:00, com pausas realistas.
 - Inclua 7 a 10 blocos no dia, cobrindo manha, almoco, tarde, fim de tarde e noite.
 - Use somente lugares, bairros, restaurantes, mercados, mirantes, museus, pracas e experiencias reais do destino.
+- Use estritamente pontos de interesse reais, com nomes oficiais e grafia correta no destino.
 - Nao use placeholders ou nomes genericos: proibido "Ponto emblematico", "Centro historico de X", "Experiencia cultural recomendada", "Sugestoes extras", "Dica Rumo" como titulo principal.
+- IMPORTANTE SOBRE RESTAURANTES: se voce nao tiver certeza absoluta da existencia e funcionamento atual de um restaurante especifico, nao invente nome fantasia. Prefira titulos descritivos e funcionais como "Almoco em trattoria local no Trastevere" ou "Jantar de frutos do mar na marina".
 - Ordene os blocos como uma trilha continua ponto a ponto, escolhendo locais geograficamente proximos. Evite cruzar a cidade sem motivo.
 - Preencha recommendedStartTime em todos os blocos no formato HH:mm.
 - Preencha estimatedDurationMinutes em todos os blocos.
@@ -144,6 +158,7 @@ Qualidade obrigatoria do roteiro:
 - Preencha imageSearchQuery em ingles, com 1 a 3 palavras, simples e especificas para busca de imagem. Exemplos: "Colosseum Rome", "Eiffel Tower", "Gelato Italy", "Airplane Flight".
 - Quando houver deslocamento maior que uma caminhada curta, inclua um bloco "transport" com horario, origem/destino e meio recomendado.
 - Para almoco e jantar, prefira restaurantes ou regioes reais adequados ao perfil; se citar restaurante especifico, recomende confirmar funcionamento/reserva.
+- Se nao tiver alta confianca sobre um nome proprio de restaurante, bar, cafe ou loja, use descricao generica qualificada no title e detalhe no campo details o perfil ideal do local.
 - Nao invente reservas, tickets comprados, disponibilidade, precos exatos ou promessas de acesso sem fila.
 - Se houver hotel especificado, use-o como base de partida pela manha e retorno a noite.
 - Se houver transporte no dia, inclua deslocamentos, chegada/saida, check-in/check-out e janelas realistas de transicao.
@@ -173,7 +188,11 @@ Retorne JSON:
       },
       "estimatedDurationMinutes": 90,
       "recommendedStartTime": "HH:mm",
-      "customSymbol": "opcional"
+      "customSymbol": "opcional",
+      "meta": {
+        "poiValidation": "curated|model_knowledge|generic",
+        "verificationRequired": true
+      }
     }
   ]
 }
