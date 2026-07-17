@@ -112,14 +112,35 @@ export class AiOrchestrator {
 
     const dayResults: DayBlocks[] = [];
     const failedDays: Array<{ day: number; error: string }> = [];
+    const usedDiningPlaceNames = new Set<string>();
 
     for (const dayPlan of plan.days) {
-      const poiContext = await this.retrievePois(input, dayPlan);
-      const dayPrompt = buildGenerateDayPrompt(input, dayPlan, ruleCtx.constraints, poiContext);
+      const previouslyUsedPlaceNames = Array.from(usedDiningPlaceNames);
+      const poiContext = await this.retrievePois(input, dayPlan, previouslyUsedPlaceNames);
+      const dayPrompt = buildGenerateDayPrompt(
+        input,
+        dayPlan,
+        ruleCtx.constraints,
+        poiContext,
+        previouslyUsedPlaceNames
+      );
+      const diningCandidates = poiContext.pois
+        .filter((poi) => ['restaurant', 'cafe', 'bar'].includes(poi.type))
+        .map((poi) => poi.name);
 
       try {
-        const dayGeneration = await this.generateDayWithRecovery(input, dayPlan, dayPrompt, ruleCtx.blockedTypes);
+        const dayGeneration = await this.generateDayWithRecovery(
+          input,
+          dayPlan,
+          dayPrompt,
+          ruleCtx.blockedTypes,
+          previouslyUsedPlaceNames,
+          diningCandidates
+        );
         dayResults.push(dayGeneration.dayBlocks);
+        for (const placeName of collectUsedDiningPlaceNames(dayGeneration.dayBlocks, diningCandidates)) {
+          usedDiningPlaceNames.add(placeName);
+        }
 
         tokensIn += dayGeneration.tokensIn;
         tokensOut += dayGeneration.tokensOut;
@@ -313,11 +334,15 @@ export class AiOrchestrator {
     }
   }
 
-  private async retrievePois(input: TripInput, dayPlan: TripPlan['days'][number]) {
+  private async retrievePois(
+    input: TripInput,
+    dayPlan: TripPlan['days'][number],
+    excludedPoiNames: string[] = []
+  ) {
     if (!this.poiRetriever) return uncoveredPoiResult(dayPlan.destination);
 
     try {
-      return await this.poiRetriever.retrieve({ input, dayPlan, limit: 16 });
+      return await this.poiRetriever.retrieve({ input, dayPlan, limit: 16, excludedPoiNames });
     } catch (error) {
       console.warn('[ai] Recuperacao de POIs falhou; fallback seguro ativado.', error);
       return uncoveredPoiResult(dayPlan.destination);
@@ -328,7 +353,9 @@ export class AiOrchestrator {
     input: TripInput,
     dayPlan: TripPlan['days'][number],
     prompt: string,
-    blockedTypes: string[]
+    blockedTypes: string[],
+    previouslyUsedPlaceNames: string[] = [],
+    diningCandidateNames: string[] = []
   ): Promise<{ dayBlocks: DayBlocks; tokensIn: number; tokensOut: number; latencyMs: number; recoveredFrom?: string }> {
     const started = Date.now();
 
@@ -339,8 +366,10 @@ export class AiOrchestrator {
         schema: DayBlocksSchema,
       });
 
+      const dayBlocks = ensureDayBlocksCompleteness(result.data as DayBlocks, input, dayPlan, blockedTypes);
+      assertDiningDiversity(dayBlocks, previouslyUsedPlaceNames, diningCandidateNames);
       return {
-        dayBlocks: ensureDayBlocksCompleteness(result.data as DayBlocks, input, dayPlan, blockedTypes),
+        dayBlocks,
         tokensIn: result.usage.tokensIn,
         tokensOut: result.usage.tokensOut,
         latencyMs: result.latencyMs,
@@ -356,8 +385,10 @@ export class AiOrchestrator {
           schema: DayBlocksSchema,
         });
 
+        const dayBlocks = ensureDayBlocksCompleteness(retry.data as DayBlocks, input, dayPlan, blockedTypes);
+        assertDiningDiversity(dayBlocks, previouslyUsedPlaceNames, diningCandidateNames);
         return {
-          dayBlocks: ensureDayBlocksCompleteness(retry.data as DayBlocks, input, dayPlan, blockedTypes),
+          dayBlocks,
           tokensIn: retry.usage.tokensIn,
           tokensOut: retry.usage.tokensOut,
           latencyMs: Date.now() - started,
@@ -558,6 +589,74 @@ function addDaysIso(isoDate: string, days: number): string {
   const date = new Date(`${isoDate}T12:00:00`);
   date.setDate(date.getDate() + days);
   return date.toISOString().slice(0, 10);
+}
+
+function normalizePlaceName(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function isDiningBlock(block: DayBlocks['blocks'][number]) {
+  const content = normalizePlaceName(`${block.title} ${block.subTitle || ''} ${block.details || ''}`);
+  return /\b(almoco|jantar|restaurant|restaurante|cafe|bar|gastronomi|comida|culinari|refeicao)\b/.test(content);
+}
+
+function blockPlaceName(block: DayBlocks['blocks'][number]) {
+  return block.location?.name?.trim() || block.title.trim();
+}
+
+function isGenericDiningTitle(value: string) {
+  return /^(almoco|jantar|cafe da manha|pausa|refeicao|experiencia gastronomica)\b/.test(normalizePlaceName(value));
+}
+
+export function collectUsedDiningPlaceNames(dayBlocks: DayBlocks, diningCandidateNames: string[]) {
+  const serialized = normalizePlaceName(JSON.stringify(dayBlocks));
+  const used = diningCandidateNames.filter((name) => serialized.includes(normalizePlaceName(name)));
+
+  for (const block of dayBlocks.blocks) {
+    if (!isDiningBlock(block)) continue;
+    const name = blockPlaceName(block);
+    if (name && !isGenericDiningTitle(name)) used.push(name);
+  }
+
+  return Array.from(new Map(used.map((name) => [normalizePlaceName(name), name])).values());
+}
+
+export function assertDiningDiversity(
+  dayBlocks: DayBlocks,
+  previouslyUsedPlaceNames: string[],
+  diningCandidateNames: string[]
+) {
+  const forbidden = previouslyUsedPlaceNames
+    .map((name) => ({ name, normalized: normalizePlaceName(name) }))
+    .filter(({ normalized }) => normalized.length >= 4);
+
+  for (const block of dayBlocks.blocks) {
+    if (!isDiningBlock(block)) continue;
+    const current = normalizePlaceName(blockPlaceName(block));
+    const repeated = forbidden.find(
+      ({ normalized }) => current === normalized || current.includes(normalized) || normalized.includes(current)
+    );
+    if (repeated) {
+      throw new Error(`Estabelecimento repetido de outro dia: ${repeated.name}. Escolha outro restaurante real.`);
+    }
+  }
+
+  for (const candidateName of diningCandidateNames) {
+    const normalizedCandidate = normalizePlaceName(candidateName);
+    const occurrences = dayBlocks.blocks.filter((block) => {
+      if (!isDiningBlock(block)) return false;
+      const content = normalizePlaceName(`${block.title} ${block.location?.name || ''}`);
+      return content.includes(normalizedCandidate);
+    }).length;
+    if (occurrences > 1) {
+      throw new Error(`Estabelecimento repetido no mesmo dia: ${candidateName}. Varie almoco e jantar.`);
+    }
+  }
 }
 
 function inferBlockDuration(type: DayBlocks['blocks'][number]['type']): number {

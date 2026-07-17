@@ -4,14 +4,17 @@ function clean(value: string | undefined, maxLength = 180) {
   return value?.replace(/[\r\n|]+/g, ' ').trim().slice(0, maxLength) || '';
 }
 
-export function buildPoiPromptContext(result?: PoiRetrievalResult): string {
+export function buildPoiPromptContext(result?: PoiRetrievalResult, previouslyUsedPlaceNames: string[] = []): string {
+  const diversityRule = previouslyUsedPlaceNames.length
+    ? `\nLugares ja usados em dias anteriores (NAO repetir):\n${previouslyUsedPlaceNames.map((name) => `- ${clean(name, 100)}`).join('\n')}`
+    : '';
   if (!result || result.coverage === 'uncovered' || result.pois.length === 0) {
     return `Cobertura factual de POIs: NAO DISPONIVEL NA BASE RUMO.
 - Voce PODE citar atracoes, restaurantes, cafes, bares e outros lugares reais que conheca com alta confianca.
 - Todo lugar vindo apenas do seu conhecimento deve usar meta.poiValidation="model_knowledge" e meta.verificationRequired=true.
 - Nao invente endereco, coordenadas, horario, preco, avaliacao ou disponibilidade. Omita o campo incerto em vez de fabricar.
 - Quando a confianca no nome for baixa, use descricao generica qualificada com bairro real.
-- Priorize pontos conhecidos e estaveis do destino; evite estabelecimentos obscuros ou possivelmente fechados.`;
+- Priorize pontos conhecidos e estaveis do destino; evite estabelecimentos obscuros ou possivelmente fechados.${diversityRule}`;
   }
 
   const entries = result.pois.map((poi) => {
@@ -36,5 +39,6 @@ Regras obrigatorias de grounding:
 - Preserve o nome exatamente como fornecido; nao crie filiais, variacoes ou enderecos.
 - Se nenhum item servir, voce pode citar outro lugar real de alta confianca, marcando meta.poiValidation="model_knowledge" e meta.verificationRequired=true.
 - Se a confianca no nome for baixa, use descricao generica qualificada sem nome fantasia.
-- Nao afirme horario de funcionamento, preco, reserva ou disponibilidade que nao conste no contexto.`;
+- Nao afirme horario de funcionamento, preco, reserva ou disponibilidade que nao conste no contexto.
+- Nao repita restaurante, cafe ou bar usado em outro dia da mesma viagem.${diversityRule}`;
 }

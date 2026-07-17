@@ -88,7 +88,8 @@ export function buildGenerateDayPrompt(
   input: TripInput,
   dayPlan: { day: number; date: string; destination: string; theme: string; focus: string[] },
   constraints: string[],
-  poiContext?: PoiRetrievalResult
+  poiContext?: PoiRetrievalResult,
+  previouslyUsedPlaceNames: string[] = []
 ): string {
   const allowedTypes = AI_BLOCK_TYPES.filter((t) => t !== 'trip_desc').join(', ');
   const hotelDoDia = input.accommodations?.find(
@@ -139,7 +140,7 @@ ${formatConstraintsForPrompt(constraints)}
 Tipos de bloco permitidos (campo "type"): ${allowedTypes}
 
 Grounding factual do destino:
-${buildPoiPromptContext(poiContext)}
+${buildPoiPromptContext(poiContext, previouslyUsedPlaceNames)}
 
 Qualidade obrigatoria do roteiro:
 - O roteiro deve ocupar um dia inteiro, normalmente entre 08:00 e 22:00, com pausas realistas.
@@ -158,6 +159,7 @@ Qualidade obrigatoria do roteiro:
 - Preencha imageSearchQuery em ingles, com 1 a 3 palavras, simples e especificas para busca de imagem. Exemplos: "Colosseum Rome", "Eiffel Tower", "Gelato Italy", "Airplane Flight".
 - Quando houver deslocamento maior que uma caminhada curta, inclua um bloco "transport" com horario, origem/destino e meio recomendado.
 - Para almoco e jantar, prefira restaurantes ou regioes reais adequados ao perfil; se citar restaurante especifico, recomende confirmar funcionamento/reserva.
+- Diversidade e obrigatoria: almocos e jantares devem usar estabelecimentos diferentes ao longo da viagem. Nunca repita um restaurante, cafe ou bar listado como ja utilizado.
 - Se nao tiver alta confianca sobre um nome proprio de restaurante, bar, cafe ou loja, use descricao generica qualificada no title e detalhe no campo details o perfil ideal do local.
 - Nao invente reservas, tickets comprados, disponibilidade, precos exatos ou promessas de acesso sem fila.
 - Se houver hotel especificado, use-o como base de partida pela manha e retorno a noite.

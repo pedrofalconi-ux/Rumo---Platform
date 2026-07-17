@@ -43,6 +43,7 @@ export interface PoiRetrievalRequest {
   input: TripInput;
   dayPlan: TripPlan['days'][number];
   limit: number;
+  excludedPoiNames?: string[];
 }
 
 export interface PoiRetrievalResult {

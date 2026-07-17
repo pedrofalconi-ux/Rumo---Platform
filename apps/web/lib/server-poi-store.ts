@@ -111,8 +111,10 @@ async function mapRow(row: PoiRow): Promise<CuratedPoi> {
   };
 }
 
-function selectBalancedRows(rows: PoiRow[], terms: string[], limit: number) {
+function selectBalancedRows(rows: PoiRow[], terms: string[], limit: number, excludedPoiNames: string[] = []) {
+  const excluded = new Set(excludedPoiNames.map(normalize));
   const ranked = rows
+    .filter((row) => !excluded.has(normalize(row.name)))
     .map((row) => ({ row, score: scorePoi(row, terms) }))
     .sort((a, b) => b.score - a.score || a.row.name.localeCompare(b.row.name));
   const quotas: Partial<Record<PoiType, number>> = {
@@ -164,7 +166,7 @@ export const supabasePoiRetriever: PoiRetriever = {
 
     const terms = intentTerms(request);
     const rows = (data || []) as PoiRow[];
-    const pois = selectBalancedRows(rows, terms, request.limit);
+    const pois = selectBalancedRows(rows, terms, request.limit, request.excludedPoiNames);
 
     const hydratedPois = await Promise.all(pois.map(mapRow));
 
