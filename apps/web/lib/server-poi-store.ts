@@ -47,7 +47,16 @@ function normalize(value: string) {
 }
 
 function cityFromDestination(destination: string) {
-  return destination.split(/[,(]/)[0]?.trim() || destination.trim();
+  const city = destination.split(/[,(]/)[0]?.trim() || destination.trim();
+  const knownCities: Record<string, string> = {
+    'sao paulo': 'São Paulo',
+    maceio: 'Maceió',
+    'joao pessoa': 'João Pessoa',
+    'foz do iguacu': 'Foz do Iguaçu',
+    florianopolis: 'Florianópolis',
+    buzios: 'Búzios',
+  };
+  return knownCities[normalize(city)] || city;
 }
 
 function intentTerms(request: PoiRetrievalRequest) {

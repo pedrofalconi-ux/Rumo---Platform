@@ -1,6 +1,6 @@
 # Proxima Etapa: Reduzir Alucinacao de POIs e Restaurantes com RAG
 
-## Status de Implementacao (16/07/2026)
+## Status de Implementacao (17/07/2026)
 
 Primeiro incremento concluido:
 
@@ -9,16 +9,25 @@ Primeiro incremento concluido:
 - recuperacao server-side via Supabase antes de cada geracao/regeneracao de dia
 - ranking simples por cidade, tema, foco, perfil e tags
 - contexto de prompt com whitelist de POIs curados
-- fallback explicito sem nomes comerciais quando nao existe cobertura
+- fallback com conhecimento do modelo e sinalizacao obrigatoria de verificacao quando nao existe cobertura
 - sanitizacao dos campos antes da injecao no prompt
 - testes dos caminhos coberto, descoberto e conteudo malicioso
 
-Pendente para colocar em producao:
+Concluido no Supabase de desenvolvimento:
 
-- aplicar a migration no Supabase de desenvolvimento (aguardando credencial de DDL local)
-- popular Roma, Paris e Orlando por cargas sequenciais da Overpass API/OpenStreetMap
-- criar e revisar o primeiro seed factual
-- executar uma avaliacao comparativa com roteiros reais
+- migration aplicada com RLS e acesso exclusivo via `service_role`
+- Roma, Paris, Orlando e Lisboa populadas
+- 15 destinos brasileiros prioritarios populados: Rio de Janeiro, Sao Paulo, Salvador,
+  Porto Seguro, Maceio, Recife, Porto de Galinhas, Praia do Forte, Fortaleza, Natal,
+  Joao Pessoa, Foz do Iguacu, Florianopolis, Gramado e Buzios
+- 5.473 POIs brasileiros ativos, com restaurantes, cafes, bares, atracoes,
+  mirantes, parques e mercados conforme a disponibilidade no OpenStreetMap
+
+Pendente para promover a staging/producao:
+
+- revisao editorial amostral e destaque dos melhores POIs por cidade
+- avaliacao comparativa com roteiros reais longos
+- repetir a carga e a validacao no ambiente seguinte
 
 Decisoes confirmadas:
 
@@ -33,7 +42,8 @@ Fluxo de importacao:
 - `node scripts/import-overpass-pois.mjs --city=roma` baixa um JSON para revisao
 - adicionar `--apply` envia os registros inativos ao Supabase
 - adicionar `--activate` ativa diretamente; evitar antes de revisar qualidade e duplicatas
-- repetir de forma sequencial para `paris` e `orlando`, nunca em paralelo nas instancias publicas
+- repetir de forma sequencial para os demais destinos, nunca em paralelo nas instancias publicas
+- o importador alterna entre espelhos publicos quando recebe limite ou indisponibilidade
 
 Aplicacao manual pelo Dashboard:
 

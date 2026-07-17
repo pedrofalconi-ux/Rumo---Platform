@@ -1,6 +1,5 @@
 import { db } from '@rumo/db';
 import type { ItineraryItem } from '@rumo/ai';
-import { convertUrlToBase64 } from './base64-converter';
 import { getCategoryFallbackImage } from './fallback-images';
 
 const FALLBACK_PIXABAY_KEY = '56439289-7031ef2f0e888cf1c7ab9501e';
@@ -134,7 +133,10 @@ export async function selectImagesForItinerary(
   const enriched: ItineraryItem[] = [];
 
   for (const item of items) {
-    if (item.image) {
+    // Data URLs multiplicadas por dezenas de blocos tornam o JSON da viagem
+    // grande o bastante para estourar o statement_timeout do Postgres.
+    // Imagens persistidas no roteiro devem ser referencias leves.
+    if (item.image && !isInlineImage(item.image)) {
       enriched.push(item);
       continue;
     }
@@ -146,7 +148,7 @@ export async function selectImagesForItinerary(
 
     for (const candidate of candidates) {
       const localPhoto = findLocalPhoto(candidate, photos);
-      if (localPhoto?.url) {
+      if (localPhoto?.url && !isInlineImage(localPhoto.url)) {
         selectedItem = withImage(item, localPhoto.url, {
           source: 'library',
           query: candidate,
@@ -393,12 +395,15 @@ async function findPixabayPhoto(query: string, key: string): Promise<OnlinePhoto
     const url = hit?.largeImageURL || hit?.webformatURL || hit?.previewURL;
     if (!url) return null;
 
-    const base64Url = await convertUrlToBase64(url);
-    return { url: base64Url, credit: hit?.user || 'Pixabay', source: 'pixabay' };
+    return { url, credit: hit?.user || 'Pixabay', source: 'pixabay' };
   } catch (error) {
     console.error(`[Pixabay] Erro na requisicao para query "${query}":`, error);
     return null;
   }
+}
+
+export function isInlineImage(value: string) {
+  return value.startsWith('data:');
 }
 
 function withImage(

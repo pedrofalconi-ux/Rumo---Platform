@@ -10,6 +10,23 @@ const CITIES = {
   // Inclui Orlando, Lake Buena Vista e o eixo dos parques, que fazem parte do
   // destino turistico vendido como "Orlando", embora cruzem limites municipais.
   orlando: { name: 'Orlando', country: 'Estados Unidos', bbox: [28.30, -81.66, 28.62, -81.20] },
+  // Destinos brasileiros prioritarios. Os limites incluem os principais eixos
+  // turisticos, inclusive quando o destino comercial nao coincide com o municipio.
+  riodejaneiro: { name: 'Rio de Janeiro', country: 'Brasil', bbox: [-23.083, -43.797, -22.746, -43.099] },
+  saopaulo: { name: 'São Paulo', country: 'Brasil', bbox: [-24.008, -46.826, -23.357, -46.365] },
+  salvador: { name: 'Salvador', country: 'Brasil', bbox: [-13.130, -38.720, -12.790, -38.300] },
+  portoseguro: { name: 'Porto Seguro', country: 'Brasil', bbox: [-16.550, -39.300, -16.250, -39.000] },
+  maceio: { name: 'Maceió', country: 'Brasil', bbox: [-9.750, -35.830, -9.470, -35.620] },
+  recife: { name: 'Recife', country: 'Brasil', bbox: [-8.170, -35.020, -7.930, -34.830] },
+  portodegalinhas: { name: 'Porto de Galinhas', country: 'Brasil', bbox: [-8.570, -35.080, -8.420, -34.940] },
+  praiadoforte: { name: 'Praia do Forte', country: 'Brasil', bbox: [-12.620, -38.090, -12.520, -37.970] },
+  fortaleza: { name: 'Fortaleza', country: 'Brasil', bbox: [-3.890, -38.690, -3.680, -38.390] },
+  natal: { name: 'Natal', country: 'Brasil', bbox: [-5.920, -35.320, -5.690, -35.150] },
+  joaopessoa: { name: 'João Pessoa', country: 'Brasil', bbox: [-7.250, -34.980, -6.960, -34.790] },
+  fozdoiguacu: { name: 'Foz do Iguaçu', country: 'Brasil', bbox: [-25.660, -54.680, -25.390, -54.350] },
+  florianopolis: { name: 'Florianópolis', country: 'Brasil', bbox: [-27.860, -48.680, -27.370, -48.350] },
+  gramado: { name: 'Gramado', country: 'Brasil', bbox: [-29.430, -50.950, -29.300, -50.790] },
+  buzios: { name: 'Búzios', country: 'Brasil', bbox: [-22.830, -42.130, -22.690, -41.860] },
 };
 
 const args = new Set(process.argv.slice(2));
@@ -17,10 +34,16 @@ const cityArg = process.argv.find((value) => value.startsWith('--city='))?.split
 const city = cityArg ? CITIES[cityArg] : undefined;
 const apply = args.has('--apply');
 const activate = args.has('--activate');
-const endpoint = process.env.OVERPASS_API_URL || 'https://overpass-api.de/api/interpreter';
+const endpoints = process.env.OVERPASS_API_URL
+  ? [process.env.OVERPASS_API_URL]
+  : [
+      'https://overpass-api.de/api/interpreter',
+      'https://overpass.kumi.systems/api/interpreter',
+      'https://overpass.private.coffee/api/interpreter',
+    ];
 
 if (!city) {
-  console.error('Uso: node scripts/import-overpass-pois.mjs --city=roma|paris|orlando|lisboa [--apply] [--activate]');
+  console.error(`Uso: node scripts/import-overpass-pois.mjs --city=${Object.keys(CITIES).join('|')} [--apply] [--activate]`);
   process.exit(1);
 }
 
@@ -171,17 +194,25 @@ function selectQualityCandidates(elements) {
 }
 
 async function download() {
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-      'User-Agent': 'Rumo-POI-Importer/1.0 (development; contact: platform owner)',
-    },
-    body: new URLSearchParams({ data: buildQuery(city.bbox) }),
-    signal: AbortSignal.timeout(150_000),
-  });
-  if (!response.ok) throw new Error(`Overpass respondeu ${response.status}: ${(await response.text()).slice(0, 300)}`);
-  return response.json();
+  const errors = [];
+  for (const endpoint of endpoints) {
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+          'User-Agent': 'Rumo-POI-Importer/1.0 (development; contact: platform owner)',
+        },
+        body: new URLSearchParams({ data: buildQuery(city.bbox) }),
+        signal: AbortSignal.timeout(150_000),
+      });
+      if (response.ok) return response.json();
+      errors.push(`${endpoint}: HTTP ${response.status}`);
+    } catch (error) {
+      errors.push(`${endpoint}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  throw new Error(`Nenhum servidor Overpass respondeu para ${city.name}: ${errors.join('; ')}`);
 }
 
 async function persist(rows) {

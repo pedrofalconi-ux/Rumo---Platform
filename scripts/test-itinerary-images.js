@@ -8,6 +8,7 @@ async function main() {
     sanitizeImageQuery,
     simplifyImageQuery,
     translateImageQuery,
+    isInlineImage,
   } = mediaModule;
   const { classifyFallbackImage, getCategoryFallbackImage } = fallbackModule;
 
@@ -103,6 +104,14 @@ async function main() {
   console.log(`  sanitizeImageQuery("Eiffel Tower, Paris 2026!") -> "${sanitizeImageQuery('Eiffel Tower, Paris 2026!')}"`);
   console.log(`  simplifyImageQuery("Visita ao Louvre Museum Rue de Rivoli") -> "${simplifyImageQuery('Visita ao Louvre Museum Rue de Rivoli')}"`);
   console.log(`  translateImageQuery("Almoco na praia de Tambau") -> "${translateImageQuery('Almoco na praia de Tambau')}"`);
+
+  console.log('\nPersistencia leve:');
+  if (!isInlineImage('data:image/jpeg;base64,abc') || isInlineImage('https://cdn.example/photo.jpg')) {
+    failures += 1;
+    console.log('  falha ao distinguir imagem inline de URL remota');
+  } else {
+    console.log('  data URL bloqueada e URL remota permitida');
+  }
 
   const fallbackScenarios = [
     { title: 'Museu do Louvre', details: 'Galeria e monumento', expected: 'museum' },
