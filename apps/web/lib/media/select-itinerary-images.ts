@@ -1,6 +1,7 @@
 import { db } from '@rumo/db';
 import type { ItineraryItem } from '@rumo/ai';
 import { convertUrlToBase64 } from './base64-converter';
+import { getCategoryFallbackImage } from './fallback-images';
 
 const FALLBACK_PIXABAY_KEY = '56439289-7031ef2f0e888cf1c7ab9501e';
 const STOP_WORDS = new Set([
@@ -93,7 +94,9 @@ interface UnsplashPhoto {
   };
   user?: {
     name?: string;
+    links?: { html?: string };
   };
+  links?: { download_location?: string; html?: string };
 }
 
 interface TripImageContext {
@@ -115,6 +118,7 @@ interface OnlinePhotoResult {
   url: string;
   credit: string;
   source: 'unsplash' | 'pixabay';
+  creditUrl?: string;
 }
 
 export async function selectImagesForItinerary(
@@ -137,10 +141,6 @@ export async function selectImagesForItinerary(
 
     const destinationFallback = destinationByDay.get(item.day) || '';
     const candidates = buildImageQueryCandidates(item, destinationFallback);
-    if (candidates.length === 0) {
-      enriched.push(item);
-      continue;
-    }
 
     let selectedItem: ItineraryItem | null = null;
 
@@ -165,12 +165,22 @@ export async function selectImagesForItinerary(
           source: onlinePhoto.source,
           query: candidate,
           credit: onlinePhoto.credit,
+          creditUrl: onlinePhoto.creditUrl,
         });
         break;
       }
     }
 
-    enriched.push(selectedItem || item);
+    if (!selectedItem) {
+      const fallback = getCategoryFallbackImage(item);
+      selectedItem = withImage(item, fallback.url, {
+        source: 'mock_fallback',
+        query: fallback.category,
+        credit: fallback.credit,
+      });
+    }
+
+    enriched.push(selectedItem);
   }
 
   return enriched;
@@ -281,7 +291,6 @@ async function findOnlinePhoto(
 
   const unsplashKey =
     process.env.UNSPLASH_ACCESS_KEY ||
-    process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY ||
     settings.unsplashKey ||
     '';
   const pixabayKey =
@@ -341,11 +350,18 @@ async function findUnsplashPhoto(query: string, accessKey: string): Promise<Onli
     const imageUrl = first?.urls?.regular || first?.urls?.small || first?.urls?.full;
     if (!imageUrl) return null;
 
-    const base64Url = await convertUrlToBase64(imageUrl);
+    if (first?.links?.download_location) {
+      await fetch(first.links.download_location, {
+        headers: { Authorization: `Client-ID ${accessKey}`, 'Accept-Version': 'v1' },
+        cache: 'no-store',
+      }).catch(() => undefined);
+    }
     return {
-      url: base64Url,
+      // Unsplash exige hotlink da URL retornada pela API para contabilizar views.
+      url: imageUrl,
       credit: first?.user?.name || 'Unsplash',
       source: 'unsplash',
+      creditUrl: first?.user?.links?.html || first?.links?.html,
     };
   } catch (error) {
     console.error(`[Unsplash] Erro na requisicao para query "${query}":`, error);
@@ -388,7 +404,7 @@ async function findPixabayPhoto(query: string, key: string): Promise<OnlinePhoto
 function withImage(
   item: ItineraryItem,
   image: string,
-  imageMeta: { source: string; query: string; credit: string }
+  imageMeta: { source: string; query: string; credit: string; creditUrl?: string }
 ): ItineraryItem {
   return {
     ...item,
@@ -399,6 +415,7 @@ function withImage(
       imageSource: imageMeta.source,
       imageSearchQuery: imageMeta.query,
       imageCredit: imageMeta.credit,
+      imageCreditUrl: imageMeta.creditUrl,
     },
   };
 }

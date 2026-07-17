@@ -32,6 +32,7 @@ ${entries.join('\n')}
 
 Regras obrigatorias de grounding:
 - Priorize os itens da lista e marque-os com meta.poiValidation="curated" e meta.verificationRequired=false.
+- Quando a lista contiver restaurantes, use pelo menos um nome curado no almoco e outro no jantar, evitando repetir o mesmo estabelecimento em dias consecutivos.
 - Preserve o nome exatamente como fornecido; nao crie filiais, variacoes ou enderecos.
 - Se nenhum item servir, voce pode citar outro lugar real de alta confianca, marcando meta.poiValidation="model_knowledge" e meta.verificationRequired=true.
 - Se a confianca no nome for baixa, use descricao generica qualificada sem nome fantasia.

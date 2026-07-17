@@ -349,6 +349,10 @@ export async function updateTripForAgency(id: string, patch: Partial<TripRecord>
 
   const current = await findTripById(id, agencyId);
   if (!current) return null;
+  // O usuario pode acessar o tenant por um alias legado. Depois de autorizar o
+  // acesso acima, toda escrita deve usar o agency_id realmente persistido na
+  // viagem; filtrar pelo alias faz o UPDATE afetar zero linhas.
+  const persistedAgencyId = current.agencyId;
 
   const payload = buildSupabaseTripPayload(
     {
@@ -362,18 +366,24 @@ export async function updateTripForAgency(id: string, patch: Partial<TripRecord>
       transportation: patch.transportation || current.transportation,
       accommodations: patch.accommodations || current.accommodations,
     },
-    agencyId,
+    persistedAgencyId,
     userId
   );
 
   const updateQuery = supabaseAdmin.from('itineraries').update(payload).eq('id', id);
   const scopedUpdateQuery = isPlatformScope(agencyId)
     ? updateQuery
-    : updateQuery.eq('agency_id', agencyId);
+    : updateQuery.eq('agency_id', persistedAgencyId);
 
   const { data, error } = await scopedUpdateQuery.select('*').single();
 
   if (error || !data) {
+    console.error('[trips] Falha ao atualizar itinerario no Supabase', {
+      tripId: id,
+      requestedAgencyId: agencyId,
+      persistedAgencyId,
+      error: error?.message || 'UPDATE nao retornou dados',
+    });
     const legacyCurrent = db.trips.findOne(id) as TripRecord | undefined;
     if (!legacyCurrent) return null;
     if (!isLocalLegacyTrip(legacyCurrent) && !(await matchesLegacyAgency(legacyCurrent.agencyId, agencyId))) {

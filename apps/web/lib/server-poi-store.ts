@@ -102,6 +102,35 @@ async function mapRow(row: PoiRow): Promise<CuratedPoi> {
   };
 }
 
+function selectBalancedRows(rows: PoiRow[], terms: string[], limit: number) {
+  const ranked = rows
+    .map((row) => ({ row, score: scorePoi(row, terms) }))
+    .sort((a, b) => b.score - a.score || a.row.name.localeCompare(b.row.name));
+  const quotas: Partial<Record<PoiType, number>> = {
+    restaurant: 5,
+    cafe: 2,
+    bar: 1,
+    attraction: 4,
+    viewpoint: 1,
+    park: 1,
+    market: 1,
+  };
+  const selected: PoiRow[] = [];
+  const selectedIds = new Set<string>();
+
+  for (const [type, quota] of Object.entries(quotas) as Array<[PoiType, number]>) {
+    for (const candidate of ranked.filter(({ row }) => row.type === type).slice(0, quota)) {
+      selected.push(candidate.row);
+      selectedIds.add(candidate.row.id);
+    }
+  }
+  for (const candidate of ranked) {
+    if (selected.length >= limit) break;
+    if (!selectedIds.has(candidate.row.id)) selected.push(candidate.row);
+  }
+  return selected.slice(0, limit);
+}
+
 export const supabasePoiRetriever: PoiRetriever = {
   async retrieve(request) {
     const city = cityFromDestination(request.dayPlan.destination);
@@ -115,8 +144,7 @@ export const supabasePoiRetriever: PoiRetriever = {
       .ilike('destination_city', city)
       .eq('active', true)
       .eq('curated', true)
-      .order('name')
-      .limit(60);
+      .limit(1000);
 
     if (error) {
       // Migration ainda nao aplicada e indisponibilidade devem resultar no mesmo
@@ -127,11 +155,7 @@ export const supabasePoiRetriever: PoiRetriever = {
 
     const terms = intentTerms(request);
     const rows = (data || []) as PoiRow[];
-    const pois = rows
-      .map((row) => ({ row, score: scorePoi(row, terms) }))
-      .sort((a, b) => b.score - a.score || a.row.name.localeCompare(b.row.name))
-      .slice(0, request.limit)
-      .map(({ row }) => row);
+    const pois = selectBalancedRows(rows, terms, request.limit);
 
     const hydratedPois = await Promise.all(pois.map(mapRow));
 

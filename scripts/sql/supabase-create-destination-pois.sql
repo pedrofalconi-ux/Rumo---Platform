@@ -48,9 +48,9 @@ ALTER TABLE public.destination_pois
 ALTER TABLE public.destination_pois
   ADD CONSTRAINT destination_pois_provider_check
   CHECK (provider IN ('manual', 'openstreetmap', 'official_site'));
-CREATE UNIQUE INDEX IF NOT EXISTS destination_pois_provider_record_idx
-  ON public.destination_pois (provider, provider_record_id)
-  WHERE provider_record_id IS NOT NULL;
+DROP INDEX IF EXISTS public.destination_pois_provider_record_idx;
+CREATE UNIQUE INDEX destination_pois_provider_record_idx
+  ON public.destination_pois (provider, provider_record_id);
 
 CREATE INDEX IF NOT EXISTS destination_pois_city_active_idx
   ON public.destination_pois (lower(destination_city), active, curated);

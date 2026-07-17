@@ -2,12 +2,14 @@
 
 async function main() {
   const mediaModule = await import('../apps/web/lib/media/select-itinerary-images.ts');
+  const fallbackModule = await import('../apps/web/lib/media/fallback-images.ts');
   const {
     buildImageQueryCandidates,
     sanitizeImageQuery,
     simplifyImageQuery,
     translateImageQuery,
   } = mediaModule;
+  const { classifyFallbackImage, getCategoryFallbackImage } = fallbackModule;
 
   const scenarios = [
     {
@@ -101,6 +103,26 @@ async function main() {
   console.log(`  sanitizeImageQuery("Eiffel Tower, Paris 2026!") -> "${sanitizeImageQuery('Eiffel Tower, Paris 2026!')}"`);
   console.log(`  simplifyImageQuery("Visita ao Louvre Museum Rue de Rivoli") -> "${simplifyImageQuery('Visita ao Louvre Museum Rue de Rivoli')}"`);
   console.log(`  translateImageQuery("Almoco na praia de Tambau") -> "${translateImageQuery('Almoco na praia de Tambau')}"`);
+
+  const fallbackScenarios = [
+    { title: 'Museu do Louvre', details: 'Galeria e monumento', expected: 'museum' },
+    { title: 'Almoço em trattoria local', details: 'Pasta e gelato', expected: 'italian_food' },
+    { title: 'Jantar japonês', details: 'Sushi e sashimi', expected: 'japanese_food' },
+    { title: 'Café da manhã', details: 'Padaria e brunch', expected: 'cafe' },
+    { title: 'Embarque no aeroporto', details: 'Voo internacional', expected: 'flight_airport' },
+    { title: 'Fim de tarde na praia', details: 'Caminhada pela orla', expected: 'beach' },
+  ];
+
+  console.log('\nFallbacks categorizados:');
+  fallbackScenarios.forEach((scenario, index) => {
+    const item = { id: `fallback-${index}`, day: 1, type: 'places', ...scenario };
+    const category = classifyFallbackImage(item);
+    const first = getCategoryFallbackImage(item);
+    const second = getCategoryFallbackImage(item);
+    const stable = first.url === second.url;
+    console.log(`  ${scenario.title}: ${category} (${stable ? 'estavel' : 'instavel'})`);
+    if (category !== scenario.expected || !stable) failures += 1;
+  });
 
   if (failures > 0) {
     console.error(`\nFalha em ${failures} cenario(s).`);
