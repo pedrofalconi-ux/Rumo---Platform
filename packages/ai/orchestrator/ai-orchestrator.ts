@@ -16,8 +16,10 @@ import { createLLMProvider, resolveOrchestratorConfig } from '../providers/facto
 import type { LLMProvider } from '../providers/types';
 import { composeItinerary, mergeDayIntoItinerary } from './compose-itinerary';
 import { countTripDays, normalizeTripInput } from './trip-input-normalizer';
-import type { PoiRetriever } from '../rag/poi-retriever';
+import type { CuratedPoi, PoiRetriever } from '../rag/poi-retriever';
 import { uncoveredPoiResult } from '../rag/poi-retriever';
+import { calculateTemplateMatch, formatTemplatePromptContext } from '../rag/template-document-retriever';
+import type { ItineraryTemplateContext } from '../rag/template-document-retriever';
 
 export interface GenerationLogger {
   log(entry: {
@@ -65,6 +67,7 @@ export class AiOrchestrator {
     rawInput: TripInput,
     context?: {
       userId?: string;
+      template?: ItineraryTemplateContext;
       onDayGenerated?: (progress: {
         plan: TripPlan;
         dayBlocks: DayBlocks;
@@ -86,7 +89,8 @@ export class AiOrchestrator {
     let tokensIn = 0;
     let tokensOut = 0;
 
-    const planPrompt = buildPlanTripPrompt(input, ruleCtx.constraints, totalDays);
+    const templatePrompt = context?.template ? formatTemplatePromptContext(context.template) : '';
+    const planPrompt = [buildPlanTripPrompt(input, ruleCtx.constraints, totalDays), templatePrompt].filter(Boolean).join('\n\n');
     const planGeneration = await this.generatePlanWithRecovery(input, totalDays, planPrompt);
     const plan = planGeneration.plan;
 
@@ -117,16 +121,16 @@ export class AiOrchestrator {
     for (const dayPlan of plan.days) {
       const previouslyUsedPlaceNames = Array.from(usedDiningPlaceNames);
       const poiContext = await this.retrievePois(input, dayPlan, previouslyUsedPlaceNames);
-      const dayPrompt = buildGenerateDayPrompt(
+      const dayPrompt = [buildGenerateDayPrompt(
         input,
         dayPlan,
         ruleCtx.constraints,
         poiContext,
         previouslyUsedPlaceNames
+      ), templatePrompt].filter(Boolean).join('\n\n');
+      const diningCandidates = poiContext.pois.filter((poi) =>
+        ['restaurant', 'cafe', 'bar'].includes(poi.type)
       );
-      const diningCandidates = poiContext.pois
-        .filter((poi) => ['restaurant', 'cafe', 'bar'].includes(poi.type))
-        .map((poi) => poi.name);
 
       try {
         const dayGeneration = await this.generateDayWithRecovery(
@@ -138,7 +142,7 @@ export class AiOrchestrator {
           diningCandidates
         );
         dayResults.push(dayGeneration.dayBlocks);
-        for (const placeName of collectUsedDiningPlaceNames(dayGeneration.dayBlocks, diningCandidates)) {
+        for (const placeName of collectUsedDiningPlaceNames(dayGeneration.dayBlocks, diningCandidates.map((poi) => poi.name))) {
           usedDiningPlaceNames.add(placeName);
         }
 
@@ -217,6 +221,7 @@ export class AiOrchestrator {
       success: true,
     });
 
+    const templateMatch = context?.template ? calculateTemplateMatch(itinerary, context.template) : undefined;
     return {
       itinerary,
       plan,
@@ -229,6 +234,7 @@ export class AiOrchestrator {
         latencyMs: Date.now() - started,
         daysGenerated: dayResults.length,
         failedDays: failedDays.length ? failedDays : undefined,
+        templateMatch,
       },
     };
   }
@@ -355,7 +361,7 @@ export class AiOrchestrator {
     prompt: string,
     blockedTypes: string[],
     previouslyUsedPlaceNames: string[] = [],
-    diningCandidateNames: string[] = []
+    diningCandidates: CuratedPoi[] = []
   ): Promise<{ dayBlocks: DayBlocks; tokensIn: number; tokensOut: number; latencyMs: number; recoveredFrom?: string }> {
     const started = Date.now();
 
@@ -366,7 +372,12 @@ export class AiOrchestrator {
         schema: DayBlocksSchema,
       });
 
-      const dayBlocks = ensureDayBlocksCompleteness(result.data as DayBlocks, input, dayPlan, blockedTypes);
+      const dayBlocks = groundDiningBlocksWithCuratedPois(
+        ensureDayBlocksCompleteness(result.data as DayBlocks, input, dayPlan, blockedTypes),
+        diningCandidates,
+        previouslyUsedPlaceNames
+      );
+      const diningCandidateNames = diningCandidates.map((poi) => poi.name);
       assertDiningDiversity(dayBlocks, previouslyUsedPlaceNames, diningCandidateNames);
       return {
         dayBlocks,
@@ -385,7 +396,12 @@ export class AiOrchestrator {
           schema: DayBlocksSchema,
         });
 
-        const dayBlocks = ensureDayBlocksCompleteness(retry.data as DayBlocks, input, dayPlan, blockedTypes);
+        const dayBlocks = groundDiningBlocksWithCuratedPois(
+          ensureDayBlocksCompleteness(retry.data as DayBlocks, input, dayPlan, blockedTypes),
+          diningCandidates,
+          previouslyUsedPlaceNames
+        );
+        const diningCandidateNames = diningCandidates.map((poi) => poi.name);
         assertDiningDiversity(dayBlocks, previouslyUsedPlaceNames, diningCandidateNames);
         return {
           dayBlocks,
@@ -611,6 +627,62 @@ function blockPlaceName(block: DayBlocks['blocks'][number]) {
 
 function isGenericDiningTitle(value: string) {
   return /^(almoco|jantar|cafe da manha|pausa|refeicao|experiencia gastronomica)\b/.test(normalizePlaceName(value));
+}
+
+export function groundDiningBlocksWithCuratedPois(
+  dayBlocks: DayBlocks,
+  diningCandidates: CuratedPoi[],
+  previouslyUsedPlaceNames: string[] = []
+): DayBlocks {
+  if (!diningCandidates.length) return dayBlocks;
+
+  const unavailable = new Set(previouslyUsedPlaceNames.map(normalizePlaceName));
+  const candidates = [...diningCandidates]
+    .filter((poi) => !unavailable.has(normalizePlaceName(poi.name)))
+    .sort((a, b) => {
+      const typePriority = (poi: CuratedPoi) => poi.type === 'restaurant' ? 0 : poi.type === 'cafe' ? 1 : 2;
+      return typePriority(a) - typePriority(b) || (a.featuredRank ?? 999) - (b.featuredRank ?? 999);
+    });
+  const used = new Set<string>();
+
+  const blocks = dayBlocks.blocks.map((block) => {
+    if (!isDiningBlock(block)) return block;
+    const serialized = normalizePlaceName(`${block.title} ${block.location?.name || ''}`);
+    const existing = candidates.find((poi) => serialized.includes(normalizePlaceName(poi.name)));
+    if (existing) {
+      used.add(normalizePlaceName(existing.name));
+      return {
+        ...block,
+        title: existing.name,
+        location: {
+          name: existing.name,
+          address: existing.address || existing.neighborhood || block.location?.address,
+          latitude: existing.latitude ?? block.location?.latitude,
+          longitude: existing.longitude ?? block.location?.longitude,
+        },
+        meta: { ...block.meta, poiValidation: 'curated', verificationRequired: false },
+      };
+    }
+
+    const selected = candidates.find((poi) => !used.has(normalizePlaceName(poi.name)));
+    if (!selected) return block;
+    used.add(normalizePlaceName(selected.name));
+
+    return {
+      ...block,
+      title: selected.name,
+      details: `${block.details?.trim() || 'Parada gastronômica coerente com o ritmo e a região deste dia.'} Sugestão ancorada em estabelecimento real da base curada da Rumo; confirme horário e reserva antes da viagem.`.trim(),
+      location: {
+        name: selected.name,
+        address: selected.address || selected.neighborhood,
+        latitude: selected.latitude,
+        longitude: selected.longitude,
+      },
+      meta: { ...block.meta, poiValidation: 'curated', verificationRequired: false },
+    };
+  });
+
+  return { ...dayBlocks, blocks };
 }
 
 export function collectUsedDiningPlaceNames(dayBlocks: DayBlocks, diningCandidateNames: string[]) {

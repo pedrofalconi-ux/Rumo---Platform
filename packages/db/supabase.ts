@@ -155,6 +155,89 @@ export interface ItineraryContent {
   highlights?: string[];
 }
 
+export type TemplateBudgetRange = 'budget' | 'moderate' | 'luxury';
+export type TemplatePace = 'slow' | 'moderate' | 'fast';
+export type TemplateStatus = 'draft' | 'published' | 'archived';
+export type TemplatePeriod = 'morning' | 'afternoon' | 'night' | 'any';
+
+export interface ItineraryTemplate {
+  id: string;
+  agency_id: string;
+  name: string;
+  destination: string;
+  country: string;
+  suggested_duration_days: number;
+  budget_range: TemplateBudgetRange;
+  pace: TemplatePace;
+  traveler_profile: string;
+  language: string;
+  status: TemplateStatus;
+  tags: string[];
+  settings: Record<string, unknown>;
+  parent_template_id: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+export interface TemplateDay {
+  id: string;
+  template_id: string;
+  day_number: number;
+  title: string;
+  rain_alternatives: string;
+  meals_recommendation: Array<Record<string, unknown>>;
+}
+
+export interface TemplateBlock {
+  id: string;
+  template_id: string;
+  day_number: number;
+  item_order: number;
+  title: string;
+  description: string;
+  category: string;
+  poi_id: string | null;
+  period: TemplatePeriod;
+  duration_minutes: number | null;
+  is_required: boolean;
+  estimated_cost: number | null;
+  agency_notes: string;
+  ai_instructions: string;
+  tags: string[];
+  metadata: Record<string, unknown>;
+}
+
+export interface TemplateRule {
+  id: string;
+  template_id: string;
+  rule_type: 'dont_combine' | 'max_distance' | 'restricted_age' | 'required' | 'custom';
+  params: Record<string, unknown>;
+}
+
+export interface TemplateDocument {
+  id: string;
+  template_id: string;
+  name: string;
+  file_url: string;
+  mime_type: string;
+  embedding_status: 'pending' | 'processing' | 'ready' | 'failed';
+  chunk_count: number;
+  error_message: string | null;
+}
+
+export interface TemplateVersion {
+  id: string;
+  template_id: string;
+  version_number: number;
+  version_label: string;
+  changes_summary: string;
+  snapshot_data: Record<string, unknown>;
+  created_by: string | null;
+  created_at: string;
+}
+
 export interface Booking {
   id: string;
   agency_id: string;

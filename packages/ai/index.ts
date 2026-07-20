@@ -16,3 +16,5 @@ export type {
 } from './rag/poi-retriever';
 export { POI_TYPES, uncoveredPoiResult } from './rag/poi-retriever';
 export { buildPoiPromptContext } from './rag/poi-prompt-context';
+export type { ItineraryTemplateContext, TemplateContextBlock, TemplateContextRule, TemplateDocumentMatch, TemplateDocumentRetriever } from './rag/template-document-retriever';
+export { calculateTemplateMatch, formatTemplatePromptContext } from './rag/template-document-retriever';

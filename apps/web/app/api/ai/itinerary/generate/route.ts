@@ -4,6 +4,8 @@ import { getCurrentUser } from '../../../../../lib/server-auth';
 import { createTripAiOrchestrator } from '../../../../../lib/ai/create-orchestrator';
 import { selectImagesForItinerary } from '../../../../../lib/media/select-itinerary-images';
 import { findTripById, updateTripForAgency } from '../../../../../lib/server-trip-store';
+import { getTemplate } from '../../../../../lib/templates-store';
+import { retrieveTemplateDocuments } from '../../../../../lib/template-document-retriever';
 
 export async function POST(request: Request) {
   let tripIdForError: string | undefined;
@@ -59,8 +61,23 @@ export async function POST(request: Request) {
     }, user.agencyId, user.id);
 
     const tripInput = tripRecordToInput(trip, user.agencyId);
+    const templateId = String(body.templateId || trip.templateId || '');
+    const storedTemplate = templateId ? await getTemplate(templateId, user.agencyId, true) : null;
+    const template = storedTemplate ? {
+      id: storedTemplate.id,
+      name: storedTemplate.name,
+      destination: storedTemplate.destination,
+      blocks: (storedTemplate.template_blocks || []).map((block: any) => ({
+        dayNumber: block.day_number, title: block.title, category: block.category,
+        period: block.period, required: block.is_required, tags: block.tags || [],
+        description: block.description, aiInstructions: block.ai_instructions,
+      })),
+      rules: (storedTemplate.template_rules || []).map((rule: any) => ({ type: rule.rule_type, params: rule.params || {} })),
+      ragContext: await retrieveTemplateDocuments(templateId, user.agencyId, `${tripInput.destinations.join(' ')} ${tripInput.profile} ${tripInput.preferences}`, 6),
+    } : undefined;
     const result = await orchestrator.generateFullItinerary(tripInput, {
       userId: user.id,
+      template,
       onDayGenerated: async ({ plan, dayResults, failedDays, generationId, tokensIn, tokensOut, startedAt }) => {
         const partialItinerary = composeItinerary(plan, dayResults);
         const mergedPartialItinerary = [...preservedItems, ...partialItinerary];
@@ -106,6 +123,8 @@ export async function POST(request: Request) {
       aiGenerationId: result.meta.generationId,
       aiPrompt: tripInput,
       aiResponse: result.meta,
+      templateId: template?.id,
+      templateMatch: result.meta.templateMatch,
       aiGeneratedAt: new Date().toISOString(),
     }, user.agencyId, user.id);
     if (!updated) {

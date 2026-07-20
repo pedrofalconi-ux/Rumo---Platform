@@ -29,6 +29,12 @@ export function normalizeTripInput(input: TripInput): TripInput {
             accommodation.checkOut
         )
       : [],
+    activities: Array.isArray(parsed.activities)
+      ? parsed.activities.filter((activity) => activity.name && (activity.date || activity.address || activity.category))
+      : [],
+    insuranceAndVisas: Array.isArray(parsed.insuranceAndVisas)
+      ? parsed.insuranceAndVisas.filter((entry) => entry.provider && entry.type)
+      : [],
   };
 }
 
@@ -60,6 +66,10 @@ export function tripRecordToInput(trip: Record<string, unknown>, agencyId: strin
       : [],
     accommodations: Array.isArray(trip.accommodations)
       ? (trip.accommodations as TripInput['accommodations'])
+      : [],
+    activities: Array.isArray(trip.activities) ? (trip.activities as TripInput['activities']) : [],
+    insuranceAndVisas: Array.isArray(trip.insuranceAndVisas)
+      ? (trip.insuranceAndVisas as TripInput['insuranceAndVisas'])
       : [],
     locale: 'pt-BR',
   });

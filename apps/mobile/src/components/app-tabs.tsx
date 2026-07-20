@@ -37,18 +37,18 @@ export default function AppTabs() {
         />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="expenses">
-        <NativeTabs.Trigger.Label>Despesas</NativeTabs.Trigger.Label>
+      <NativeTabs.Trigger name="explore">
+        <NativeTabs.Trigger.Label>Explorar</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/expenses.png')}
+          src={require('@/assets/images/tabIcons/home.png')}
           renderingMode="template"
         />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="diary">
-        <NativeTabs.Trigger.Label>Diário</NativeTabs.Trigger.Label>
+      <NativeTabs.Trigger name="utilities">
+        <NativeTabs.Trigger.Label>Utilidades</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/diary.png')}
+          src={require('@/assets/images/tabIcons/expenses.png')}
           renderingMode="template"
         />
       </NativeTabs.Trigger>

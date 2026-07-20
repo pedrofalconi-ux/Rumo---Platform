@@ -3,14 +3,14 @@
 export default function SecurityPage() {
   return (
     <div className="flex-1 space-y-6">
-      <div className="scroll-reveal">
-        <h2 className="font-headline-lg text-2xl font-bold text-primary tracking-tight">SEGURANCA & RASTREAMENTO</h2>
+      <div className="page-heading scroll-reveal">
+        <h2 className="font-headline-lg text-3xl font-black text-primary tracking-[-.035em]">Segurança e rastreamento</h2>
         <p className="text-on-surface opacity-75 text-sm mt-1">
           Modulo em construcao dentro da plataforma Rumo.
         </p>
       </div>
 
-      <section className="scroll-reveal scroll-reveal-delay-100 relative min-h-[650px] overflow-hidden rounded-xl border border-outline-variant bg-white shadow-sm">
+      <section className="scroll-reveal scroll-reveal-delay-100 relative min-h-[650px] overflow-hidden rounded-[26px] border border-primary/10 bg-white shadow-[0_12px_36px_rgba(16,28,58,.07)]">
         <div className="absolute inset-0 blur-[5px] opacity-45 pointer-events-none select-none">
           <div className="grid grid-cols-12 gap-6 h-full p-6">
             <div className="col-span-12 lg:col-span-4 border border-outline-variant rounded-xl p-4 bg-surface-container-low">
@@ -35,7 +35,7 @@ export default function SecurityPage() {
                     </pattern>
                   </defs>
                   <rect width="100%" height="100%" fill="url(#security-preview-grid)" />
-                  <path d="M60 170 Q140 80 240 135 T430 210 T640 150 T820 280 L900 520 L60 520 Z" fill="#EAF3DE" opacity="0.7" />
+                  <path d="M60 170 Q140 80 240 135 T430 210 T640 150 T820 280 L900 520 L60 520 Z" fill="#DCE8FF" opacity="0.7" />
                 </svg>
               </div>
               <div className="absolute left-[28%] top-[36%] h-8 w-8 rounded-full bg-primary shadow-lg" />
@@ -53,9 +53,9 @@ export default function SecurityPage() {
               <span className="material-symbols-outlined text-[42px]">construction</span>
             </div>
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-coral">Em breve...</p>
-            <h3 className="mt-3 text-2xl font-bold text-primary">Central de seguranca em construcao</h3>
+            <h3 className="mt-3 text-2xl font-bold text-primary">Central de segurança em construção</h3>
             <p className="mt-3 text-sm leading-relaxed text-on-surface opacity-75">
-              Spoiler: vai ser aqui que a agencia podera acompanhar a localizacao de um cliente que esta em viagem, com contexto da trip, ultimo sinal e informacoes operacionais para suporte em tempo real.
+              Em breve, sua agência poderá acompanhar viajantes em rota com contexto da viagem, último sinal e informações operacionais para um suporte mais seguro.
             </p>
           </div>
         </div>

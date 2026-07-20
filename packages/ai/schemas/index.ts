@@ -317,6 +317,9 @@ export const TripInputSchema = z.preprocess(
           number: z.string().optional(),
           date: z.string().optional(),
           details: z.string().optional(),
+          bookingReference: z.string().optional(),
+          seat: z.string().optional(),
+          baggage: z.string().optional(),
         })
       )
       .default([]),
@@ -331,6 +334,38 @@ export const TripInputSchema = z.preprocess(
           checkOut: z.string().optional(),
           placeId: z.string().optional(),
           photos: z.array(z.string()).optional(),
+          roomCategory: z.string().optional(),
+          mealPlan: z.string().optional(),
+          reservationNotes: z.string().optional(),
+        })
+      )
+      .default([]),
+    activities: z
+      .array(
+        z.object({
+          id: z.string().min(1),
+          name: z.string().min(1),
+          date: z.string().optional(),
+          time: z.string().optional(),
+          address: z.string().optional(),
+          category: z.string().optional(),
+          voucher: z.string().optional(),
+          supplier: z.string().optional(),
+          ticketsIncluded: z.boolean().optional(),
+          placeId: z.string().optional(),
+          photos: z.array(z.string()).optional(),
+        })
+      )
+      .default([]),
+    insuranceAndVisas: z
+      .array(
+        z.object({
+          id: z.string().min(1),
+          type: z.enum(['insurance', 'visa']),
+          provider: z.string().min(1),
+          reference: z.string().optional(),
+          validity: z.string().optional(),
+          details: z.string().optional(),
         })
       )
       .default([]),

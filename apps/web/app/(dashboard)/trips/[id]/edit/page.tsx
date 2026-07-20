@@ -65,6 +65,15 @@ interface Trip {
       failedDays?: Array<{ day: number; error: string }>;
     };
   };
+  templateMatch?: {
+    templatePercent: number;
+    customizationPercent: number;
+    aiSuggestionsPercent: number;
+    matchedBlocks: number;
+    totalBlocks: number;
+    matchedRequired: number;
+    totalRequired: number;
+  };
   documents?: TripDocument[];
 }
 
@@ -73,6 +82,171 @@ interface LibraryPhoto {
   folder: string;
   name: string;
   url: string;
+}
+
+interface ItemFormState {
+  title: string;
+  subTitle: string;
+  details: string;
+  image: string;
+  customSymbol: string;
+  meta?: Record<string, string>;
+}
+
+interface HotelSearchResult {
+  id: string;
+  name: string;
+  address: string;
+  photos?: string[];
+  isMock?: boolean;
+  placeId?: string;
+  categories?: string[];
+}
+
+function placeSymbol(categories: string[] = []) {
+  if (categories.some((category) => ['restaurant', 'food', 'meal_takeaway'].includes(category))) return 'restaurant';
+  if (categories.includes('cafe')) return 'coffee';
+  if (categories.includes('lodging')) return 'hotel';
+  if (categories.some((category) => ['museum', 'tourist_attraction', 'historical_landmark'].includes(category))) return 'museum';
+  if (categories.some((category) => ['park', 'natural_feature'].includes(category))) return 'forest';
+  if (categories.some((category) => ['shopping_mall', 'store'].includes(category))) return 'shopping_bag';
+  return 'explore';
+}
+
+function TravelMetadataFields({
+  type,
+  form,
+  onChange,
+  city,
+}: {
+  type: string;
+  form: ItemFormState;
+  onChange: React.Dispatch<React.SetStateAction<ItemFormState>>;
+  city?: string;
+}) {
+  const [hotelQuery, setHotelQuery] = useState('');
+  const [hotelResults, setHotelResults] = useState<HotelSearchResult[]>([]);
+  const [hotelLoading, setHotelLoading] = useState(false);
+  const [flightText, setFlightText] = useState('');
+  const [flightLoading, setFlightLoading] = useState(false);
+  const [automationError, setAutomationError] = useState('');
+
+  const updateMeta = (key: string, value: string) => {
+    onChange((current) => ({ ...current, meta: { ...(current.meta || {}), [key]: value } }));
+  };
+
+  const searchablePlace = ['hotel', 'activity', 'places', 'suggested_places'].includes(type);
+  const searchPlaces = async () => {
+    if (hotelQuery.trim().length < 3) return;
+    setHotelLoading(true);
+    setAutomationError('');
+    try {
+      const params = new URLSearchParams({ q: hotelQuery.trim(), type: type === 'hotel' ? 'lodging' : 'all', ...(city ? { city } : {}) });
+      const response = await fetch(`/api/media/hotels/search?${params}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Não foi possível buscar lugares.');
+      setHotelResults(data.results || []);
+    } catch (error) {
+      setAutomationError(error instanceof Error ? error.message : 'Erro ao buscar lugares.');
+    } finally {
+      setHotelLoading(false);
+    }
+  };
+
+  const analyzeFlight = async () => {
+    if (flightText.trim().length < 12) return;
+    setFlightLoading(true);
+    setAutomationError('');
+    try {
+      const response = await fetch('/api/ai/flight/parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: flightText }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Não foi possível analisar o bilhete.');
+      const flight = data.flight || {};
+      onChange((current) => ({
+        ...current,
+        title: flight.title || current.title,
+        subTitle: flight.flightNumber || current.subTitle,
+        details: flight.details || current.details,
+        customSymbol: 'flight',
+        meta: {
+          ...(current.meta || {}),
+          airline: flight.airline || '',
+          flightNumber: flight.flightNumber || '',
+          origin: flight.origin || '',
+          destination: flight.destination || '',
+          departureTime: flight.departureTime || '',
+          arrivalTime: flight.arrivalTime || '',
+          duration: flight.duration || '',
+        },
+      }));
+    } catch (error) {
+      setAutomationError(error instanceof Error ? error.message : 'Erro ao analisar bilhete.');
+    } finally {
+      setFlightLoading(false);
+    }
+  };
+
+  if (type !== 'flight' && !searchablePlace) return null;
+  const fields = type === 'flight'
+    ? [
+        ['airline', 'Companhia aérea'], ['flightNumber', 'Número do voo'],
+        ['origin', 'Aeroporto de partida'], ['destination', 'Aeroporto de chegada'],
+        ['departureTime', 'Horário de partida'], ['arrivalTime', 'Horário de chegada'],
+        ['duration', 'Duração'],
+      ]
+    : type === 'hotel' ? [
+        ['address', 'Endereço'], ['rooms', 'Quarto / categoria'],
+        ['checkin', 'Horário de check-in'], ['checkout', 'Horário de check-out'],
+      ] : [['address', 'Endereço do local']];
+
+  return (
+    <section className="rounded-2xl border border-primary/10 bg-ice-blue/60 p-4 space-y-4">
+      <div>
+        <p className="text-xs font-black text-primary">{type === 'flight' ? 'Detalhes do voo' : type === 'hotel' ? 'Detalhes da hospedagem' : 'Buscar lugar no Google'}</p>
+        <p className="text-[10px] text-on-surface/60">Preencha manualmente ou use o preenchimento rápido.</p>
+      </div>
+
+      {type === 'flight' ? (
+        <details className="rounded-xl border border-primary/10 bg-white p-3">
+          <summary className="cursor-pointer text-xs font-bold text-primary">Preenchimento rápido com IA</summary>
+          <div className="mt-3 space-y-2">
+            <textarea value={flightText} onChange={(event) => setFlightText(event.target.value)} rows={4} placeholder="Cole aqui o bilhete, PNR ou e-mail de confirmação..." className="w-full rounded-lg border border-outline-variant p-2.5 text-xs" />
+            <button type="button" onClick={analyzeFlight} disabled={flightLoading || flightText.trim().length < 12} className="rounded-lg bg-primary px-4 py-2 text-[11px] font-bold text-white disabled:opacity-50">
+              {flightLoading ? 'Analisando...' : 'Analisar bilhete'}
+            </button>
+          </div>
+        </details>
+      ) : (
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <input value={hotelQuery} onChange={(event) => setHotelQuery(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); void searchPlaces(); } }} placeholder={type === 'hotel' ? 'Buscar hotel pelo nome...' : 'Buscar restaurante, atração ou estabelecimento...'} className="min-w-0 flex-1 rounded-lg border border-outline-variant bg-white p-2.5 text-xs" />
+            <button type="button" onClick={searchPlaces} disabled={hotelLoading} className="rounded-lg bg-primary px-4 text-[11px] font-bold text-white disabled:opacity-50">{hotelLoading ? 'Buscando...' : 'Buscar'}</button>
+          </div>
+          {hotelResults.length > 0 && (
+            <div className="grid gap-2 sm:grid-cols-2">
+              {hotelResults.map((hotel) => (
+                <button key={hotel.id} type="button" onClick={() => onChange((current) => ({ ...current, title: hotel.name, subTitle: hotel.address || current.subTitle, image: hotel.photos?.[0] || current.image, customSymbol: type === 'hotel' ? 'hotel' : placeSymbol(hotel.categories), meta: { ...(current.meta || {}), address: hotel.address, placeId: hotel.placeId || hotel.id, placeCategories: (hotel.categories || []).join(',') } }))} className="flex items-center gap-3 rounded-xl border border-primary/10 bg-white p-2 text-left hover:border-primary/35">
+                  {hotel.photos?.[0] ? <img src={hotel.photos[0]} alt="" className="h-12 w-14 rounded-lg object-cover" /> : <span className="material-symbols-outlined text-primary">{type === 'hotel' ? 'hotel' : placeSymbol(hotel.categories)}</span>}
+                  <span className="min-w-0"><span className="block truncate text-[11px] font-bold">{hotel.name}</span><span className="block truncate text-[9px] text-on-surface/55">{hotel.address}</span></span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {automationError && <p className="rounded-lg bg-error/10 p-2 text-[10px] font-semibold text-error">{automationError}</p>}
+      <div className="grid gap-3 sm:grid-cols-2">
+        {fields.map(([key, label]) => (
+          <label key={key} className="space-y-1"><span className="text-[10px] font-bold text-on-surface/65">{label}</span><input value={form.meta?.[key] || ''} onChange={(event) => updateMeta(key, event.target.value)} className="w-full rounded-lg border border-outline-variant bg-white p-2.5 text-xs" /></label>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 interface MediaSearchResult {
@@ -223,44 +397,12 @@ const buildUberRideUrl = (item: ItineraryItem) => {
   return `https://m.uber.com/looking?${params.toString()}`;
 };
 
-const getTrailTheme = (type: string) => {
-  if (type === 'day_summary') {
-    return {
-      node: 'bg-amber-50 border-amber-400 text-amber-700 ring-amber-100',
-      card: 'border-amber-200 bg-amber-50/35',
-      label: 'text-amber-700 bg-amber-100/70',
-      rail: 'bg-amber-300',
-    };
-  }
-  if (type === 'transport') {
-    return {
-      node: 'bg-sky-50 border-sky-400 text-sky-700 ring-sky-100',
-      card: 'border-sky-200 bg-sky-50/35',
-      label: 'text-sky-700 bg-sky-100/70',
-      rail: 'bg-sky-300',
-    };
-  }
-  if (type === 'places' || type === 'suggested_places') {
-    return {
-      node: 'bg-emerald-50 border-emerald-400 text-emerald-700 ring-emerald-100',
-      card: 'border-emerald-200 bg-emerald-50/30',
-      label: 'text-emerald-700 bg-emerald-100/70',
-      rail: 'bg-emerald-300',
-    };
-  }
-  if (type === 'activity') {
-    return {
-      node: 'bg-violet-50 border-violet-400 text-violet-700 ring-violet-100',
-      card: 'border-violet-200 bg-violet-50/30',
-      label: 'text-violet-700 bg-violet-100/70',
-      rail: 'bg-violet-300',
-    };
-  }
+const getTrailTheme = () => {
   return {
-    node: 'bg-white border-primary text-primary ring-primary/10',
-    card: 'border-outline-variant bg-white',
-    label: 'text-primary bg-primary/10',
-    rail: 'bg-primary/40',
+    node: 'bg-white border-primary text-primary ring-[#E7EEFF]',
+    card: 'border-primary/15 bg-gradient-to-br from-white to-[#F1F5FF]',
+    label: 'text-primary bg-[#E2EAFF]',
+    rail: 'bg-coral',
   };
 };
 
@@ -471,7 +613,7 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
   // Form states for Add/Edit
   const [addItemType, setAddItemType] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<ItineraryItem | null>(null);
-  const [itemForm, setItemForm] = useState({
+  const [itemForm, setItemForm] = useState<ItemFormState>({
     title: '',
     subTitle: '',
     details: '',
@@ -487,6 +629,7 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
       details: '',
       image: '',
       customSymbol: option.defaultSymbol,
+      meta: {},
     });
   };
 
@@ -1064,6 +1207,7 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
       details: item.details || '',
       image: item.image || '',
       customSymbol: item.customSymbol || (ADD_OPTIONS.find(o => o.type === item.type)?.defaultSymbol || 'explore'),
+      meta: Object.fromEntries(Object.entries(item.meta || {}).map(([key, value]) => [key, String(value ?? '')])),
     });
   };
 
@@ -1080,6 +1224,7 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
           details: itemForm.details,
           image: itemForm.image || undefined,
           customSymbol: itemForm.customSymbol || undefined,
+          meta: { ...(item.meta || {}), ...(itemForm.meta || {}) },
         };
       }
       return item;
@@ -1105,18 +1250,8 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
       details: itemForm.details || undefined,
       image: itemForm.image || undefined,
       customSymbol: itemForm.customSymbol || undefined,
-      meta: addItemType === 'flight' ? {
-        airline: 'Companhia Aérea',
-        flightNumber: itemForm.subTitle || 'G3-100',
-        origin: trip?.origin || 'São Paulo',
-        destination: trip?.destinations[0] || 'Roma',
-        departureTime: '12:00',
-        arrivalTime: '14:00',
-        duration: '2h',
-      } : addItemType === 'hotel' ? {
-        address: 'Endereço do hotel',
-        rooms: '1 Quarto',
-        checkin: '15:00',
+      meta: addItemType === 'flight' || addItemType === 'hotel' ? {
+        ...(itemForm.meta || {}),
       } : {
         type: 'Tour',
         duration: '2 horas',
@@ -1503,6 +1638,17 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
           >
             Aprovar conteudo IA
           </button>
+        </div>
+      )}
+
+      {trip?.templateMatch && !isPreviewMode && (
+        <div className="mb-6 rounded-2xl border border-primary/10 bg-white p-5 shadow-sm print:hidden">
+          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-wider text-coral">Aderência ao modelo</p><h3 className="mt-1 text-sm font-black text-primary">Como este roteiro foi composto</h3></div><p className="text-[10px] text-on-surface/50">{trip.templateMatch.matchedBlocks}/{trip.templateMatch.totalBlocks} blocos · {trip.templateMatch.matchedRequired}/{trip.templateMatch.totalRequired} obrigatórios</p></div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">{[
+            ['Modelo', trip.templateMatch.templatePercent, 'bg-primary'],
+            ['Preferências', trip.templateMatch.customizationPercent, 'bg-coral'],
+            ['Sugestões IA', trip.templateMatch.aiSuggestionsPercent, 'bg-sky-400'],
+          ].map(([label, value, color]) => <div key={String(label)} className="rounded-xl bg-surface-container-low p-3"><div className="flex justify-between text-[10px] font-bold"><span>{label}</span><span>{value}%</span></div><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-primary/10"><div className={`h-full rounded-full ${color}`} style={{ width: `${value}%` }}/></div></div>)}</div>
         </div>
       )}
 
@@ -2868,26 +3014,62 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
       )}
 
       {/* Itinerary Trail Path */}
-      <div className="pdf-itinerary relative">
+      <div className="pdf-itinerary relative overflow-hidden rounded-[32px] border border-primary/10 bg-[#EDF2FC] px-3 py-5 sm:px-8 sm:py-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+        <div aria-hidden="true" className="absolute -right-24 -top-24 h-72 w-72 rounded-full border-[52px] border-white/25" />
+        <div aria-hidden="true" className="absolute -left-20 top-[32rem] h-52 w-52 rounded-full border-[38px] border-primary/[0.035]" />
+
+        <div className="relative mb-9 overflow-hidden rounded-[26px] bg-primary px-5 py-6 text-white shadow-[0_18px_45px_rgba(24,59,78,0.18)] sm:px-7">
+          <div aria-hidden="true" className="absolute -right-8 -top-16 h-48 w-48 rounded-full border-[34px] border-white/[0.06]" />
+          <div className="relative flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-coral px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-white shadow-sm">
+                <span className="material-symbols-outlined text-[15px]">route</span>
+                Trilha da viagem
+              </div>
+              <h2 className="font-headline-lg text-2xl font-black tracking-tight sm:text-3xl">Uma jornada, parada por parada</h2>
+              <p className="mt-1.5 max-w-xl text-xs leading-relaxed text-white/70 sm:text-sm">
+                Organize o ritmo da viagem e acompanhe cada experiência ao longo do caminho.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <div className="min-w-[82px] rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-sm">
+                <p className="text-[9px] font-black uppercase tracking-wider text-white/55">Dias</p>
+                <p className="mt-1 text-2xl font-black leading-none">{getDays().length}</p>
+              </div>
+              <div className="min-w-[82px] rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-sm">
+                <p className="text-[9px] font-black uppercase tracking-wider text-white/55">Paradas</p>
+                <p className="mt-1 text-2xl font-black leading-none">{items.length}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Days loop */}
-        {getDays().map((dayNum) => {
+        <div className="relative">
+        <div aria-hidden="true" className="absolute bottom-4 left-[25px] top-7 w-[5px] rounded-full bg-gradient-to-b from-coral via-primary/55 to-sky-compass/30 sm:left-[31px]" />
+        {getDays().map((dayNum, dayIndex) => {
           const dayItems = items.filter((i) => i.day === dayNum);
 
           return (
-            <div key={dayNum} className="scroll-reveal journey-node mb-14">
-              <div className="flex items-center justify-between mb-6 pl-1">
+            <div key={dayNum} className="scroll-reveal journey-node relative mb-16 last:mb-4">
+              <div className="relative flex items-center justify-between mb-7">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center text-sm font-black shadow-md ring-4 ring-primary/10">
-                    {dayNum}
+                  <div className="z-10 flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-[18px] bg-coral text-white shadow-[0_10px_25px_rgba(255,84,45,0.3)] ring-[6px] ring-[#EDF2FC] sm:h-16 sm:w-16">
+                    <span className="text-[8px] font-black uppercase tracking-[0.16em] text-white/70">Dia</span>
+                    <span className="text-xl font-black leading-none">{dayNum}</span>
                   </div>
-                  <h3 className="font-headline-md text-lg font-bold text-on-surface">Dia {dayNum} do Roteiro</h3>
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-[0.18em] text-primary/50">Trecho {dayIndex + 1} de {getDays().length}</p>
+                    <h3 className="font-headline-md text-xl font-black text-on-surface sm:text-2xl">Dia {dayNum} do roteiro</h3>
+                    <p className="mt-0.5 text-[11px] font-semibold text-on-surface/55">{dayItems.length} {dayItems.length === 1 ? 'parada planejada' : 'paradas planejadas'}</p>
+                  </div>
                 </div>
                 {!isPreviewMode && (
                   <button
                     type="button"
                     onClick={() => handleRegenerateDay(dayNum)}
                     disabled={regeneratingDay === dayNum || aiGenerating}
-                    className="flex items-center gap-1 px-2.5 py-1 border border-violet-200 text-violet-700 rounded-lg text-[10px] font-bold hover:bg-violet-50 disabled:opacity-50 transition-all print:hidden"
+                    className="flex items-center gap-1.5 rounded-full border border-primary/15 bg-white/70 px-3 py-2 text-[10px] font-bold text-primary shadow-sm hover:bg-white disabled:opacity-50 transition-all print:hidden"
                   >
                     <span className="material-symbols-outlined text-[14px]">autorenew</span>
                     {regeneratingDay === dayNum ? 'Regenerando...' : 'Regenerar dia (IA)'}
@@ -2901,11 +3083,11 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
                   const connectorIcon = getTrailConnectorIcon(item);
                   const connectorLabel = getTrailDistanceLabel(item);
                   const itemIcon = item.customSymbol || (ADD_OPTIONS.find(o => o.type === item.type)?.defaultSymbol || 'explore');
-                  const theme = getTrailTheme(item.type);
+                  const theme = getTrailTheme();
                   const uberRideUrl = buildUberRideUrl(item);
 
                   return (
-                  <div key={item.id} className="scroll-reveal pdf-trail-grid relative grid grid-cols-[76px_minmax(0,1fr)] sm:grid-cols-[92px_minmax(0,1fr)] gap-3 sm:gap-5 min-h-[206px]">
+                  <div key={item.id} className="scroll-reveal pdf-trail-grid relative grid grid-cols-[58px_minmax(0,1fr)] sm:grid-cols-[76px_minmax(0,1fr)] gap-2 sm:gap-5 min-h-[206px]">
                     <div className="relative flex flex-col items-center">
                       {index > 0 && (
                         <div className="pdf-connector absolute -top-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-primary/65">
@@ -2931,7 +3113,7 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
                         type="button"
                         onClick={() => handleStartEditItem(item)}
                         disabled={isPreviewMode}
-                        className={`pdf-node-button mt-6 w-14 h-14 rounded-full flex items-center justify-center shadow-[0_8px_20px_rgba(15,23,42,0.12)] z-10 transition-all border-2 ring-4 ${theme.node} ${!isPreviewMode ? 'hover:scale-110 cursor-pointer' : ''}`}
+                        className={`pdf-node-button mt-6 w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center shadow-[0_10px_24px_rgba(24,59,78,0.12)] z-10 transition-all border-2 ring-4 ${theme.node} ${!isPreviewMode ? 'hover:scale-110 hover:-rotate-3 cursor-pointer' : ''}`}
                         title={`Tipo: ${getTypeLabel(item.type)}`}
                       >
                         <span className="material-symbols-outlined text-[26px]">{itemIcon}</span>
@@ -2948,13 +3130,13 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
                     </div>
 
                     <div
-                      className={`card-hover relative border rounded-xl overflow-hidden transition-all hover:border-primary flex flex-col sm:flex-row shadow-sm group mb-8 ${
+                      className={`card-hover relative border rounded-[24px] overflow-hidden transition-all duration-300 hover:-translate-y-1 flex flex-col sm:flex-row shadow-[0_10px_30px_rgba(24,59,78,0.07)] hover:shadow-[0_16px_36px_rgba(24,59,78,0.13)] group mb-8 ${
                         theme.card
                       } ${
-                        isEven ? 'sm:mr-12' : 'sm:ml-10'
+                        isEven ? 'sm:mr-10' : 'sm:ml-8'
                       }`}
                     >
-                    <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${theme.rail}`} />
+                    <div className={`absolute left-0 top-0 bottom-0 w-2 ${theme.rail}`} />
                     {/* Hover Actions */}
                     {!isPreviewMode && (
                       <div className="absolute right-4 top-4 opacity-0 group-hover:opacity-100 flex gap-2 transition-opacity duration-200 z-10">
@@ -2991,7 +3173,7 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
                     )}
 
                     {/* Info */}
-                    <div className="pdf-card-body flex-1 p-6 pl-7 flex flex-col justify-between">
+                    <div className="pdf-card-body flex-1 p-5 pl-7 sm:p-6 sm:pl-8 flex flex-col justify-between">
                       <div>
                         <div className={`pdf-item-label inline-flex items-center gap-2 rounded-full px-2.5 py-1 mb-3 ${theme.label}`}>
                           <span className="material-symbols-outlined text-[16px]">
@@ -3002,7 +3184,7 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
                           </span>
                         </div>
 
-                        <h4 className="font-headline-sm text-base font-bold text-on-surface uppercase mb-1">
+                        <h4 className="font-headline-sm text-lg font-black text-on-surface mb-1 leading-snug">
                           {item.title}
                         </h4>
                         {item.subTitle && (
@@ -3082,21 +3264,22 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
                 })}
 
                 {dayItems.length === 0 && (
-                  <p className="text-xs text-on-surface opacity-60 italic ml-4">
-                    Nenhum item adicionado para este dia.
-                  </p>
+                  <div className="ml-[58px] rounded-2xl border-2 border-dashed border-primary/15 bg-white/50 px-5 py-8 text-center sm:ml-[76px]">
+                    <span className="material-symbols-outlined text-2xl text-primary/35">add_location_alt</span>
+                    <p className="mt-1 text-xs font-semibold text-on-surface/55">Este trecho ainda não tem paradas.</p>
+                  </div>
                 )}
               </div>
 
               {/* Add Button Connector to specific day */}
               {!isPreviewMode && (
-                <div className="pdf-add-day flex justify-start ml-20 mt-2 mb-8">
+                <div className="pdf-add-day flex justify-start ml-[58px] sm:ml-[76px] mt-1 mb-8">
                   <button
                     onClick={() => {
                       setActiveDay(dayNum);
                       setIsModalOpen(true);
                     }}
-                    className="flex items-center gap-1 px-3 py-1.5 border border-dashed border-outline-variant rounded-lg text-xs font-semibold text-primary hover:bg-primary-container-alt transition-colors"
+                    className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-primary/20 bg-white/55 rounded-full text-xs font-bold text-primary hover:border-coral hover:text-coral hover:bg-white transition-colors"
                   >
                     <span className="material-symbols-outlined text-xs">add</span>
                     <span>Adicionar item no Dia {dayNum}</span>
@@ -3106,22 +3289,24 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
             </div>
           );
         })}
+        </div>
 
         {/* Floating Add Day Button */}
         {!isPreviewMode && (
-          <div className="flex justify-center mt-12 relative z-10">
+          <div className="flex justify-center mt-8 mb-2 relative z-10">
             <button
               onClick={() => {
                 const maxDay = getDays().reduce((a, b) => Math.max(a, b), 0);
                 setActiveDay(maxDay + 1);
                 setIsModalOpen(true);
               }}
-              className="w-12 h-12 rounded-full bg-primary text-on-primary shadow-lg flex items-center justify-center hover:scale-105 hover:shadow-xl active:scale-[0.97] transition-all group"
+              className="h-12 rounded-full bg-primary px-5 text-on-primary shadow-lg flex items-center gap-2 justify-center hover:scale-105 hover:shadow-xl active:scale-[0.97] transition-all group"
               title="Adicionar Novo Dia"
             >
               <span className="material-symbols-outlined transition-transform group-hover:rotate-90">
                 add
               </span>
+              <span className="text-xs font-black">Adicionar novo dia</span>
             </button>
           </div>
         )}
@@ -3463,6 +3648,13 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
                       </div>
                     </div>
                   </div>
+
+                  <TravelMetadataFields
+                    type={addItemType}
+                    form={itemForm}
+                    onChange={setItemForm}
+                    city={trip?.destinations?.[0]}
+                  />
 
                   {/* Icon Selector / Symbol Picker */}
                   <div className="flex flex-col gap-1.5">
@@ -3924,6 +4116,13 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
                       </div>
                     </div>
                   </div>
+
+                  <TravelMetadataFields
+                    type={editingItem.type}
+                    form={itemForm}
+                    onChange={setItemForm}
+                    city={trip?.destinations?.[0]}
+                  />
 
                   {/* Icon Selector / Symbol Picker */}
                   <div className="flex flex-col gap-1.5">

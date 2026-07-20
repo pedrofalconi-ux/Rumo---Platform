@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@rumo/db';
 import { getCurrentUser } from '../../../../lib/server-auth';
 import { listAgencies, listUsersForAgency, updateAgency } from '../../../../lib/server-account-store';
+import { agencyLogoProxyUrl, extractAgencyLogoPath } from '../../../../lib/agency-logo';
 
 function ensurePlatformAdmin(user: any) {
   return user?.role === 'platform_admin';
@@ -22,6 +23,7 @@ export async function GET() {
     return NextResponse.json(
       agencies.map((agency: any) => ({
         ...agency,
+        logoUrl: extractAgencyLogoPath(agency.logoUrl) ? agencyLogoProxyUrl(agency.id) : agency.logoUrl,
         usersCount: users.filter((agencyUser: any) => agencyUser.agencyId === agency.id).length,
         users: users
           .filter((agencyUser: any) => agencyUser.agencyId === agency.id)
@@ -60,7 +62,7 @@ export async function PATCH(request: Request) {
       plan: body.plan,
       subscriptionStatus: body.subscriptionStatus,
       accessExpiresAt: body.accessExpiresAt,
-      logoUrl: body.logoUrl,
+      logoUrl: String(body.logoUrl || '').startsWith('/api/settings/logo') ? undefined : body.logoUrl,
     });
 
     if (!updated) {

@@ -53,6 +53,68 @@ export default function AuthShell({
   children,
   footer,
 }: AuthShellProps) {
+  const useNewAuthShell = mode === 'login' || mode === 'register';
+  if (useNewAuthShell) {
+    return (
+      <main className="relative min-h-screen overflow-hidden bg-[#061B55] text-on-surface">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_10%,#0865ff_0%,transparent_34%),radial-gradient(circle_at_65%_100%,rgba(7,59,206,0.65),transparent_42%),linear-gradient(135deg,#073bce_0%,#061b55_55%,#041437_100%)]" />
+        <div className="pointer-events-none absolute -left-[18vw] top-1/2 h-[70vw] max-h-[980px] w-[70vw] max-w-[980px] -translate-y-1/2 rounded-full border-[2px] border-[#0E62FF]/45 shadow-[0_0_0_70px_rgba(7,91,255,0.05),0_0_0_140px_rgba(7,91,255,0.035)]" />
+
+        <div className="relative mx-auto grid min-h-screen w-full max-w-[1500px] lg:grid-cols-[1.08fr_0.92fr]">
+          <section className="relative hidden overflow-hidden px-12 py-10 text-white lg:flex lg:flex-col lg:justify-between xl:px-20 xl:py-14">
+            <Link href="/" className="relative z-10 inline-flex w-fit items-center gap-3">
+              <img src="/rumo-mark.svg" alt="" className="h-12 w-12" />
+              <span className="text-2xl font-black tracking-[-0.04em]">Rumo</span>
+            </Link>
+
+            <div className="relative z-10 max-w-[580px] py-12">
+              <div className="mb-8 flex items-center gap-4">
+                <span className="h-px w-10 bg-coral" />
+                <span className="text-[10px] font-black uppercase tracking-[0.24em] text-white/70">Tecnologia para agências</span>
+              </div>
+              <h2 className="text-5xl font-black leading-[1.02] tracking-[-0.055em] xl:text-[64px]">
+                O melhor caminho para cada viagem.
+              </h2>
+              <p className="mt-6 max-w-lg text-base leading-7 text-white/65 xl:text-lg">
+                Planeje, venda e acompanhe experiências completas em uma plataforma feita para levar sua agência mais longe.
+              </p>
+            </div>
+
+            <div className="relative z-10 flex items-center gap-6 text-xs font-semibold text-white/55">
+              <span>Roteiros inteligentes</span><span className="h-1 w-1 rounded-full bg-coral" />
+              <span>Operação simples</span><span className="h-1 w-1 rounded-full bg-coral" />
+              <span>Clientes encantados</span>
+            </div>
+
+            <div aria-hidden="true" className="pointer-events-none absolute bottom-[10%] right-[7%] h-52 w-52 rotate-45 opacity-90 xl:h-64 xl:w-64">
+              <div className="absolute inset-x-[43%] bottom-1/2 top-0 bg-gradient-to-t from-coral to-[#FF8A68] [clip-path:polygon(50%_0,100%_100%,0_100%)]" />
+              <div className="absolute inset-x-[43%] bottom-0 top-1/2 bg-gradient-to-b from-[#75A9FF] to-[#D6E5FF] [clip-path:polygon(0_0,100%_0,50%_100%)]" />
+              <div className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 -rotate-45 items-center justify-center rounded-full border-[10px] border-white bg-[#061B55] shadow-xl">
+                <span className="h-3 w-3 rounded-full bg-coral" />
+              </div>
+            </div>
+          </section>
+
+          <section className="relative flex items-center justify-center px-4 py-6 sm:px-8 lg:px-12 xl:px-16">
+            <div className={`w-full rounded-[28px] bg-white p-6 shadow-[0_30px_90px_rgba(0,8,35,0.34)] sm:p-9 xl:p-11 ${mode === 'register' ? 'max-w-[680px]' : 'max-w-[500px]'}`}>
+              <div className="mb-8 flex items-center gap-3 lg:hidden">
+                <img src="/rumo-mark.svg" alt="" className="h-11 w-11" />
+                <span className="text-2xl font-black tracking-[-0.04em] text-[#061B55]">Rumo</span>
+              </div>
+
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-coral">{eyebrow}</p>
+              <h1 className="mt-3 text-3xl font-black tracking-[-0.045em] text-[#061B55] sm:text-4xl">{title}</h1>
+              <p className="mt-3 max-w-md text-sm leading-6 text-on-surface/58">{description}</p>
+
+              <div className="mt-8">{children}</div>
+              <div className="mt-7 border-t border-outline-variant pt-6 text-sm leading-6 text-on-surface/58">{footer}</div>
+            </div>
+          </section>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="auth-canvas min-h-screen overflow-hidden px-4 py-6 text-white sm:px-6 lg:px-8">
       <div className="auth-grid mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-[1640px] overflow-hidden rounded-[32px] border border-white/10 bg-[#04162d]/90 shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur">
@@ -63,8 +125,8 @@ export default function AuthShell({
           <div className="relative z-10 flex w-full flex-col justify-between p-10 2xl:p-14">
             <div className="flex items-start justify-between gap-6 text-white/45">
               <div className="space-y-2 font-mono text-sm leading-7">
-                <p>// Rumo Control Center</p>
-                <p>const tenant = 'agencia';</p>
+                <p>{'// Rumo Control Center'}</p>
+                <p>{"const tenant = 'agencia';"}</p>
                 <p>const travelers = embarcar();</p>
                 <p>const experiencia = elevar();</p>
               </div>
@@ -128,8 +190,8 @@ export default function AuthShell({
               <p className="mt-4 max-w-[540px] text-base leading-7 text-white/64">{description}</p>
 
               <div className="mt-8 flex rounded-[24px] border border-white/12 bg-white/6 p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-                <AuthTab href="/login" active={mode === 'login'} label="Entrar" />
-                <AuthTab href="/register" active={mode === 'register'} label="Cadastrar" />
+                <AuthTab href="/login" active={false} label="Entrar" />
+                <AuthTab href="/register" active label="Cadastrar" />
               </div>
 
               <div className="mt-8 rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-6 shadow-[0_22px_60px_rgba(0,0,0,0.24)] backdrop-blur-xl sm:p-8">

@@ -81,18 +81,20 @@ export default function Header() {
     ? 'Viagens'
     : pathname.startsWith('/library')
       ? 'Biblioteca'
+      : pathname.startsWith('/clients')
+        ? 'Clientes'
       : pathname.startsWith('/users')
         ? 'Equipe'
         : pathname.startsWith('/settings')
           ? 'Configurações'
           : pathname.startsWith('/security')
-            ? 'Segurança'
+            ? 'Rastreamento e suporte'
             : pathname.startsWith('/admin')
               ? 'Admin SaaS'
               : 'Visão geral';
 
   return (
-    <header className="h-[72px] sticky top-0 bg-[#f5f3ee]/90 backdrop-blur-xl border-b border-primary/8 flex justify-between items-center px-4 sm:px-6 lg:px-8 z-40">
+    <header className="h-[72px] sticky top-0 bg-white/88 backdrop-blur-xl border-b border-primary/10 flex justify-between items-center px-4 sm:px-6 lg:px-8 z-40 shadow-[0_1px_16px_rgba(7,59,206,.035)]">
       <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
         {/* Hamburger menu for mobile/tablet */}
         <button
@@ -115,7 +117,7 @@ export default function Header() {
             search
           </span>
           <input
-            className="w-full bg-white/70 border border-primary/10 rounded-xl py-2 pl-9 pr-3 text-xs focus:ring-2 focus:ring-primary/15 focus:border-primary/30 outline-none transition-all shadow-sm"
+            className="w-full bg-surface-container-low border border-primary/10 rounded-xl py-2.5 pl-9 pr-3 text-xs focus:ring-2 focus:ring-primary/15 focus:border-primary/30 outline-none transition-all"
             placeholder="Buscar viagens, clientes..."
             type="text"
           />
@@ -271,7 +273,7 @@ export default function Header() {
               {displayRole}
             </p>
           </div>
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden bg-primary text-on-primary flex items-center justify-center text-xs font-bold shadow-[0_4px_12px_rgba(24,59,78,.16)] ring-2 ring-white">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden bg-primary text-on-primary flex items-center justify-center text-xs font-bold shadow-[0_4px_12px_rgba(7,59,206,.18)] ring-2 ring-white">
             {user?.avatarUrl ? (
               <img className="w-full h-full object-cover" alt={displayName} src={user.avatarUrl} />
             ) : (

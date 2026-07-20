@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { TemplateCard, type TemplateSummary } from '../../../components/templates/template-card';
+import { TemplateCreatorModal } from '../../../components/templates/template-creator-modal';
 
 interface Photo {
   id: string;
@@ -82,7 +84,7 @@ const buildFolderTree = (flatFolders: string[]): FolderNode[] => {
   flatFolders.forEach(path => {
     const parts = path.split('/');
     let currentPath = '';
-    
+
     parts.forEach((part, index) => {
       const parentPath = currentPath;
       currentPath = currentPath ? `${currentPath}/${part}` : part;
@@ -261,6 +263,17 @@ const isProductionPersistenceError = (message: string) => {
 };
 
 export default function LibraryPage() {
+  const [resourceTab, setResourceTab] = useState<'media' | 'templates' | 'pois'>('media');
+  const [templates, setTemplates] = useState<TemplateSummary[]>([]);
+  const [templatesLoading, setTemplatesLoading] = useState(false);
+  const [templateError, setTemplateError] = useState('');
+  const [templateSearch, setTemplateSearch] = useState('');
+  const [templateDestination, setTemplateDestination] = useState('');
+  const [templateProfile, setTemplateProfile] = useState('');
+  const [templateBudget, setTemplateBudget] = useState('');
+  const [templateStatus, setTemplateStatus] = useState('');
+  const [showTemplateCreator, setShowTemplateCreator] = useState(false);
+  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [folders, setFolders] = useState<string[]>([]);
   const [activeFolder, setActiveFolder] = useState<string>('');
@@ -289,6 +302,12 @@ export default function LibraryPage() {
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newPhotoName, setNewPhotoName] = useState('');
   const [newPhotoUrl, setNewPhotoUrl] = useState('');
+  const [selectedPhotoFile, setSelectedPhotoFile] = useState<File | null>(null);
+  const [photoModalError, setPhotoModalError] = useState('');
+  const [isSavingPhoto, setIsSavingPhoto] = useState(false);
+  const [isExternalDragActive, setIsExternalDragActive] = useState(false);
+  const [isBulkUploading, setIsBulkUploading] = useState(false);
+  const [bulkUploadError, setBulkUploadError] = useState('');
   const [coverFolderPath, setCoverFolderPath] = useState('');
   const [coverUrl, setCoverUrl] = useState('');
   const [coverModalError, setCoverModalError] = useState('');
@@ -309,6 +328,11 @@ export default function LibraryPage() {
   const [searchError, setSearchError] = useState('');
   
   const [searchTerm, setSearchTerm] = useState('');
+
+  const isSavingPhotoRef = React.useRef(false);
+  const isCreatingFolderRef = React.useRef(false);
+  const isSavingCoverRef = React.useRef(false);
+  const isRenamingRef = React.useRef(false);
 
   const fetchLibrary = async () => {
     try {
@@ -369,9 +393,49 @@ export default function LibraryPage() {
     }
   };
 
+  const fetchTemplates = async () => {
+    setTemplatesLoading(true);
+    setTemplateError('');
+    try {
+      const params = new URLSearchParams();
+      if (templateSearch.trim()) params.set('search', templateSearch.trim());
+      if (templateDestination) params.set('destination', templateDestination);
+      if (templateProfile) params.set('profile', templateProfile);
+      if (templateBudget) params.set('budget', templateBudget);
+      if (templateStatus) params.set('status', templateStatus);
+      const response = await fetch(`/api/library/templates?${params}`, { cache: 'no-store' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Não foi possível carregar os modelos.');
+      setTemplates(data.templates || []);
+    } catch (error) {
+      setTemplateError(error instanceof Error ? error.message : 'Erro ao carregar modelos.');
+    } finally {
+      setTemplatesLoading(false);
+    }
+  };
+
+  const duplicateTemplate = async (template: TemplateSummary) => {
+    const response = await fetch(`/api/library/templates/${template.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'duplicate' }) });
+    if (!response.ok) { const data = await response.json().catch(() => ({})); alert(data.error || 'Não foi possível duplicar o modelo.'); return; }
+    await fetchTemplates();
+  };
+
+  const archiveTemplate = async (template: TemplateSummary) => {
+    if (!confirm(`Arquivar o modelo “${template.name}”?`)) return;
+    const response = await fetch(`/api/library/templates/${template.id}`, { method: 'DELETE' });
+    if (!response.ok) { const data = await response.json().catch(() => ({})); alert(data.error || 'Não foi possível arquivar o modelo.'); return; }
+    await fetchTemplates();
+  };
+
   useEffect(() => {
     fetchLibrary();
   }, []);
+
+  useEffect(() => {
+    if (resourceTab !== 'templates') return;
+    const timer = window.setTimeout(() => { void fetchTemplates(); }, 300);
+    return () => window.clearTimeout(timer);
+  }, [resourceTab, templateSearch, templateDestination, templateProfile, templateBudget, templateStatus]);
 
   useEffect(() => {
     writeLocalFolders(folders);
@@ -662,7 +726,9 @@ export default function LibraryPage() {
 
   const handleCreateFolder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isCreatingFolder) return;
+    if (isCreatingFolder || isCreatingFolderRef.current) return;
+    isCreatingFolderRef.current = true;
+    setIsCreatingFolder(true);
 
     const trimmedName = newFolderName.trim();
     if (!trimmedName) {
@@ -728,29 +794,27 @@ export default function LibraryPage() {
       setParentFolder('');
       setShowFolderModal(false);
     } finally {
+      isCreatingFolderRef.current = false;
       setIsCreatingFolder(false);
     }
   };
 
   const handleAddPhoto = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPhotoName || !newPhotoUrl) return;
-    const localPhoto: Photo = {
-      id: `photo-local-${Date.now()}`,
-      folder: activeFolder,
-      name: newPhotoName,
-      url: newPhotoUrl,
-    };
+    if (!newPhotoName || (!newPhotoUrl && !selectedPhotoFile) || isSavingPhoto || isSavingPhotoRef.current) return;
+    isSavingPhotoRef.current = true;
+    setIsSavingPhoto(true);
+    setPhotoModalError('');
 
     try {
-      const response = await fetch('/api/library', {
+      const form = new FormData();
+      form.set('name', newPhotoName);
+      form.set('folder', activeFolder);
+      if (selectedPhotoFile) form.set('file', selectedPhotoFile);
+      else form.set('sourceUrl', newPhotoUrl);
+      const response = await fetch('/api/library/media', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: newPhotoName,
-          url: newPhotoUrl,
-          folder: activeFolder,
-        }),
+        body: form,
       });
 
       if (response.ok) {
@@ -758,6 +822,7 @@ export default function LibraryPage() {
         setPhotos((prev) => [...prev, newPhoto]);
         setNewPhotoName('');
         setNewPhotoUrl('');
+        setSelectedPhotoFile(null);
         setOnlineSearchTerm('');
         setOnlineSearchResults([]);
         setShowPhotoModal(false);
@@ -765,35 +830,47 @@ export default function LibraryPage() {
       }
 
       const data = await response.json().catch(() => ({}));
-      if (isProductionPersistenceError(String(data.error || ''))) {
-        setPhotos((prev) => [...prev, localPhoto]);
-        setNewPhotoName('');
-        setNewPhotoUrl('');
-        setOnlineSearchTerm('');
-        setOnlineSearchResults([]);
-        setShowPhotoModal(false);
-      }
+      setPhotoModalError(data.error || 'Não foi possível armazenar a foto.');
     } catch (error) {
       console.error(error);
-      setPhotos((prev) => [...prev, localPhoto]);
-      setNewPhotoName('');
-      setNewPhotoUrl('');
-      setOnlineSearchTerm('');
-      setOnlineSearchResults([]);
-      setShowPhotoModal(false);
+      setPhotoModalError('Não foi possível armazenar a foto. Tente novamente.');
+    } finally {
+      isSavingPhotoRef.current = false;
+      setIsSavingPhoto(false);
     }
   };
 
-  // Converts uploaded local file to Base64 data URL
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setSelectedPhotoFile(file);
+    setNewPhotoUrl(URL.createObjectURL(file));
+    if (!newPhotoName) setNewPhotoName(file.name.replace(/\.[^.]+$/, ''));
+    setPhotoModalError('');
+  };
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setNewPhotoUrl(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+  const uploadDroppedFiles = async (files: File[]) => {
+    const images = files.filter((file) => file.type.startsWith('image/'));
+    if (!images.length || isBulkUploading) return;
+    setIsBulkUploading(true);
+    setBulkUploadError('');
+    try {
+      for (const file of images) {
+        const form = new FormData();
+        form.set('file', file);
+        form.set('name', file.name.replace(/\.[^.]+$/, '') || 'Foto');
+        form.set('folder', activeFolder);
+        const response = await fetch('/api/library/media', { method: 'POST', body: form });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || `Falha ao enviar ${file.name}`);
+        setPhotos((prev) => [...prev, data]);
+      }
+    } catch (error) {
+      setBulkUploadError(error instanceof Error ? error.message : 'Não foi possível enviar as imagens.');
+    } finally {
+      setIsBulkUploading(false);
+      setIsExternalDragActive(false);
+    }
   };
 
   const handleCoverFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -820,8 +897,8 @@ export default function LibraryPage() {
 
   const handleSaveFolderCover = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!coverFolderPath || isSavingCover) return;
-
+    if (!coverFolderPath || isSavingCover || isSavingCoverRef.current) return;
+    isSavingCoverRef.current = true;
     setIsSavingCover(true);
     setCoverModalError('');
 
@@ -884,6 +961,7 @@ export default function LibraryPage() {
       setOnlineSearchTerm('');
       setOnlineSearchResults([]);
     } finally {
+      isSavingCoverRef.current = false;
       setIsSavingCover(false);
     }
   };
@@ -1216,7 +1294,7 @@ export default function LibraryPage() {
     // Case 2: Reordering within the same folder
     const reorderedItems = [...orderedGridItems];
     reorderedItems.splice(draggedIndex, 1);
-    
+
     let insertIndex = targetIndex;
     if (draggedIndex < targetIndex) {
       insertIndex = position === 'before' ? targetIndex - 1 : targetIndex;
@@ -1257,6 +1335,10 @@ export default function LibraryPage() {
 
   const handleDeletePhoto = async (photoId: string) => {
     if (!confirm('Deseja realmente excluir esta foto?')) return;
+
+    // Optimistic delete
+    applyLocalPhotoDelete(photoId);
+
     try {
       const response = await fetch('/api/library', {
         method: 'POST',
@@ -1272,17 +1354,23 @@ export default function LibraryPage() {
       }
 
       const data = await response.json().catch(() => ({}));
-      if (isProductionPersistenceError(String(data.error || ''))) {
-        applyLocalPhotoDelete(photoId);
+      if (!isProductionPersistenceError(String(data.error || ''))) {
+        alert(data.error || 'Erro ao excluir a foto');
+        fetchLibrary();
       }
     } catch (error) {
       console.error(error);
-      applyLocalPhotoDelete(photoId);
+      alert('Erro de conexão ao excluir a foto');
+      fetchLibrary();
     }
   };
 
   const handleDeleteFolder = async (folderPath: string) => {
     if (!confirm(`Deseja realmente excluir a pasta "${folderPath}" e todo o seu conteúdo?`)) return;
+
+    // Optimistic delete
+    applyLocalFolderDelete(folderPath);
+
     try {
       const response = await fetch('/api/library', {
         method: 'POST',
@@ -1293,26 +1381,27 @@ export default function LibraryPage() {
         })
       });
       if (response.ok) {
-        if (activeFolder === folderPath || activeFolder.startsWith(`${folderPath}/`)) {
-          setActiveFolder('');
-        }
         fetchLibrary();
         return;
       }
 
       const data = await response.json().catch(() => ({}));
-      if (isProductionPersistenceError(String(data.error || ''))) {
-        applyLocalFolderDelete(folderPath);
+      if (!isProductionPersistenceError(String(data.error || ''))) {
+        alert(data.error || 'Erro ao excluir a pasta');
+        fetchLibrary();
       }
     } catch (error) {
       console.error(error);
-      applyLocalFolderDelete(folderPath);
+      alert('Erro de conexão ao excluir a pasta');
+      fetchLibrary();
     }
   };
 
   const handleRenameSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!renameState || isRenaming) return;
+    if (!renameState || isRenaming || isRenamingRef.current) return;
+    isRenamingRef.current = true;
+    setIsRenaming(true);
 
     const trimmedName = renameValue.trim();
     if (!trimmedName) {
@@ -1375,6 +1464,7 @@ export default function LibraryPage() {
       setRenameState(null);
       setRenameValue('');
     } finally {
+      isRenamingRef.current = false;
       setIsRenaming(false);
     }
   };
@@ -1448,9 +1538,9 @@ export default function LibraryPage() {
   return (
     <div className="flex-1 space-y-6">
       {/* Header bar */}
-      <div className="scroll-reveal flex justify-between items-end">
+      <div className="page-heading scroll-reveal flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-end">
         <div>
-          <h2 className="font-headline-lg text-2xl font-bold text-primary tracking-tight">BIBLIOTECA</h2>
+          <h2 className="font-headline-lg text-3xl font-black text-primary tracking-[-.035em]">Biblioteca</h2>
           <p className="text-on-surface opacity-75 text-sm mt-1">
             Organize fotos de destinos e pontos de interesse para ilustrar seus roteiros de viagens.
           </p>
@@ -1463,20 +1553,29 @@ export default function LibraryPage() {
             <span className="material-symbols-outlined text-sm">create_new_folder</span>
             <span>Nova Pasta</span>
           </button>
-          <button
-            onClick={() => {
-              setPhotoSourceTab('upload');
-              setShowPhotoModal(true);
-            }}
-            className="btn-interactive flex items-center gap-1.5 px-4 py-2 bg-primary text-on-primary rounded-lg text-xs font-bold hover:opacity-95 active:scale-[0.98] transition-all disabled:opacity-50"
-          >
-            <span className="material-symbols-outlined text-sm">add_photo_alternate</span>
-            <span>Adicionar Foto</span>
-          </button>
         </div>
       </div>
 
-      {loading ? (
+      <div className="flex gap-1 overflow-x-auto rounded-2xl border border-primary/10 bg-white p-1.5 shadow-sm">
+        {[
+          ['media', 'photo_library', 'Galeria de mídia'],
+          ['templates', 'content_copy', 'Modelos de roteiro'],
+          ['pois', 'location_on', 'POIs customizados'],
+        ].map(([id, icon, label]) => <button key={id} onClick={() => setResourceTab(id as typeof resourceTab)} className={`flex min-w-fit flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold ${resourceTab === id ? 'bg-primary text-white' : 'text-on-surface/55 hover:bg-surface-container-low'}`}><span className="material-symbols-outlined text-[17px]">{icon}</span>{label}</button>)}
+      </div>
+
+      {resourceTab === 'templates' && <section className="space-y-5">
+        <div className="overflow-hidden rounded-3xl border border-primary/10 bg-white shadow-sm"><div className="grid gap-6 bg-gradient-to-r from-[#061d49] via-[#0b3da9] to-[#155de4] p-7 text-white lg:grid-cols-[1fr_auto] lg:items-center"><div><p className="text-[10px] font-black uppercase tracking-[.18em] text-[#ff805d]">Blueprints inteligentes</p><h3 className="mt-2 text-2xl font-black">Modelos de roteiro</h3><p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/65">Estruturas reutilizáveis com atividades, regras obrigatórias, alternativas de chuva, documentos RAG e adaptação controlada pela IA.</p></div><button onClick={() => { setEditingTemplateId(null); setShowTemplateCreator(true); }} className="rounded-xl bg-[#ff6f47] px-6 py-3 text-xs font-black text-white shadow-lg shadow-black/15 hover:bg-[#ff7d5a]">+ Criar novo modelo</button></div>
+          <div className="grid gap-2 p-5 sm:grid-cols-2 lg:grid-cols-6"><div className="relative sm:col-span-2"><span className="material-symbols-outlined absolute left-3 top-2.5 text-[18px] text-primary/50">search</span><input value={templateSearch} onChange={(event) => setTemplateSearch(event.target.value)} placeholder="Buscar modelos" className="w-full rounded-xl border border-outline-variant py-2.5 pl-10 pr-3 text-xs"/></div><input value={templateDestination} onChange={(event) => setTemplateDestination(event.target.value)} placeholder="Destino" className="rounded-xl border border-outline-variant p-2.5 text-xs"/><select value={templateProfile} onChange={(event) => setTemplateProfile(event.target.value)} className="rounded-xl border border-outline-variant p-2.5 text-xs"><option value="">Todos os perfis</option><option value="leisure">Lazer</option><option value="family">Família</option><option value="couple">Casal</option><option value="business">Negócios</option></select><select value={templateBudget} onChange={(event) => setTemplateBudget(event.target.value)} className="rounded-xl border border-outline-variant p-2.5 text-xs"><option value="">Todos os orçamentos</option><option value="budget">Econômico</option><option value="moderate">Moderado</option><option value="luxury">Luxo</option></select><select value={templateStatus} onChange={(event) => setTemplateStatus(event.target.value)} className="rounded-xl border border-outline-variant p-2.5 text-xs"><option value="">Todos os status</option><option value="draft">Rascunhos</option><option value="published">Publicados</option></select></div>
+        </div>
+        {templateError && <div className="rounded-2xl border border-error/20 bg-error/5 p-4 text-xs font-semibold text-error">{templateError}</div>}
+        {templatesLoading ? <div className="flex min-h-56 items-center justify-center gap-2 rounded-2xl border bg-white"><span className="material-symbols-outlined animate-spin text-primary">progress_activity</span><span className="text-xs font-bold">Carregando modelos...</span></div> : templates.length ? <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{templates.map((template) => <TemplateCard key={template.id} template={template} onEdit={(item) => { setEditingTemplateId(item.id); setShowTemplateCreator(true); }} onDuplicate={duplicateTemplate} onArchive={archiveTemplate}/>)}</div> : <div className="flex min-h-64 flex-col items-center justify-center rounded-3xl border border-dashed border-primary/20 bg-white p-8 text-center"><span className="material-symbols-outlined text-4xl text-primary/30">route</span><h4 className="mt-3 text-sm font-black text-primary">Sua biblioteca de modelos começa aqui</h4><p className="mt-2 max-w-md text-xs text-on-surface/50">Importe um roteiro, transforme uma viagem existente ou crie uma estrutura orientada por cidade.</p><button onClick={() => { setEditingTemplateId(null); setShowTemplateCreator(true); }} className="mt-5 rounded-xl bg-primary px-5 py-3 text-xs font-black text-white">Criar primeiro modelo</button></div>}
+        <TemplateCreatorModal open={showTemplateCreator} templateId={editingTemplateId} onClose={() => setShowTemplateCreator(false)} onSaved={() => { void fetchTemplates(); }}/>
+      </section>}
+
+      {resourceTab === 'pois' && <section className="rounded-2xl border border-primary/10 bg-white p-7 shadow-sm"><div className="grid gap-6 lg:grid-cols-[1fr_320px]"><div><p className="text-[10px] font-black uppercase tracking-wider text-coral">Curadoria da agência</p><h3 className="mt-1 text-xl font-black text-primary">Pontos de interesse customizados</h3><p className="mt-2 max-w-xl text-sm text-on-surface/55">A base curada de restaurantes, atrações e parceiros já alimenta o gerador de roteiros. O cadastro editorial por agência será liberado após a migração de isolamento dos POIs.</p><div className="mt-5 rounded-xl border border-primary/10 bg-ice-blue p-4 text-xs text-primary"><b>Base RAG conectada:</b> os POIs validados em <code>destination_pois</code> já são priorizados pela IA.</div></div><div className="rounded-2xl border border-dashed border-outline-variant p-5"><p className="text-xs font-bold">Próxima etapa segura</p><p className="mt-2 text-[11px] leading-relaxed text-on-surface/50">Adicionar <code>agency_id</code>, índices e isolamento server-side antes de permitir cadastros privados por agência.</p></div></div></section>}
+
+      {resourceTab === 'media' && (loading ? (
         <div className="text-center py-12 flex items-center justify-center gap-2">
           <span className="material-symbols-outlined animate-spin">sync</span>
           <span>Carregando mídia...</span>
@@ -1600,7 +1699,39 @@ export default function LibraryPage() {
           </div>
 
           {/* Photo Gallery Canvas */}
-          <div className="scroll-reveal scroll-reveal-delay-150 col-span-12 md:col-span-8 lg:col-span-9 bg-white border border-outline-variant rounded-xl p-6 shadow-sm space-y-6">
+          <div
+            className={`scroll-reveal scroll-reveal-delay-150 relative col-span-12 space-y-6 rounded-xl border bg-white p-6 shadow-sm transition-all md:col-span-8 lg:col-span-9 ${isExternalDragActive ? 'border-primary ring-4 ring-primary/10' : 'border-outline-variant'}`}
+            onDragEnter={(event) => {
+              if (event.dataTransfer.types.includes('Files')) {
+                event.preventDefault();
+                setIsExternalDragActive(true);
+              }
+            }}
+            onDragOver={(event) => {
+              if (event.dataTransfer.types.includes('Files')) {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'copy';
+              }
+            }}
+            onDragLeave={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget as Node)) setIsExternalDragActive(false);
+            }}
+            onDrop={(event) => {
+              if (!event.dataTransfer.files.length) return;
+              event.preventDefault();
+              event.stopPropagation();
+              void uploadDroppedFiles(Array.from(event.dataTransfer.files));
+            }}
+          >
+            {isExternalDragActive && (
+              <div className="pointer-events-none absolute inset-3 z-40 flex items-center justify-center rounded-xl border-2 border-dashed border-primary bg-white/95 text-center shadow-lg">
+                <div>
+                  <span className="material-symbols-outlined text-4xl text-primary">file_upload</span>
+                  <p className="mt-2 text-sm font-black text-primary">Solte as fotos aqui</p>
+                  <p className="mt-1 text-xs text-on-surface/60">Elas serão adicionadas em {activeFolder || 'Biblioteca Principal'}</p>
+                </div>
+              </div>
+            )}
             {/* Gallery Top bar */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-outline-variant">
               <div className="space-y-1">
@@ -1655,18 +1786,43 @@ export default function LibraryPage() {
                   Pasta contendo {subfolders.length} subpastas e {currentFolderPhotos.length} fotos.
                 </p>
               </div>
-              <div className="relative w-full sm:w-64">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] opacity-75">
-                  search
-                </span>
-                <input
-                  type="text"
-                  placeholder="Pesquisar itens..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="input-interactive w-full pl-10 pr-4 py-2 border border-outline-variant rounded-lg text-xs outline-none focus:ring-1 focus:ring-primary"
-                />
+              <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPhotoSourceTab('upload');
+                    setSelectedPhotoFile(null);
+                    setNewPhotoUrl('');
+                    setPhotoModalError('');
+                    setShowPhotoModal(true);
+                  }}
+                  className="btn-interactive flex items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-on-primary transition-all hover:opacity-95 active:scale-[0.98]"
+                >
+                  <span className="material-symbols-outlined text-[17px]">add_photo_alternate</span>
+                  <span>Adicionar em {activeFolder ? activeFolder.split('/').pop() : 'Biblioteca Principal'}</span>
+                </button>
+                <div className="relative w-full sm:w-64">
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] opacity-75">search</span>
+                  <input
+                    type="text"
+                    placeholder="Pesquisar itens..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="input-interactive w-full rounded-lg border border-outline-variant py-2 pl-10 pr-4 text-xs outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
               </div>
+            </div>
+
+            <div className={`flex items-center justify-between gap-3 rounded-xl border border-dashed px-4 py-3 ${bulkUploadError ? 'border-error/40 bg-error/[0.04]' : 'border-primary/30 bg-primary/[0.03]'}`}>
+              <div className="flex items-center gap-3">
+                <span className={`material-symbols-outlined ${bulkUploadError ? 'text-error' : 'text-primary'}`}>{bulkUploadError ? 'error' : 'upload_file'}</span>
+                <div>
+                  <p className="text-xs font-bold text-on-surface">{bulkUploadError || 'Arraste imagens para esta pasta'}</p>
+                  <p className="text-[10px] text-on-surface/55">{bulkUploadError ? 'Tente novamente com uma imagem compatível.' : 'JPG, PNG, WEBP, AVIF ou GIF · até 10 MB por arquivo'}</p>
+                </div>
+              </div>
+              {isBulkUploading && <span className="text-[10px] font-bold text-primary">Enviando...</span>}
             </div>
 
             {/* Grid of Folders and Photos */}
@@ -1802,7 +1958,7 @@ export default function LibraryPage() {
             </div>
           </div>
         </div>
-      )}
+      ))}
 
       {contextMenu && (
         <div
@@ -2205,29 +2361,35 @@ export default function LibraryPage() {
         <div className="fixed inset-0 z-50 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-xl border border-outline-variant shadow-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto custom-scrollbar animate-in zoom-in-95 duration-150">
             <h3 className="font-bold text-base text-primary mb-1">Adicionar Foto à Pasta</h3>
-            <p className="text-[10px] opacity-75 mb-4 font-bold uppercase tracking-wider text-secondary">Pasta Destino: {activeFolder}</p>
+            <p className="mb-4 text-[10px] font-bold uppercase tracking-wider text-secondary opacity-75">Destino: {activeFolder || 'Biblioteca Principal'}</p>
             
             {/* Tab Selector */}
             <div className="flex border-b border-outline-variant mb-4 text-xs font-bold">
               <button
-                onClick={() => { setPhotoSourceTab('upload'); setNewPhotoUrl(''); }}
-                className={`flex-1 pb-2 border-b-2 text-center transition-colors ${
+                type="button"
+                disabled={isSavingPhoto}
+                onClick={() => { setPhotoSourceTab('upload'); setNewPhotoUrl(''); setSelectedPhotoFile(null); setPhotoModalError(''); }}
+                className={`flex-1 pb-2 border-b-2 text-center transition-colors disabled:opacity-50 ${
                   photoSourceTab === 'upload' ? 'border-primary text-primary' : 'border-transparent opacity-60'
                 }`}
               >
                 Upload Local
               </button>
               <button
-                onClick={() => { setPhotoSourceTab('search'); setNewPhotoUrl(''); }}
-                className={`flex-1 pb-2 border-b-2 text-center transition-colors ${
+                type="button"
+                disabled={isSavingPhoto}
+                onClick={() => { setPhotoSourceTab('search'); setNewPhotoUrl(''); setSelectedPhotoFile(null); setPhotoModalError(''); }}
+                className={`flex-1 pb-2 border-b-2 text-center transition-colors disabled:opacity-50 ${
                   photoSourceTab === 'search' ? 'border-primary text-primary' : 'border-transparent opacity-60'
                 }`}
               >
                 Pesquisar Online
               </button>
               <button
-                onClick={() => { setPhotoSourceTab('url'); setNewPhotoUrl(''); }}
-                className={`flex-1 pb-2 border-b-2 text-center transition-colors ${
+                type="button"
+                disabled={isSavingPhoto}
+                onClick={() => { setPhotoSourceTab('url'); setNewPhotoUrl(''); setSelectedPhotoFile(null); setPhotoModalError(''); }}
+                className={`flex-1 pb-2 border-b-2 text-center transition-colors disabled:opacity-50 ${
                   photoSourceTab === 'url' ? 'border-primary text-primary' : 'border-transparent opacity-60'
                 }`}
               >
@@ -2241,10 +2403,11 @@ export default function LibraryPage() {
                 <input
                   required
                   type="text"
+                  disabled={isSavingPhoto}
                   placeholder="Ex: Pôr do sol no Duomo"
                   value={newPhotoName}
                   onChange={(e) => setNewPhotoName(e.target.value)}
-                  className="border border-outline-variant rounded-lg p-2 text-xs focus:ring-1 focus:ring-primary outline-none"
+                  className="border border-outline-variant rounded-lg p-2 text-xs focus:ring-1 focus:ring-primary outline-none disabled:opacity-50"
                 />
               </div>
 
@@ -2254,8 +2417,9 @@ export default function LibraryPage() {
                   <input
                     type="file"
                     accept="image/*"
+                    disabled={isSavingPhoto}
                     onChange={handleFileUpload}
-                    className="border border-dashed border-outline-variant rounded-lg p-3 text-xs w-full cursor-pointer bg-surface-container-low"
+                    className="border border-dashed border-outline-variant rounded-lg p-3 text-xs w-full cursor-pointer bg-surface-container-low disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                   {newPhotoUrl && (
                     <div className="border border-outline-variant rounded-lg overflow-hidden h-24 bg-surface-container relative">
@@ -2331,12 +2495,12 @@ export default function LibraryPage() {
                       </div>
                     </div>
                   )}
-
                   */}
                   <label className="text-[11px] font-bold text-on-surface opacity-75">Buscar imagem na internet</label>
                   <div className="flex gap-2">
                     <input
                       type="text"
+                      disabled={isSavingPhoto}
                       placeholder="Ex: Roma Coliseu, Veneza canais, hotel em Paris..."
                       value={onlineSearchTerm}
                       onChange={(e) => setOnlineSearchTerm(e.target.value)}
@@ -2347,11 +2511,11 @@ export default function LibraryPage() {
                           handleOnlineSearchSubmit(e);
                         }
                       }}
-                      className="flex-1 border border-outline-variant rounded-lg p-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                      className="flex-1 border border-outline-variant rounded-lg p-2 text-xs outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
                     />
                     <button
                       type="button"
-                      disabled={isSearching}
+                      disabled={isSearching || isSavingPhoto}
                       onClick={handleOnlineSearchSubmit}
                       className="px-4 py-2 bg-primary text-on-primary text-xs font-bold rounded-lg hover:opacity-90 flex items-center gap-1.5 disabled:opacity-50 transition-all active:scale-[0.98]"
                     >
@@ -2375,8 +2539,16 @@ export default function LibraryPage() {
                       {onlineSearchResults.map((image) => (
                         <div
                           key={image.id}
-                          onClick={() => setNewPhotoUrl(image.url)}
+                          onClick={() => {
+                            if (!isSavingPhoto) {
+                              setSelectedPhotoFile(null);
+                              setNewPhotoUrl(image.url);
+                              setPhotoModalError('');
+                            }
+                          }}
                           className={`h-20 border-2 rounded-lg overflow-hidden cursor-pointer hover:scale-105 transition-transform relative ${
+                            isSavingPhoto ? 'pointer-events-none opacity-50' : ''
+                          } ${
                             newPhotoUrl === image.url ? 'border-primary' : 'border-outline-variant'
                           }`}
                         >
@@ -2406,35 +2578,43 @@ export default function LibraryPage() {
                   <label className="text-[11px] font-bold text-on-surface opacity-75">Endereço/URL da Imagem</label>
                   <input
                     required={photoSourceTab === 'url'}
+                    disabled={isSavingPhoto}
                     type="url"
                     placeholder="https://..."
                     value={newPhotoUrl}
-                    onChange={(e) => setNewPhotoUrl(e.target.value)}
-                    className="border border-outline-variant rounded-lg p-2 text-xs focus:ring-1 focus:ring-primary outline-none"
+                    onChange={(e) => { setSelectedPhotoFile(null); setNewPhotoUrl(e.target.value); setPhotoModalError(''); }}
+                    className="border border-outline-variant rounded-lg p-2 text-xs focus:ring-1 focus:ring-primary outline-none disabled:opacity-50"
                   />
                 </div>
+              )}
+
+              {photoModalError && (
+                <p className="rounded-lg bg-error/10 p-2.5 text-[10px] font-semibold text-error">{photoModalError}</p>
               )}
 
               <div className="flex justify-end gap-2 pt-4 border-t border-outline-variant">
                 <button
                   type="button"
+                  disabled={isSavingPhoto}
                   onClick={() => {
                     setShowPhotoModal(false);
                     setNewPhotoName('');
                     setNewPhotoUrl('');
+                    setSelectedPhotoFile(null);
+                    setPhotoModalError('');
                     setOnlineSearchTerm('');
                     setOnlineSearchResults([]);
                   }}
-                  className="px-4 py-2 border border-outline rounded-lg text-xs font-semibold hover:bg-surface-container"
+                  className="px-4 py-2 border border-outline rounded-lg text-xs font-semibold hover:bg-surface-container disabled:opacity-50"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  disabled={!newPhotoUrl || !newPhotoName}
+                  disabled={!newPhotoUrl || !newPhotoName || isSavingPhoto}
                   className="px-4 py-2 bg-primary text-on-primary rounded-lg text-xs font-bold hover:opacity-90 disabled:opacity-50"
                 >
-                  Adicionar
+                  {isSavingPhoto ? 'Adicionando...' : 'Adicionar'}
                 </button>
               </div>
             </form>

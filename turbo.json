@@ -5,10 +5,14 @@
       "dependsOn": ["^build"],
       "env": [
         "GEMINI_API_KEY",
+        "GOOGLE_PLACES_API_KEY",
+        "GOOGLE_PLACES_DAILY_LIMIT",
+        "GOOGLE_PLACES_IMAGE_LOOKUP_LIMIT",
         "LLM_MAX_TOKENS",
         "LLM_MODEL",
         "LLM_PROVIDER",
         "LLM_TEMPERATURE",
+        "OPENAI_API_KEY",
         "SESSION_SECRET",
         "SUPABASE_SERVICE_ROLE_KEY"
       ],

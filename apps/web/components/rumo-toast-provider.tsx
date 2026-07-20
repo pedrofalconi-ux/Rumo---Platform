@@ -69,7 +69,7 @@ export default function RumoToastProvider({ children }: { children: React.ReactN
             key={toast.id}
             className={`pointer-events-auto w-[360px] max-w-[calc(100vw-2.5rem)] overflow-hidden rounded-xl border ${toneClass} bg-white shadow-2xl shadow-primary/15 animate-[rumoToastIn_220ms_ease-out]`}
           >
-            <div className="h-1 bg-[linear-gradient(90deg,#002B5F,#FF6B4A)]" />
+            <div className="h-1 bg-[linear-gradient(90deg,#075BFF,#FF542D)]" />
             <div className="flex gap-3 p-4">
               <div className="h-11 w-11 shrink-0 rounded-full bg-primary flex items-center justify-center shadow-inner">
                 <img src="/rumo-mark.svg" alt="" className="h-9 w-9" />

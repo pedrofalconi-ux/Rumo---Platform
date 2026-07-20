@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AMERICA_DESTINATIONS } from '../../../../lib/destinations/america-destinations';
@@ -54,6 +54,16 @@ interface PendingDocument {
   file: File;
 }
 
+type WizardStep = 'general' | 'logistics' | 'ai' | 'review';
+
+const LEGACY_TRIP_DRAFT_STORAGE_KEY = 'rumo:new-trip-draft:v1';
+const WIZARD_STEPS: Array<{ id: WizardStep; label: string; description: string; icon: string }> = [
+  { id: 'general', label: 'Essencial', description: 'Datas, destinos e viajantes', icon: 'travel_explore' },
+  { id: 'logistics', label: 'Logística', description: 'Reservas e documentos', icon: 'luggage' },
+  { id: 'ai', label: 'Preferências', description: 'Ritmo e estilo do roteiro', icon: 'auto_awesome' },
+  { id: 'review', label: 'Revisão', description: 'Confira antes de criar', icon: 'task_alt' },
+];
+
 type TransportationType =
   | 'voo'
   | 'barco'
@@ -73,6 +83,9 @@ interface TransportationEntry {
   number: string;
   date: string;
   details: string;
+  bookingReference: string;
+  seat: string;
+  baggage: string;
 }
 
 interface AccommodationEntry {
@@ -84,7 +97,13 @@ interface AccommodationEntry {
   checkOut: string;
   placeId?: string;
   photos?: string[];
+  roomCategory?: string;
+  mealPlan?: string;
+  reservationNotes?: string;
 }
+
+interface ActivityEntry { id: string; name: string; date: string; time: string; address: string; category: string; voucher: string; supplier: string; ticketsIncluded: boolean; placeId?: string; photos?: string[]; }
+interface InsuranceEntry { id: string; type: 'insurance' | 'visa'; provider: string; reference: string; validity: string; details: string; }
 
 interface HotelSearchResult {
   id: string;
@@ -92,6 +111,7 @@ interface HotelSearchResult {
   address: string;
   placeId: string;
   photos: string[];
+  categories?: string[];
 }
 
 interface NewTripPayload {
@@ -103,7 +123,7 @@ interface NewTripPayload {
   startDate: string;
   endDate: string;
   travelers: string[];
-  status: 'Pendente';
+  status: 'Rascunho' | 'Pendente';
   clientName: string;
   itinerary: any[];
   budget: number;
@@ -114,6 +134,9 @@ interface NewTripPayload {
   documents?: TripDocument[];
   transportation?: TransportationEntry[];
   accommodations?: AccommodationEntry[];
+  activities?: ActivityEntry[];
+  insuranceAndVisas?: InsuranceEntry[];
+  wizardDraft?: Record<string, unknown>;
 }
 
 const TRANSPORT_OPTIONS: Array<{
@@ -472,8 +495,19 @@ export default function NewTripPage() {
   const router = useRouter();
   const browserFallbackEnabled = canUseLocalTripFallback();
   const [loading, setLoading] = useState(false);
+  const [enrichingPreferences, setEnrichingPreferences] = useState(false);
+  const [enrichedSuggestion, setEnrichedSuggestion] = useState('');
+  const [enrichmentError, setEnrichmentError] = useState('');
   const [uploadingDocuments, setUploadingDocuments] = useState(false);
-  const [activeLogisticsTab, setActiveLogisticsTab] = useState<'transport' | 'hotel'>('transport');
+  const [activeLogisticsTab, setActiveLogisticsTab] = useState<'transport' | 'hotel' | 'activities' | 'insurance'>('transport');
+  const [wizardStep, setWizardStep] = useState<WizardStep>('general');
+  const [draftResumed, setDraftResumed] = useState(false);
+  const [draftSavedAt, setDraftSavedAt] = useState<Date | null>(null);
+  const [draftTripId, setDraftTripId] = useState('');
+  const [selectedTemplateId, setSelectedTemplateId] = useState('');
+  const [selectedTemplateName, setSelectedTemplateName] = useState('');
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [completedSteps, setCompletedSteps] = useState<WizardStep[]>([]);
   const [formData, setFormData] = useState({
     title: '',
     origin: 'São Paulo (BR)',
@@ -502,8 +536,19 @@ export default function NewTripPage() {
     number: '',
     date: '',
     details: '',
+    bookingReference: '',
+    seat: '',
+    baggage: '',
   });
   const [accommodations, setAccommodations] = useState<AccommodationEntry[]>([]);
+  const [activities, setActivities] = useState<ActivityEntry[]>([]);
+  const [activityDraft, setActivityDraft] = useState<ActivityEntry>({ id: '', name: '', date: '', time: '', address: '', category: 'passeio', voucher: '', supplier: '', ticketsIncluded: false, placeId: '', photos: [] });
+  const [activitySearchTerm, setActivitySearchTerm] = useState('');
+  const [activitySearchResults, setActivitySearchResults] = useState<HotelSearchResult[]>([]);
+  const [activitySearchLoading, setActivitySearchLoading] = useState(false);
+  const [activitySearchError, setActivitySearchError] = useState('');
+  const [insuranceAndVisas, setInsuranceAndVisas] = useState<InsuranceEntry[]>([]);
+  const [insuranceDraft, setInsuranceDraft] = useState<Omit<InsuranceEntry, 'id'>>({ type: 'insurance', provider: '', reference: '', validity: '', details: '' });
   const [accommodationDraft, setAccommodationDraft] = useState<AccommodationEntry>({
     id: '',
     destinationCity: '',
@@ -513,6 +558,9 @@ export default function NewTripPage() {
     checkOut: '',
     placeId: '',
     photos: [],
+    roomCategory: '',
+    mealPlan: '',
+    reservationNotes: '',
   });
   const [hotelSearchTerm, setHotelSearchTerm] = useState('');
   const [hotelSearchResults, setHotelSearchResults] = useState<HotelSearchResult[]>([]);
@@ -528,6 +576,101 @@ export default function NewTripPage() {
   const [coverSearchResults, setCoverSearchResults] = useState<string[]>([]);
   const [isCoverSearching, setIsCoverSearching] = useState(false);
   const [coverSearchError, setCoverSearchError] = useState('');
+
+  const buildDraftPayload = useCallback(() => ({
+    version: 1,
+    updatedAt: new Date().toISOString(),
+    wizardStep,
+    formData: {
+      ...formData,
+      // Base64 uploads can exceed the browser storage quota. Remote/library images are safe to retain.
+      coverImage: formData.coverImage.startsWith('data:') ? '' : formData.coverImage,
+    },
+    destinations,
+    transportation,
+    accommodations,
+    activities,
+    insuranceAndVisas,
+    activeLogisticsTab,
+    completedSteps,
+  }), [wizardStep, formData, destinations, transportation, accommodations, activities, insuranceAndVisas, activeLogisticsTab, completedSteps]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(async () => {
+      try {
+        localStorage.removeItem(LEGACY_TRIP_DRAFT_STORAGE_KEY);
+        const draftId = new URLSearchParams(window.location.search).get('draft');
+        const templateId = new URLSearchParams(window.location.search).get('template');
+        if (draftId) {
+          const response = await fetch(`/api/trips/${encodeURIComponent(draftId)}`, { cache: 'no-store' });
+          if (!response.ok) throw new Error('Rascunho não encontrado.');
+          const trip = await response.json();
+          if (trip.status !== 'Rascunho') throw new Error('Esta viagem não é mais um rascunho.');
+          const draft = trip.wizardDraft || {};
+          const persistedFormData = {
+            title: String(trip.name || ''),
+            origin: String(trip.origin || ''),
+            startDate: String(trip.startDate || ''),
+            endDate: String(trip.endDate || ''),
+            travelers: Math.max(1, Array.isArray(trip.travelers) ? trip.travelers.length : Number(trip.travelers) || 1),
+            travelerNames: String(trip.clientName || ''),
+            profile: String(trip.profile || 'lazer'),
+            budget: trip.budget == null ? '' : String(trip.budget),
+            preferences: String(trip.preferences || ''),
+            coverImage: String(trip.coverImage || ''),
+          };
+          setFormData((current) => ({ ...current, ...persistedFormData, ...(draft.formData || {}) }));
+
+          const restoredDestinations = Array.isArray(draft.destinations) && draft.destinations.length
+            ? draft.destinations
+            : Array.isArray(trip.destinationsDetail) && trip.destinationsDetail.length
+              ? trip.destinationsDetail
+              : Array.isArray(trip.destinations) && trip.destinations.length
+                ? trip.destinations.map((city: string) => ({
+                    city,
+                    startDate: String(trip.startDate || ''),
+                    endDate: String(trip.endDate || ''),
+                    allTravelers: true,
+                  }))
+                : [];
+          if (restoredDestinations.length) setDestinations(restoredDestinations);
+          setTransportation(Array.isArray(draft.transportation) ? draft.transportation : Array.isArray(trip.transportation) ? trip.transportation : []);
+          setAccommodations(Array.isArray(draft.accommodations) ? draft.accommodations : Array.isArray(trip.accommodations) ? trip.accommodations : []);
+          setActivities(Array.isArray(draft.activities) ? draft.activities : Array.isArray(trip.activities) ? trip.activities : []);
+          setInsuranceAndVisas(Array.isArray(draft.insuranceAndVisas) ? draft.insuranceAndVisas : Array.isArray(trip.insuranceAndVisas) ? trip.insuranceAndVisas : []);
+          if (WIZARD_STEPS.some((step) => step.id === draft.wizardStep)) setWizardStep(draft.wizardStep);
+          if (['transport', 'hotel', 'activities', 'insurance'].includes(draft.activeLogisticsTab)) setActiveLogisticsTab(draft.activeLogisticsTab);
+          if (Array.isArray(draft.completedSteps)) {
+            setCompletedSteps(draft.completedSteps.filter((id: string) => WIZARD_STEPS.some((step) => step.id === id)));
+          }
+          setDraftResumed(true);
+          setDraftTripId(trip.id);
+          setDraftSavedAt(draft.updatedAt ? new Date(draft.updatedAt) : new Date());
+          if (trip.templateId) setSelectedTemplateId(String(trip.templateId));
+        } else if (templateId) {
+          const response = await fetch(`/api/library/templates/${encodeURIComponent(templateId)}`, { cache: 'no-store' });
+          if (!response.ok) throw new Error('Modelo de roteiro não encontrado.');
+          const template = await response.json();
+          setSelectedTemplateId(template.id);
+          setSelectedTemplateName(template.name);
+          setFormData((current) => ({
+            ...current,
+            title: current.title || `${template.name} — nova viagem`,
+            profile: template.traveler_profile === 'business' ? 'negocios' : template.traveler_profile === 'couple' ? 'lua_de_mel' : current.profile,
+            preferences: [current.preferences, `Usar o modelo “${template.name}” como estrutura principal. Ritmo: ${template.pace}.`].filter(Boolean).join('\n'),
+          }));
+          if (template.destination) setDestinations([{ city: [template.destination, template.country].filter(Boolean).join(' (' ) + (template.country ? ')' : ''), startDate: '', endDate: '', allTravelers: true }]);
+        }
+      } catch (error) {
+        console.error('Rascunho de viagem inválido.', error);
+        alert(error instanceof Error ? error.message : 'Não foi possível abrir o rascunho.');
+        router.replace('/trips');
+      } finally {
+        // A tela só restaura rascunhos identificados explicitamente pela URL.
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [router]);
 
   useEffect(() => {
     const fetchLibraryData = async () => {
@@ -546,6 +689,70 @@ export default function NewTripPage() {
 
     fetchLibraryData();
   }, []);
+
+  useEffect(() => {
+    const tripDestinations = destinations.filter((destination) => destination.city.trim());
+    if (!accommodationDraft.destinationCity && tripDestinations.length === 1) {
+      resetAccommodationDraft(tripDestinations[0].city);
+    }
+  }, [destinations, accommodationDraft.destinationCity]);
+
+  useEffect(() => {
+    const term = hotelSearchTerm.trim();
+    if (isManualAccommodation || !accommodationDraft.destinationCity || term.length < 3) {
+      setHotelSearchResults([]);
+      setHotelSearchError('');
+      return;
+    }
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setHotelSearchLoading(true);
+      setHotelSearchError('');
+      try {
+        const response = await fetch(`/api/media/hotels/search?q=${encodeURIComponent(term)}&city=${encodeURIComponent(accommodationDraft.destinationCity)}&type=lodging`, { signal: controller.signal });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Erro ao buscar acomodações');
+        const results = Array.isArray(data.results) ? data.results : [];
+        setHotelSearchResults(results);
+        if (!results.length) setHotelSearchError('Nenhuma acomodação encontrada.');
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          setHotelSearchError(error instanceof Error ? error.message : 'Não foi possível buscar acomodações agora.');
+        }
+      } finally {
+        if (!controller.signal.aborted) setHotelSearchLoading(false);
+      }
+    }, 700);
+    return () => { window.clearTimeout(timer); controller.abort(); };
+  }, [hotelSearchTerm, accommodationDraft.destinationCity, isManualAccommodation]);
+
+  useEffect(() => {
+    const term = activitySearchTerm.trim();
+    if (term.length < 3) {
+      setActivitySearchResults([]);
+      setActivitySearchError('');
+      return;
+    }
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setActivitySearchLoading(true);
+      setActivitySearchError('');
+      try {
+        const city = availableDestinations[0]?.city || '';
+        const response = await fetch(`/api/media/hotels/search?q=${encodeURIComponent(term)}&city=${encodeURIComponent(city)}&type=all`, { signal: controller.signal });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Erro ao buscar atividades');
+        const results = Array.isArray(data.results) ? data.results : [];
+        setActivitySearchResults(results);
+        if (!results.length) setActivitySearchError('Nenhuma atividade encontrada.');
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') setActivitySearchError('Não foi possível buscar atividades agora.');
+      } finally {
+        if (!controller.signal.aborted) setActivitySearchLoading(false);
+      }
+    }, 700);
+    return () => { window.clearTimeout(timer); controller.abort(); };
+  }, [activitySearchTerm, destinations]);
 
   const filteredPhotos = libraryPhotos.filter((photo) => {
     const matchesFolder = !selectedFolder || photo.folder === selectedFolder;
@@ -726,6 +933,9 @@ export default function NewTripPage() {
       number: '',
       date: '',
       details: '',
+      bookingReference: '',
+      seat: '',
+      baggage: '',
     });
   };
 
@@ -735,16 +945,19 @@ export default function NewTripPage() {
       return;
     }
 
-    setTransportation((prev) => [
-      ...prev,
-      {
+    const entry = {
         ...transportDraft,
-        id: `transport-${Date.now()}`,
+        id: transportDraft.id || `transport-${Date.now()}`,
         operator: transportDraft.operator.trim(),
         number: transportDraft.number.trim(),
         details: transportDraft.details.trim(),
-      },
-    ]);
+        bookingReference: transportDraft.bookingReference.trim(),
+        seat: transportDraft.seat.trim(),
+        baggage: transportDraft.baggage.trim(),
+      };
+    setTransportation((prev) =>
+      transportDraft.id ? prev.map((item) => item.id === entry.id ? entry : item) : [...prev, entry]
+    );
     resetTransportDraft();
   };
 
@@ -763,6 +976,9 @@ export default function NewTripPage() {
       checkOut: destination?.endDate || '',
       placeId: '',
       photos: [],
+      roomCategory: '',
+      mealPlan: '',
+      reservationNotes: '',
     });
     setHotelSearchTerm('');
     setHotelSearchResults([]);
@@ -774,51 +990,47 @@ export default function NewTripPage() {
     resetAccommodationDraft(destinationCity);
   };
 
-  const handleHotelSearch = async () => {
-    if (!accommodationDraft.destinationCity) {
-      alert('Selecione primeiro o destino desta acomodacao.');
-      return;
-    }
-    if (!hotelSearchTerm.trim()) return;
-
-    setHotelSearchLoading(true);
-    setHotelSearchError('');
-
-    try {
-      const response = await fetch(
-        `/api/media/hotels/search?q=${encodeURIComponent(hotelSearchTerm)}&city=${encodeURIComponent(
-          accommodationDraft.destinationCity
-        )}`
-      );
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Erro ao buscar acomodacoes');
-      }
-
-      const results = Array.isArray(data.results) ? data.results : [];
-      setHotelSearchResults(results);
-      if (!results.length) {
-        setHotelSearchError('Nenhuma acomodacao encontrada para essa busca.');
-      }
-    } catch (error) {
-      console.error(error);
-      setHotelSearchError('Nao foi possivel buscar acomodacoes agora.');
-    } finally {
-      setHotelSearchLoading(false);
-    }
-  };
-
   const handleSelectHotelResult = (result: HotelSearchResult) => {
+    const normalizedAddress = normalizeSearch(result.address);
+    const matchedDestination = availableDestinations.find((destination) => {
+      const city = normalizeSearch(destination.city.split(' (')[0]);
+      return city && normalizedAddress.includes(city);
+    }) || selectedDestination || availableDestinations[0];
     setAccommodationDraft((prev) => ({
       ...prev,
+      destinationCity: matchedDestination?.city || prev.destinationCity,
       name: result.name,
       address: result.address,
       placeId: result.placeId,
       photos: result.photos || [],
+      checkIn: matchedDestination?.startDate || prev.checkIn,
+      checkOut: matchedDestination?.endDate || prev.checkOut,
     }));
     setHotelSearchResults([]);
     setHotelSearchTerm(result.name);
     setIsManualAccommodation(false);
+  };
+
+  const handleSelectActivityResult = (result: HotelSearchResult) => {
+    const normalizedAddress = normalizeSearch(result.address);
+    const matchedDestination = availableDestinations.find((destination) => normalizedAddress.includes(normalizeSearch(destination.city.split(' (')[0]))) || availableDestinations[0];
+    const categories = result.categories || [];
+    const suggestedCategory = categories.some((category) => ['restaurant', 'food', 'cafe', 'bar', 'meal_takeaway'].includes(category))
+      ? 'gastronomia'
+      : categories.some((category) => ['museum', 'tourist_attraction', 'park', 'historical_landmark'].includes(category))
+        ? 'passeio'
+        : 'passeio';
+    setActivityDraft((current) => ({
+      ...current,
+      name: result.name,
+      address: result.address,
+      date: matchedDestination?.startDate || formData.startDate || current.date,
+      category: suggestedCategory,
+      placeId: result.placeId,
+      photos: result.photos,
+    }));
+    setActivitySearchTerm(result.name);
+    setActivitySearchResults([]);
   };
 
   const handleAddAccommodation = () => {
@@ -851,15 +1063,18 @@ export default function NewTripPage() {
       return;
     }
 
-    setAccommodations((prev) => [
-      ...prev,
-      {
+    const entry = {
         ...accommodationDraft,
-        id: `accommodation-${Date.now()}`,
+        id: accommodationDraft.id || `accommodation-${Date.now()}`,
         name: accommodationDraft.name.trim(),
         address: accommodationDraft.address?.trim(),
-      },
-    ]);
+        roomCategory: accommodationDraft.roomCategory?.trim() || '',
+        mealPlan: accommodationDraft.mealPlan?.trim() || '',
+        reservationNotes: accommodationDraft.reservationNotes?.trim() || '',
+      };
+    setAccommodations((prev) =>
+      accommodationDraft.id ? prev.map((item) => item.id === entry.id ? entry : item) : [...prev, entry]
+    );
     resetAccommodationDraft(accommodationDraft.destinationCity);
   };
 
@@ -868,6 +1083,29 @@ export default function NewTripPage() {
       prev.filter((accommodation) => accommodation.id !== accommodationId)
     );
   };
+
+  const resetActivityDraft = () => {
+    setActivityDraft({ id: '', name: '', date: '', time: '', address: '', category: 'passeio', voucher: '', supplier: '', ticketsIncluded: false, placeId: '', photos: [] });
+    setActivitySearchTerm('');
+    setActivitySearchResults([]);
+  };
+
+  const handleAddActivity = () => {
+    if (!activityDraft.name.trim()) return;
+    const entry = { ...activityDraft, id: activityDraft.id || `activity-${Date.now()}`, name: activityDraft.name.trim() };
+    const editingId = activityDraft.id;
+    setActivities((current) => editingId ? current.map((item) => item.id === editingId ? entry : item) : [...current, entry]);
+    resetActivityDraft();
+  };
+
+  const logisticsTimeline = useMemo(() => [
+    ...transportation.map((item) => ({ id: `transport-${item.id}`, date: item.date, time: '', kind: 'transport' as const, title: `${TRANSPORT_OPTIONS.find((option) => option.type === item.type)?.label || 'Transporte'} · ${item.operator}`, subtitle: item.number || item.details || '', item })),
+    ...accommodations.flatMap((item) => [
+      { id: `checkin-${item.id}`, date: item.checkIn, time: '15:00', kind: 'accommodation' as const, title: `Check-in · ${item.name}`, subtitle: item.destinationCity, item },
+      { id: `checkout-${item.id}`, date: item.checkOut, time: '11:00', kind: 'accommodation' as const, title: `Check-out · ${item.name}`, subtitle: item.destinationCity, item },
+    ]),
+    ...activities.map((item) => ({ id: `activity-${item.id}`, date: item.date, time: item.time || '', kind: 'activity' as const, title: item.name, subtitle: item.address || item.category || '', item })),
+  ].filter((event) => event.date).sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`)), [transportation, accommodations, activities]);
 
   const uploadDocumentsToTrip = async (tripId: string) => {
     if (pendingDocuments.length === 0) {
@@ -921,6 +1159,32 @@ export default function NewTripPage() {
     }
   };
 
+  const buildPersistedTrip = (status: 'Rascunho' | 'Pendente') => {
+    const today = new Date().toISOString().slice(0, 10);
+    return {
+      name: formData.title.trim() || 'Rascunho sem título',
+      destinations: destinations.map((destination) => destination.city.split(' (')[0]).filter(Boolean),
+      destinationsDetail: destinations,
+      startDate: formData.startDate || today,
+      endDate: formData.endDate || formData.startDate || today,
+      travelers: formData.travelerNames ? formData.travelerNames.split(',').map((name) => name.trim().substring(0, 2).toUpperCase()).filter(Boolean) : ['DR'],
+      clientName: formData.travelerNames.split(',')[0].trim() || 'Cliente a definir',
+      budget: parseFloat(formData.budget) || 0,
+      preferences: formData.preferences,
+      profile: formData.profile,
+      origin: formData.origin,
+      coverImage: formData.coverImage,
+      status,
+      itinerary: [],
+      transportation,
+      accommodations,
+      activities,
+      insuranceAndVisas,
+      wizardDraft: buildDraftPayload(),
+      templateId: selectedTemplateId || undefined,
+    };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -968,6 +1232,8 @@ export default function NewTripPage() {
       itinerary: [],
       transportation,
       accommodations,
+      activities,
+      insuranceAndVisas,
       documents: pendingDocuments.map((document) => ({
         id: document.id,
         name: document.file.name,
@@ -978,7 +1244,7 @@ export default function NewTripPage() {
     };
 
     try {
-      const response = await fetch('/api/trips', {
+      const response = await fetch(draftTripId ? `/api/trips/${draftTripId}` : '/api/trips', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1005,6 +1271,11 @@ export default function NewTripPage() {
           coverImage: formData.coverImage,
           transportation,
           accommodations,
+          activities,
+          insuranceAndVisas,
+          status: 'Pendente',
+          wizardDraft: buildDraftPayload(),
+          templateId: selectedTemplateId || undefined,
         }),
       });
 
@@ -1062,8 +1333,90 @@ export default function NewTripPage() {
     }
   };
 
+  const handleEnrichPreferences = async () => {
+    setEnrichingPreferences(true);
+    setEnrichmentError('');
+    setEnrichedSuggestion('');
+    try {
+      const response = await fetch('/api/ai/preferences/enrich', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.title,
+          origin: formData.origin,
+          destinations: destinations.map((destination) => destination.city).filter(Boolean),
+          period: `${formData.startDate || 'não definida'} a ${formData.endDate || 'não definida'}`,
+          travelers: formData.travelers,
+          profile: formData.profile,
+          preferences: formData.preferences,
+          logistics: {
+            transportation: transportation.map(({ type, operator, number, date, details, bookingReference, seat, baggage }) => ({ type, operator, number, date, details, bookingReference, seat, baggage })),
+            accommodations: accommodations.map(({ destinationCity, name, address, checkIn, checkOut, roomCategory, mealPlan, reservationNotes }) => ({ destinationCity, name, address, checkIn, checkOut, roomCategory, mealPlan, reservationNotes })),
+            activities: activities.map(({ name, date, time, address, category, voucher, supplier, ticketsIncluded }) => ({ name, date, time, address, category, voucher, supplier, ticketsIncluded })),
+            insuranceAndVisas: insuranceAndVisas.map(({ type, provider, validity, details }) => ({ type, provider, validity, details })),
+          },
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Falha ao enriquecer o texto.');
+      setEnrichedSuggestion(data.enrichedText || '');
+    } catch (error) {
+      setEnrichmentError(error instanceof Error ? error.message : 'Não foi possível enriquecer o texto agora.');
+    } finally {
+      setEnrichingPreferences(false);
+    }
+  };
+
+  const generalStepComplete = Boolean(
+    formData.title.trim() &&
+    formData.origin.trim() &&
+    formData.startDate &&
+    formData.endDate &&
+    destinations.length &&
+    destinations.every((destination) => destination.city && destination.startDate && destination.endDate)
+  );
+  const currentStepIndex = WIZARD_STEPS.findIndex((step) => step.id === wizardStep);
+
+  const goToStep = (step: WizardStep) => {
+    const targetIndex = WIZARD_STEPS.findIndex((item) => item.id === step);
+    if (targetIndex > 0 && !generalStepComplete) {
+      alert('Complete título, período e destinos para continuar. O rascunho já está salvo.');
+      setWizardStep('general');
+      return;
+    }
+    if (targetIndex > currentStepIndex) {
+      setCompletedSteps((current) => current.includes(wizardStep) ? current : [...current, wizardStep]);
+    }
+    setWizardStep(step);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const saveAndExit = async () => {
+    setSavingDraft(true);
+    try {
+      const draftPayload = buildPersistedTrip('Rascunho');
+      const response = await fetch(draftTripId ? `/api/trips/${draftTripId}` : '/api/trips', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(draftPayload),
+      });
+      const savedDraft = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(savedDraft.error || 'Não foi possível salvar o rascunho.');
+      if (!savedDraft.id || !savedDraft.wizardDraft?.formData) {
+        throw new Error('O servidor não confirmou todos os dados do rascunho. Tente novamente.');
+      }
+      setDraftTripId(savedDraft.id);
+      setDraftSavedAt(new Date());
+      router.push('/trips?status=Rascunho');
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Não foi possível salvar o rascunho.');
+    } finally {
+      setSavingDraft(false);
+    }
+  };
+
   return (
-    <div className="max-w-2xl mx-auto py-8">
+    <div className="mx-auto max-w-5xl py-4 sm:py-8">
       {/* Breadcrumbs */}
       <div className="scroll-reveal flex items-center gap-2 mb-2 text-xs font-semibold uppercase tracking-wider text-on-surface opacity-75">
         <Link href="/trips" className="hover:text-primary transition-colors">
@@ -1073,13 +1426,52 @@ export default function NewTripPage() {
         <span className="text-primary">Novo Roteiro</span>
       </div>
 
-      <div className="scroll-reveal scroll-reveal-delay-100 bg-white rounded-xl border border-outline-variant p-8 shadow-sm">
-        <h2 className="font-headline-lg text-2xl font-bold text-primary mb-2">Criar Novo Roteiro com Múltiplos Destinos</h2>
-        <p className="text-on-surface opacity-75 text-sm mb-6">
-          Preencha os dados abaixo. As informações serão salvas no backend compartilhado da plataforma.
+      <div className="scroll-reveal scroll-reveal-delay-100 overflow-hidden rounded-[26px] border border-primary/10 bg-white shadow-[0_14px_40px_rgba(16,28,58,.07)]">
+        <div className="flex flex-col gap-4 border-b border-primary/10 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-7">
+          <div className="flex items-start gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-white shadow-[0_8px_20px_rgba(7,59,206,.2)]">
+            <span className="material-symbols-outlined">route</span>
+          </div>
+          <div>
+        <h2 className="font-headline-lg text-2xl font-black tracking-[-.03em] text-primary mb-1">Criar novo roteiro</h2>
+        <p className="text-sm text-on-surface opacity-70">
+          Preencha no seu ritmo. Ao pausar, o roteiro fica salvo em Viagens como rascunho.
         </p>
+          </div>
+          </div>
+          <div className="flex items-center justify-between gap-3 sm:justify-end">
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-700">
+              <span className="material-symbols-outlined text-[15px]">cloud_done</span>
+              {draftSavedAt ? `Rascunho salvo às ${draftSavedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : 'Ainda não salvo'}
+            </span>
+            <button type="button" onClick={saveAndExit} disabled={savingDraft} className="rounded-xl border border-outline-variant px-4 py-2.5 text-xs font-bold text-primary transition hover:bg-surface-container-low disabled:opacity-60">
+              {savingDraft ? 'Salvando...' : 'Salvar e sair'}
+            </button>
+          </div>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        {draftResumed && <div className="mx-5 mt-5 flex items-center justify-between rounded-xl border border-primary/15 bg-ice-blue/60 px-4 py-3 text-xs text-primary sm:mx-7"><span><strong>Rascunho retomado.</strong> Você voltou exatamente à etapa onde parou.</span><button type="button" onClick={() => setDraftResumed(false)} className="material-symbols-outlined text-[18px]">close</button></div>}
+        {selectedTemplateId && <div className="mx-5 mt-5 flex items-center gap-3 rounded-xl border border-coral/20 bg-coral/5 px-4 py-3 text-xs text-primary sm:mx-7"><span className="material-symbols-outlined text-coral">account_tree</span><span><strong>Modelo inteligente ativo{selectedTemplateName ? `: ${selectedTemplateName}` : ''}.</strong> A IA preservará itens obrigatórios, regras e referências do modelo.</span></div>}
+
+        <div className="grid lg:grid-cols-[230px_minmax(0,1fr)]">
+          <aside className="border-b border-primary/10 bg-surface-container-low/70 p-4 lg:border-b-0 lg:border-r lg:p-5">
+            <p className="mb-3 px-2 text-[9px] font-black uppercase tracking-[.18em] text-on-surface/40">Progresso da viagem</p>
+            <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
+              {WIZARD_STEPS.map((step, index) => {
+                const active = wizardStep === step.id;
+                const completed = completedSteps.includes(step.id) && (step.id !== 'general' || generalStepComplete);
+                return <button key={step.id} type="button" onClick={() => goToStep(step.id)} className={`flex items-center gap-3 rounded-xl p-3 text-left transition ${active ? 'bg-primary text-white shadow-sm' : 'text-on-surface hover:bg-white'}`}>
+                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${active ? 'bg-white/15' : completed ? 'bg-emerald-100 text-emerald-700' : 'bg-white text-primary'}`}><span className={`material-symbols-outlined text-[17px] ${completed ? 'motion-check-in' : ''}`}>{completed ? 'check' : step.icon}</span></span>
+                  <span className="min-w-0"><span className="block text-[11px] font-black">{index + 1}. {step.label}</span><span className={`mt-0.5 hidden text-[9px] lg:block ${active ? 'text-white/65' : completed ? 'font-bold text-emerald-700' : 'text-on-surface/45'}`}>{completed ? 'Concluído · clique para editar' : step.description}</span></span>
+                </button>;
+              })}
+            </div>
+            <div className="mt-5 hidden rounded-xl border border-primary/10 bg-white p-3 lg:block"><p className="text-[10px] font-bold text-primary">Pode continuar depois</p><p className="mt-1 text-[9px] leading-relaxed text-on-surface/50">Use “Salvar e sair”. O roteiro aparecerá em Viagens com o estado “Rascunho”.</p></div>
+          </aside>
+
+        <form onSubmit={handleSubmit} className="space-y-6 p-5 sm:p-7">
+
+          {wizardStep === 'general' && <div className="motion-panel-in space-y-6">
           {/* Title and Origin */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1">
@@ -1464,6 +1856,10 @@ export default function NewTripPage() {
             />
           </div>
 
+          <div className="flex items-center justify-between border-t border-outline-variant pt-4"><span className="text-[10px] text-on-surface/45">Campos com * são necessários para avançar.</span><button type="button" onClick={() => goToStep('logistics')} className="rounded-xl bg-primary px-5 py-3 text-xs font-bold text-white">Continuar para logística <span className="material-symbols-outlined ml-1 text-[15px]">arrow_forward</span></button></div>
+          </div>}
+
+          {wizardStep === 'logistics' && <div className="motion-panel-in space-y-6">
           <div className="rounded-xl border border-outline-variant bg-white overflow-hidden">
             <div className="px-5 py-4 border-b border-outline-variant bg-surface-container-low">
               <h3 className="text-xs font-bold text-primary uppercase tracking-wider">
@@ -1473,6 +1869,24 @@ export default function NewTripPage() {
                 Cadastre transportes e hospedagens para dar contexto completo à IA.
               </p>
             </div>
+
+            {logisticsTimeline.length > 0 && (
+              <div className="border-b border-outline-variant bg-ice-blue/35 px-5 py-4">
+                <p className="mb-3 text-[10px] font-black uppercase tracking-wider text-primary">Linha do tempo da viagem</p>
+                <div className="space-y-2">
+                  {logisticsTimeline.map((event) => (
+                    <div key={event.id} className="flex items-center gap-3 rounded-xl border border-primary/10 bg-white px-3 py-2.5">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <span className="material-symbols-outlined text-[18px]">{event.kind === 'transport' ? 'route' : event.kind === 'accommodation' ? 'hotel' : 'local_activity'}</span>
+                      </div>
+                      <div className="min-w-0 flex-1"><p className="text-[11px] font-black">{event.date}{event.time ? ` · ${event.time}` : ''}</p><p className="truncate text-xs font-semibold">{event.title}</p>{event.subtitle && <p className="truncate text-[10px] text-on-surface/55">{event.subtitle}</p>}</div>
+                      <button type="button" title="Editar" onClick={() => { if (event.kind === 'transport') { setTransportDraft(event.item as TransportationEntry); setActiveLogisticsTab('transport'); } else if (event.kind === 'accommodation') { const item = event.item as AccommodationEntry; setAccommodationDraft(item); setHotelSearchTerm(item.name); setIsManualAccommodation(true); setActiveLogisticsTab('hotel'); } else { const item = event.item as ActivityEntry; setActivityDraft(item); setActivitySearchTerm(item.name); setActiveLogisticsTab('activities'); } }} className="rounded-full p-1.5 text-primary hover:bg-primary/10"><span className="material-symbols-outlined text-[16px]">edit</span></button>
+                      <button type="button" title="Remover" onClick={() => { if (event.kind === 'transport') handleRemoveTransportation(event.item.id); else if (event.kind === 'accommodation') handleRemoveAccommodation(event.item.id); else setActivities((current) => current.filter((item) => item.id !== event.item.id)); }} className="rounded-full p-1.5 text-error hover:bg-error/10"><span className="material-symbols-outlined text-[16px]">delete</span></button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="px-5 pt-4 flex gap-2 border-b border-outline-variant">
               <button
@@ -1497,6 +1911,8 @@ export default function NewTripPage() {
               >
                 Hotel
               </button>
+              <button type="button" onClick={() => setActiveLogisticsTab('activities')} className={`px-3 py-2 text-xs font-bold rounded-t-lg border border-b-0 transition-colors ${activeLogisticsTab === 'activities' ? 'bg-white text-primary border-outline-variant' : 'bg-surface-container-low text-on-surface opacity-70 border-transparent'}`}>Atividades & Passeios</button>
+              <button type="button" onClick={() => setActiveLogisticsTab('insurance')} className={`px-3 py-2 text-xs font-bold rounded-t-lg border border-b-0 transition-colors ${activeLogisticsTab === 'insurance' ? 'bg-white text-primary border-outline-variant' : 'bg-surface-container-low text-on-surface opacity-70 border-transparent'}`}>Seguro & Vistos</button>
             </div>
 
             <div className="p-5">
@@ -1600,6 +2016,12 @@ export default function NewTripPage() {
                     </div>
                   </div>
 
+                  <div className="grid gap-2 sm:grid-cols-3">
+                    <input value={transportDraft.bookingReference} onChange={(event) => setTransportDraft((prev) => ({ ...prev, bookingReference: event.target.value }))} placeholder="Localizador da reserva" className="h-10 rounded-lg border border-outline-variant px-3 text-xs" />
+                    <input value={transportDraft.seat} onChange={(event) => setTransportDraft((prev) => ({ ...prev, seat: event.target.value }))} placeholder="Assento" className="h-10 rounded-lg border border-outline-variant px-3 text-xs" />
+                    <input value={transportDraft.baggage} onChange={(event) => setTransportDraft((prev) => ({ ...prev, baggage: event.target.value }))} placeholder="Bagagem incluída" className="h-10 rounded-lg border border-outline-variant px-3 text-xs" />
+                  </div>
+
                   {transportation.length > 0 ? (
                     <div className="space-y-2">
                       {transportation.map((transport) => {
@@ -1642,7 +2064,7 @@ export default function NewTripPage() {
                     </div>
                   )}
                 </div>
-              ) : (
+              ) : activeLogisticsTab === 'hotel' ? (
                 <div className="space-y-4">
                   {availableDestinations.length === 0 ? (
                     <div className="rounded-lg border border-dashed border-amber-300 bg-amber-50 px-4 py-4 text-xs text-amber-900">
@@ -1650,96 +2072,110 @@ export default function NewTripPage() {
                     </div>
                   ) : (
                     <>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[200px_1fr_auto_130px] gap-2 items-center">
+                      <div className="grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)_130px] gap-3 items-end">
                         {/* Destino select */}
-                        <div className="w-full">
+                        <label className="w-full space-y-1.5">
+                          <span className="flex items-center gap-1.5 text-[11px] font-bold text-on-surface/70">
+                            <span className="material-symbols-outlined text-[15px] text-primary">location_on</span>
+                            Destino da hospedagem
+                          </span>
                           <select
                             value={accommodationDraft.destinationCity}
                             onChange={(event) =>
                               handleAccommodationDestinationChange(event.target.value)
                             }
-                            className="w-full h-10 border border-outline-variant rounded-lg px-3 text-xs bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                            className="w-full h-11 border border-outline-variant rounded-xl px-3 text-xs font-semibold bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                           >
-                            <option value="">Inserir o destino</option>
+                            <option value="">Selecione o destino</option>
                             {availableDestinations.map((destination) => (
                               <option key={destination.city} value={destination.city}>
                                 {destination.city}
                               </option>
                             ))}
                           </select>
-                        </div>
+                        </label>
 
                         {/* Busca autocomplete input */}
                         {!isManualAccommodation ? (
-                          <div className="w-full flex gap-2">
-                            <input
-                              type="text"
-                              value={hotelSearchTerm}
-                              onChange={(event) => setHotelSearchTerm(event.target.value)}
-                              placeholder="Procurar acomodação"
-                              className="w-full h-10 border border-outline-variant rounded-lg px-3 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none"
-                            />
-                            <button
-                              type="button"
-                              onClick={handleHotelSearch}
-                              disabled={hotelSearchLoading}
-                              className="h-10 px-4 rounded-lg bg-primary text-on-primary text-xs font-bold disabled:opacity-60 hover:opacity-95 shrink-0"
-                            >
-                              {hotelSearchLoading ? 'Buscando...' : 'Buscar'}
-                            </button>
-                          </div>
+                          <label className="relative w-full space-y-1.5">
+                            <span className="flex items-center justify-between gap-2 text-[11px] font-bold text-on-surface/70">
+                              <span>Buscar hotel</span>
+                              {accommodationDraft.destinationCity && (
+                                <span className="inline-flex max-w-[65%] items-center gap-1 truncate rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                                  <span className="material-symbols-outlined text-[12px]">near_me</span>
+                                  em {accommodationDraft.destinationCity}
+                                </span>
+                              )}
+                            </span>
+                            <div className="relative">
+                              <span className="material-symbols-outlined pointer-events-none absolute left-3 top-3 text-[18px] text-primary/70">search</span>
+                              <input
+                                type="text"
+                                value={hotelSearchTerm}
+                                onChange={(event) => setHotelSearchTerm(event.target.value)}
+                                disabled={!accommodationDraft.destinationCity}
+                                autoComplete="off"
+                                placeholder={accommodationDraft.destinationCity ? `Digite o nome do hotel em ${accommodationDraft.destinationCity}` : 'Selecione primeiro o destino'}
+                                className="w-full h-11 border border-outline-variant rounded-xl pl-10 pr-10 text-xs bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none disabled:cursor-not-allowed disabled:bg-surface-container-low disabled:opacity-70"
+                              />
+                              {hotelSearchLoading && <span className="material-symbols-outlined absolute right-3 top-3 animate-spin text-[18px] text-primary">progress_activity</span>}
+
+                              {(hotelSearchResults.length > 0 || hotelSearchError) && hotelSearchTerm.trim().length >= 3 && (
+                                <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-40 overflow-hidden rounded-xl border border-primary/15 bg-white shadow-[0_18px_45px_rgba(8,35,84,0.16)]">
+                                  {hotelSearchError ? (
+                                    <p className="px-4 py-3 text-[11px] font-semibold text-error">{hotelSearchError}</p>
+                                  ) : (
+                                    <div className="max-h-80 overflow-y-auto p-1.5">
+                                      {hotelSearchResults.map((result) => (
+                                        <button
+                                          key={result.id}
+                                          type="button"
+                                          onClick={() => handleSelectHotelResult(result)}
+                                          className="group flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors hover:bg-primary/5 focus:bg-primary/5 focus:outline-none"
+                                        >
+                                          {result.photos?.[0] ? (
+                                            <img src={result.photos[0]} alt="" className="h-12 w-14 shrink-0 rounded-lg bg-surface-container-low object-cover" />
+                                          ) : (
+                                            <span className="flex h-12 w-14 shrink-0 items-center justify-center rounded-lg bg-primary/8 text-primary">
+                                              <span className="material-symbols-outlined">hotel</span>
+                                            </span>
+                                          )}
+                                          <span className="min-w-0 flex-1">
+                                            <span className="block truncate text-xs font-bold text-on-surface">{result.name}</span>
+                                            <span className="mt-0.5 block truncate text-[10px] text-on-surface/60">{result.address}</span>
+                                          </span>
+                                          <span className="material-symbols-outlined text-[18px] text-primary opacity-0 transition-opacity group-hover:opacity-100">arrow_forward</span>
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            <span className="block text-[10px] font-normal text-on-surface/50">Digite pelo menos 3 letras para ver hotéis reais.</span>
+                          </label>
                         ) : (
-                          <div className="w-full text-xs text-on-surface opacity-60 flex items-center h-10 px-1">
+                          <div className="w-full text-xs text-on-surface opacity-60 flex items-center h-11 px-1">
                             Preenchendo acomodação manualmente
                           </div>
                         )}
 
-                        <div className="hidden lg:block text-xs font-bold text-on-surface opacity-50 px-1 text-center">
-                          OU
-                        </div>
-
-                        <div className="w-full">
+                        <div className="w-full pb-[18px]">
                           <button
                             type="button"
                             onClick={() => setIsManualAccommodation((prev) => !prev)}
-                            className="w-full h-10 rounded-lg border border-outline-variant text-xs font-bold hover:bg-surface-container-low transition-colors"
+                            className="w-full h-11 rounded-xl border border-outline-variant text-xs font-bold hover:bg-surface-container-low transition-colors"
                           >
                             {isManualAccommodation ? 'Usar Busca API' : 'Criar Novo'}
                           </button>
                         </div>
                       </div>
 
-                      {/* Search Results Display */}
-                      {!isManualAccommodation && (
-                        <div className="space-y-3">
-                          {hotelSearchError && (
-                            <p className="text-[11px] font-semibold text-error mt-2">{hotelSearchError}</p>
-                          )}
-
-                          {hotelSearchResults.length > 0 && (
-                            <div className="space-y-2 rounded-lg border border-outline-variant bg-surface-container-low p-3 mt-2">
-                              {hotelSearchResults.map((result) => (
-                                <button
-                                  key={result.id}
-                                  type="button"
-                                  onClick={() => handleSelectHotelResult(result)}
-                                  className="w-full rounded-lg border border-outline-variant bg-white p-3 text-left hover:border-primary hover:bg-primary/5"
-                                >
-                                  <p className="text-xs font-bold text-on-surface">{result.name}</p>
-                                  <p className="text-[11px] text-on-surface opacity-70 mt-1">
-                                    {result.address}
-                                  </p>
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
-
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div className="flex flex-col gap-1 md:col-span-2">
-                          <label className="text-[11px] font-semibold text-on-surface opacity-75">
-                            Nome da acomodacao
+                          <label className="flex items-center justify-between gap-2 text-[11px] font-semibold text-on-surface opacity-75">
+                            <span>Nome da acomodação</span>
+                            {accommodationDraft.placeId && <span className="text-[9px] font-bold text-emerald-700">Preenchido pelo Google</span>}
                           </label>
                           <input
                             type="text"
@@ -1753,7 +2189,10 @@ export default function NewTripPage() {
                         </div>
 
                         <div className="flex flex-col gap-1 md:col-span-2">
-                          <label className="text-[11px] font-semibold text-on-surface opacity-75">Endereco</label>
+                          <label className="flex items-center justify-between gap-2 text-[11px] font-semibold text-on-surface opacity-75">
+                            <span>Endereço</span>
+                            {accommodationDraft.placeId && <span className="text-[9px] font-bold text-emerald-700">Preenchido pelo Google</span>}
+                          </label>
                           <input
                             type="text"
                             value={accommodationDraft.address || ''}
@@ -1792,6 +2231,9 @@ export default function NewTripPage() {
                             className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                           />
                         </div>
+                        <label className="space-y-1"><span className="text-[10px] font-semibold text-on-surface/60">Dados da reserva</span><input value={accommodationDraft.roomCategory || ''} onChange={(event) => setAccommodationDraft((prev) => ({ ...prev, roomCategory: event.target.value }))} placeholder="Categoria do quarto (ex.: Deluxe)" className="w-full rounded-lg border border-outline-variant p-2.5 text-xs" /></label>
+                        <label className="space-y-1"><span className="text-[10px] font-semibold text-on-surface/60">Dados da reserva</span><input value={accommodationDraft.mealPlan || ''} onChange={(event) => setAccommodationDraft((prev) => ({ ...prev, mealPlan: event.target.value }))} placeholder="Regime de alimentação (ex.: café incluso)" className="w-full rounded-lg border border-outline-variant p-2.5 text-xs" /></label>
+                        <label className="space-y-1 md:col-span-2"><span className="text-[10px] font-semibold text-on-surface/60">Informação da reserva, voucher ou consultor</span><textarea value={accommodationDraft.reservationNotes || ''} onChange={(event) => setAccommodationDraft((prev) => ({ ...prev, reservationNotes: event.target.value }))} placeholder="Observações da reserva" rows={2} className="w-full rounded-lg border border-outline-variant p-2.5 text-xs" /></label>
                       </div>
 
                       {accommodationDraft.photos && accommodationDraft.photos.length > 0 && (
@@ -1861,10 +2303,41 @@ export default function NewTripPage() {
                     </>
                   )}
                 </div>
+              ) : activeLogisticsTab === 'activities' ? (
+                <div className="space-y-4">
+                  <div className="relative"><input value={activitySearchTerm} onChange={(event) => { setActivitySearchTerm(event.target.value); setActivityDraft((current) => ({ ...current, name: event.target.value })); }} placeholder="Busque uma atração, museu, parque ou restaurante" className="h-11 w-full rounded-xl border border-outline-variant px-4 pr-10 text-xs" />{activitySearchLoading && <span className="material-symbols-outlined absolute right-3 top-3 animate-spin text-[18px] text-primary">progress_activity</span>}</div>
+                  {activitySearchError && <p className="text-[11px] font-semibold text-error">{activitySearchError}</p>}
+                  {activitySearchResults.length > 0 && <div className="space-y-1 rounded-xl border border-outline-variant bg-surface-container-low p-2">{activitySearchResults.map((result) => <button key={result.id} type="button" onClick={() => handleSelectActivityResult(result)} className="w-full rounded-lg bg-white p-3 text-left hover:bg-primary/5"><p className="text-xs font-bold">{result.name}</p><p className="text-[10px] text-on-surface/55">{result.address}</p></button>)}</div>}
+                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4"><input value={activityDraft.name} onChange={(event) => setActivityDraft((current) => ({ ...current, name: event.target.value }))} placeholder="Nome da atividade" className="rounded-lg border border-outline-variant p-2.5 text-xs lg:col-span-2" /><input type="date" value={activityDraft.date} onChange={(event) => setActivityDraft((current) => ({ ...current, date: event.target.value }))} className="rounded-lg border border-outline-variant p-2.5 text-xs" /><input type="time" value={activityDraft.time} onChange={(event) => setActivityDraft((current) => ({ ...current, time: event.target.value }))} className="rounded-lg border border-outline-variant p-2.5 text-xs" /></div>
+                  <div className="grid gap-2 sm:grid-cols-2"><input value={activityDraft.address} onChange={(event) => setActivityDraft((current) => ({ ...current, address: event.target.value }))} placeholder="Endereço" className="rounded-lg border border-outline-variant p-2.5 text-xs" /><select value={activityDraft.category} onChange={(event) => setActivityDraft((current) => ({ ...current, category: event.target.value }))} className="rounded-lg border border-outline-variant bg-white p-2.5 text-xs"><option value="passeio">Passeio</option><option value="ingresso">Ingresso</option><option value="gastronomia">Gastronomia</option><option value="evento">Evento</option></select><input value={activityDraft.voucher} onChange={(event) => setActivityDraft((current) => ({ ...current, voucher: event.target.value }))} placeholder="Voucher" className="rounded-lg border border-outline-variant p-2.5 text-xs" /><input value={activityDraft.supplier} onChange={(event) => setActivityDraft((current) => ({ ...current, supplier: event.target.value }))} placeholder="Fornecedor" className="rounded-lg border border-outline-variant p-2.5 text-xs" /></div>
+                  <div className="flex items-center justify-between"><label className="flex items-center gap-2 text-xs font-semibold"><input type="checkbox" checked={activityDraft.ticketsIncluded} onChange={(event) => setActivityDraft((current) => ({ ...current, ticketsIncluded: event.target.checked }))} /> Ingressos incluídos</label><button type="button" disabled={!activityDraft.name.trim()} onClick={handleAddActivity} className="rounded-lg bg-primary px-5 py-2.5 text-xs font-bold text-white disabled:opacity-50">{activityDraft.id ? 'Salvar alterações' : 'Adicionar atividade'}</button></div>
+                  {activities.map((activity) => <div key={activity.id} className="flex items-center justify-between rounded-xl border border-outline-variant bg-surface-container-low p-3"><div><p className="text-xs font-bold">{activity.name}</p><p className="text-[10px] text-on-surface/55">{activity.date} {activity.time} · {activity.address || activity.category}</p></div><button type="button" onClick={() => setActivities((current) => current.filter((item) => item.id !== activity.id))}><span className="material-symbols-outlined text-[17px] text-error">delete</span></button></div>)}
+                  {!activities.length && <p className="rounded-xl border border-dashed border-outline-variant p-5 text-center text-xs text-on-surface/50">Nenhum passeio contratado adicionado.</p>}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5"><select value={insuranceDraft.type} onChange={(event) => setInsuranceDraft((current) => ({ ...current, type: event.target.value as InsuranceEntry['type'] }))} className="rounded-lg border border-outline-variant bg-white p-2.5 text-xs"><option value="insurance">Seguro viagem</option><option value="visa">Visto</option></select><input value={insuranceDraft.provider} onChange={(event) => setInsuranceDraft((current) => ({ ...current, provider: event.target.value }))} placeholder="Seguradora / País" className="rounded-lg border border-outline-variant p-2.5 text-xs" /><input value={insuranceDraft.reference} onChange={(event) => setInsuranceDraft((current) => ({ ...current, reference: event.target.value }))} placeholder="Apólice / referência" className="rounded-lg border border-outline-variant p-2.5 text-xs" /><input type="date" value={insuranceDraft.validity} onChange={(event) => setInsuranceDraft((current) => ({ ...current, validity: event.target.value }))} className="rounded-lg border border-outline-variant p-2.5 text-xs" /><button type="button" disabled={!insuranceDraft.provider.trim()} onClick={() => { setInsuranceAndVisas((current) => [...current, { id: `insurance-${Date.now()}`, ...insuranceDraft }]); setInsuranceDraft({ type: 'insurance', provider: '', reference: '', validity: '', details: '' }); }} className="rounded-lg bg-primary px-4 text-xs font-bold text-white disabled:opacity-50">Adicionar</button></div>
+                  <textarea value={insuranceDraft.details} onChange={(event) => setInsuranceDraft((current) => ({ ...current, details: event.target.value }))} placeholder="Cobertura, observações ou requisitos do visto..." rows={2} className="w-full rounded-lg border border-outline-variant p-2.5 text-xs" />
+                  {insuranceAndVisas.map((item) => <div key={item.id} className="flex items-center justify-between rounded-xl border border-outline-variant bg-surface-container-low p-3"><div><p className="text-xs font-bold">{item.type === 'insurance' ? 'Seguro' : 'Visto'} · {item.provider}</p><p className="text-[10px] text-on-surface/55">{item.reference || 'Sem referência'} · validade {item.validity || 'não informada'}</p></div><button type="button" onClick={() => setInsuranceAndVisas((current) => current.filter((entry) => entry.id !== item.id))}><span className="material-symbols-outlined text-[17px] text-error">delete</span></button></div>)}
+                  {!insuranceAndVisas.length && <p className="rounded-xl border border-dashed border-outline-variant p-5 text-center text-xs text-on-surface/50">Nenhum seguro ou visto adicionado.</p>}
+                </div>
               )}
             </div>
           </div>
 
+          <div className="flex justify-between"><button type="button" onClick={() => goToStep('general')} className="rounded-xl border border-outline-variant px-4 py-3 text-xs font-bold">Voltar</button><button type="button" onClick={() => goToStep('ai')} className="rounded-xl bg-primary px-5 py-3 text-xs font-bold text-white">Configurar IA <span className="material-symbols-outlined ml-1 text-[15px]">arrow_forward</span></button></div>
+          </div>}
+
+          {wizardStep === 'ai' && <section className="motion-panel-in space-y-5 rounded-2xl border border-primary/10 bg-ice-blue/55 p-5 sm:p-6">
+            <div><p className="text-[10px] font-black uppercase tracking-wider text-coral">Personalização</p><h3 className="mt-1 text-lg font-black text-primary">Como a IA deve construir esta viagem?</h3><p className="mt-1 text-xs text-on-surface/55">Estas escolhas orientam ritmo, linguagem e prioridades do roteiro.</p></div>
+            <div className="grid gap-4 sm:grid-cols-2"><label className="space-y-1"><span className="text-xs font-semibold">Perfil da viagem</span><select value={formData.profile} onChange={(event) => setFormData((current) => ({ ...current, profile: event.target.value }))} className="w-full rounded-xl border border-outline-variant bg-white p-3 text-xs"><option value="lazer">Lazer e descanso</option><option value="aventura">Aventura</option><option value="cultural">Cultural</option><option value="negocios">Negócios</option></select></label><label className="space-y-1"><span className="text-xs font-semibold">Ritmo desejado</span><select onChange={(event) => setFormData((current) => ({ ...current, preferences: `${current.preferences}\nRitmo: ${event.target.value}`.trim() }))} className="w-full rounded-xl border border-outline-variant bg-white p-3 text-xs"><option value="equilibrado">Equilibrado</option><option value="tranquilo">Tranquilo</option><option value="intenso">Intenso</option></select></label></div>
+            <div className="space-y-2"><div className="flex items-center justify-between gap-3"><label htmlFor="trip-preferences" className="text-xs font-semibold">Instruções especiais e tom da escrita</label><button type="button" onClick={handleEnrichPreferences} disabled={enrichingPreferences} className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-coral/20 bg-coral/10 px-3 py-2 text-[10px] font-black text-coral transition hover:border-coral/35 hover:bg-coral/15 disabled:opacity-60"><span className={`material-symbols-outlined text-[15px] ${enrichingPreferences ? 'animate-spin' : ''}`}>{enrichingPreferences ? 'progress_activity' : 'auto_fix_high'}</span>{enrichingPreferences ? 'Enriquecendo...' : 'Enriquecer com IA'}</button></div><textarea id="trip-preferences" value={formData.preferences} onChange={(event) => { setFormData((current) => ({ ...current, preferences: event.target.value })); setEnrichedSuggestion(''); }} rows={5} placeholder="Ex.: tom acolhedor, priorizar gastronomia local, evitar escadas..." className="w-full rounded-xl border border-outline-variant bg-white p-3 text-xs" /></div>
+            {enrichmentError && <p className="rounded-xl border border-error/20 bg-error/5 px-4 py-3 text-xs font-semibold text-error">{enrichmentError}</p>}
+            {enrichedSuggestion && <div className="space-y-3 rounded-xl border border-primary/15 bg-white p-4"><div className="flex items-center justify-between"><p className="text-[10px] font-black uppercase tracking-wider text-primary">Sugestão enriquecida</p><span className="rounded-full bg-emerald-50 px-2 py-1 text-[9px] font-bold text-emerald-700">Pronta para revisão</span></div><p className="whitespace-pre-wrap text-xs leading-relaxed text-on-surface/75">{enrichedSuggestion}</p><div className="flex justify-end gap-2"><button type="button" onClick={() => setEnrichedSuggestion('')} className="rounded-lg border border-outline-variant px-3 py-2 text-[10px] font-bold">Descartar</button><button type="button" onClick={() => { setFormData((current) => ({ ...current, preferences: enrichedSuggestion })); setEnrichedSuggestion(''); }} className="rounded-lg bg-primary px-3 py-2 text-[10px] font-bold text-white">Usar este texto</button></div></div>}
+            <div className="flex justify-between"><button type="button" onClick={() => goToStep('logistics')} className="rounded-xl border border-outline-variant bg-white px-4 py-3 text-xs font-bold">Voltar</button><button type="button" onClick={() => goToStep('review')} className="rounded-xl bg-primary px-5 py-3 text-xs font-bold text-white">Revisar viagem <span className="material-symbols-outlined ml-1 text-[15px]">arrow_forward</span></button></div>
+          </section>}
+
+          {wizardStep === 'review' && <div className="motion-panel-in space-y-6">
           <div className="rounded-xl border border-outline-variant bg-surface-container-low p-6 space-y-4">
             <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
               <div>
@@ -1932,14 +2405,18 @@ export default function NewTripPage() {
             )}
           </div>
 
+          <div className="grid gap-3 rounded-2xl border border-primary/10 bg-white p-5 sm:grid-cols-3"><div><p className="text-[9px] font-black uppercase text-on-surface/40">Período</p><p className="mt-1 text-xs font-bold">{formData.startDate || '—'} a {formData.endDate || '—'}</p></div><div><p className="text-[9px] font-black uppercase text-on-surface/40">Destinos</p><p className="mt-1 text-xs font-bold">{destinations.map((destination) => destination.city.split(' (')[0]).filter(Boolean).join(', ') || '—'}</p></div><div><p className="text-[9px] font-black uppercase text-on-surface/40">Logística</p><p className="mt-1 text-xs font-bold">{transportation.length} transportes · {accommodations.length} hotéis</p></div></div>
+
           {/* Submit and Cancel */}
           <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant">
-            <Link
-              href="/trips"
-              className="btn-interactive px-6 py-2.5 border border-outline rounded-lg text-xs font-semibold hover:bg-surface-container transition-colors"
+            <button
+              type="button"
+              onClick={saveAndExit}
+              disabled={savingDraft}
+              className="btn-interactive px-6 py-2.5 border border-outline rounded-lg text-xs font-semibold hover:bg-surface-container transition-colors disabled:opacity-60"
             >
-              Cancelar
-            </Link>
+              {savingDraft ? 'Salvando rascunho...' : 'Salvar e continuar depois'}
+            </button>
             <button
               disabled={loading}
               type="submit"
@@ -1953,12 +2430,14 @@ export default function NewTripPage() {
               ) : (
                 <>
                   <span className="material-symbols-outlined text-[16px]">save</span>
-                  CRIAR NO BANCO
+                  {draftTripId ? 'CONCLUIR RASCUNHO' : 'CRIAR VIAGEM'}
                 </>
               )}
             </button>
           </div>
+          </div>}
         </form>
+        </div>
       </div>
     </div>
   );

@@ -9,8 +9,8 @@ const tabs = [
   { name: 'home', href: '/' as const, label: 'Viagens', icon: '⌂' },
   { name: 'documents', href: '/documents' as const, label: 'Documentos', icon: '▤' },
   { name: 'chat', href: '/chat' as const, label: 'Mensagens', icon: '◌' },
-  { name: 'expenses', href: '/expenses' as const, label: 'Despesas', icon: '◈' },
-  { name: 'diary', href: '/diary' as const, label: 'Diário', icon: '✦' },
+  { name: 'explore', href: '/explore' as const, label: 'Explorar', icon: '⌖' },
+  { name: 'utilities', href: '/utilities' as const, label: 'Utilidades', icon: '✦' },
 ];
 
 export default function AppTabs() {
@@ -20,7 +20,7 @@ export default function AppTabs() {
       <TabList asChild>
         <CustomTabList>
           {tabs.map((tab) => (
-            <TabTrigger key={tab.name} name={tab.name} href={tab.href} asChild>
+            <TabTrigger key={tab.name} name={tab.name} href={tab.href as never} asChild>
               <TabButton icon={tab.icon}>{tab.label}</TabButton>
             </TabTrigger>
           ))}

@@ -13,7 +13,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     if (!trip) {
       return NextResponse.json({ error: 'Viagem nao encontrada' }, { status: 404 });
     }
-    return NextResponse.json(trip);
+    return NextResponse.json(trip, {
+      headers: { 'Cache-Control': 'private, no-store, max-age=0' },
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erro ao buscar viagem';
     return NextResponse.json({ error: message }, { status: 500 });

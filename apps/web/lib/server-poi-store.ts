@@ -83,6 +83,12 @@ function scorePoi(row: PoiRow, terms: string[]) {
   return editorialBoost + terms.reduce((score, term) => score + (searchable.includes(term) ? 1 : 0), 0);
 }
 
+function hasSpecificPlaceName(row: PoiRow) {
+  const name = normalize(row.name);
+  if (name.length < 4) return false;
+  return !/^(bar|cafe|restaurante|restaurant|lanchonete|mercado|praca|parque|mirante|museu|churrascaria)( da| de| do| dos| das)?$/.test(name);
+}
+
 function stringOverride(overrides: Record<string, unknown>, key: string) {
   return typeof overrides[key] === 'string' ? String(overrides[key]).trim() || undefined : undefined;
 }
@@ -114,7 +120,7 @@ async function mapRow(row: PoiRow): Promise<CuratedPoi> {
 function selectBalancedRows(rows: PoiRow[], terms: string[], limit: number, excludedPoiNames: string[] = []) {
   const excluded = new Set(excludedPoiNames.map(normalize));
   const ranked = rows
-    .filter((row) => !excluded.has(normalize(row.name)))
+    .filter((row) => !excluded.has(normalize(row.name)) && hasSpecificPlaceName(row))
     .map((row) => ({ row, score: scorePoi(row, terms) }))
     .sort((a, b) => b.score - a.score || a.row.name.localeCompare(b.row.name));
   const quotas: Partial<Record<PoiType, number>> = {

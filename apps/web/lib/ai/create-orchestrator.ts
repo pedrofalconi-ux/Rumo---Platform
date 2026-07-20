@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import {
   createAiOrchestrator,
+  createLLMProvider,
   type AiOrchestratorConfig,
   type GenerationLogger,
 } from '@rumo/ai';
@@ -134,4 +135,47 @@ export async function createTripAiOrchestrator(
     { userId },
     supabasePoiRetriever
   );
+}
+
+export async function createAgencyLlmProvider(
+  agencyId: string,
+  overrides?: Partial<AiOrchestratorConfig>
+) {
+  const settings = await getAgencySettings(agencyId);
+  const provider = resolveProvider(overrides?.provider, settings);
+  const apiKey =
+    overrides?.apiKey ||
+    (provider === 'anthropic'
+      ? process.env.ANTHROPIC_API_KEY || settings.claudeKey
+      : provider === 'gemini'
+        ? process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || settings.geminiKey || ''
+        : provider === 'openai'
+          ? process.env.OPENAI_API_KEY || ''
+          : '');
+
+  return createLLMProvider({
+    provider,
+    model: overrides?.model || process.env.LLM_MODEL || '',
+    fallbackModels: overrides?.fallbackModels,
+    apiKey: apiKey || undefined,
+    temperature: overrides?.temperature,
+    maxTokens: overrides?.maxTokens,
+  });
+}
+
+export async function createEconomyAgencyLlmProvider(agencyId: string) {
+  const settings = await getAgencySettings(agencyId);
+  const provider = resolveProvider(undefined, settings);
+  const economyModels: Record<string, string> = {
+    gemini: 'gemini-2.5-flash-lite',
+    openai: 'gpt-4o-mini',
+    anthropic: 'claude-3-5-haiku-latest',
+  };
+
+  return createAgencyLlmProvider(agencyId, {
+    model: process.env.LLM_ENRICHMENT_MODEL || economyModels[provider],
+    fallbackModels: provider === 'gemini' ? ['gemini-2.5-flash', 'gemini-flash-latest'] : undefined,
+    temperature: 0.25,
+    maxTokens: 900,
+  });
 }

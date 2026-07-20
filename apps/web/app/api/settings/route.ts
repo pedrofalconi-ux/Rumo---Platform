@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '../../../lib/server-auth';
 import { getAgencySettings, updateAgencySettings } from '../../../lib/server-account-store';
+import { agencyLogoProxyUrl, extractAgencyLogoPath } from '../../../lib/agency-logo';
 
 const agencyEditableFields = [
   'agencyName',
@@ -20,12 +21,18 @@ function sanitizeAgencySettings(settings: any) {
     sanitized[field] = settings[field] ?? '';
   }
   sanitized.defaultCurrency = settings.defaultCurrency || 'BRL';
+  sanitized.logoUrl = extractAgencyLogoPath(settings.logoUrl)
+    ? agencyLogoProxyUrl()
+    : settings.logoUrl || '';
   return sanitized;
 }
 
 function pickAgencyEditableSettings(body: any) {
   const picked: Record<string, unknown> = {};
   for (const field of agencyEditableFields) {
+    if (field === 'logoUrl' && String(body[field] || '').startsWith('/api/settings/logo')) {
+      continue;
+    }
     if (typeof body[field] !== 'undefined') {
       picked[field] = body[field];
     }

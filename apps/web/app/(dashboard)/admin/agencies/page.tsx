@@ -69,11 +69,11 @@ export default function AdminAgenciesPage() {
 
   return (
     <div className="max-w-6xl mx-auto py-8 space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="page-heading flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.18em] text-primary">Admin SaaS</p>
-          <h2 className="font-headline-lg text-2xl font-bold text-on-surface tracking-tight mt-1">
-            Agencias e acesso da plataforma
+          <h2 className="font-headline-lg text-3xl font-black text-primary tracking-[-.035em] mt-1">
+            Agências e acesso da plataforma
           </h2>
           <p className="text-on-surface opacity-75 text-sm mt-1">
             Controle tenants, planos, status de assinatura e validade de acesso das agencias.
@@ -81,7 +81,7 @@ export default function AdminAgenciesPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-outline-variant shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-primary/10 shadow-[0_10px_30px_rgba(16,28,58,.055)] overflow-hidden">
         {loading ? (
           <div className="py-16 flex items-center justify-center gap-2 text-sm font-semibold">
             <span className="material-symbols-outlined animate-spin text-primary">sync</span>

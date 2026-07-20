@@ -54,8 +54,9 @@ function TravelerRegisterContent() {
   };
 
   return (
-    <main className="min-h-screen bg-surface flex items-center justify-center p-6">
-      <section className="w-full max-w-md bg-white border border-outline-variant rounded-xl shadow-sm p-8">
+    <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_15%_10%,#0865ff_0%,transparent_34%),linear-gradient(135deg,#073BCE,#061B55_58%,#041437)] flex items-center justify-center p-4 sm:p-6">
+      <div aria-hidden="true" className="absolute -left-40 -top-40 h-[520px] w-[520px] rounded-full border-[70px] border-white/[.04]" />
+      <section className="relative w-full max-w-md bg-white border border-white/20 rounded-[28px] shadow-[0_30px_90px_rgba(0,8,35,.35)] p-6 sm:p-8">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
             <img src="/rumo-mark.svg" alt="Rumo" className="h-12 w-12 rounded-full shadow-sm" />
@@ -64,7 +65,7 @@ function TravelerRegisterContent() {
               <p className="text-[10px] uppercase tracking-[0.18em] text-on-surface opacity-55">Area do viajante</p>
             </div>
           </div>
-          <h1 className="font-headline-lg text-2xl font-bold text-on-surface mt-2">Criar conta de viajante</h1>
+          <h1 className="font-headline-lg text-2xl font-black tracking-[-.03em] text-primary mt-2">Criar conta de viajante</h1>
           <p className="text-sm text-on-surface opacity-70 mt-1">
             Use sua conta para importar roteiros enviados pela sua agencia.
           </p>
@@ -155,7 +156,7 @@ function TravelerRegisterContent() {
           <button
             disabled={loading}
             type="submit"
-            className="w-full bg-primary text-on-primary rounded-lg py-3 text-xs font-bold hover:opacity-95 disabled:opacity-60 transition-all"
+            className="w-full bg-primary text-on-primary rounded-xl py-3.5 text-xs font-bold shadow-[0_10px_24px_rgba(7,59,206,.2)] hover:bg-primary-container disabled:opacity-60 transition-all"
           >
             {loading ? 'CRIANDO...' : 'CRIAR CONTA DE VIAJANTE'}
           </button>

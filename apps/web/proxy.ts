@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 
 const publicPaths = ['/login', '/register', '/traveler/register'];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const session = request.cookies.get('rumo_session')?.value;
   const pathname = request.nextUrl.pathname;
   const isPublicPath = publicPaths.includes(pathname);

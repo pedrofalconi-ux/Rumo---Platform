@@ -136,7 +136,7 @@ export class GeminiProvider implements LLMProvider {
     private apiKey: string,
     private temperature = 0.4,
     private maxTokens = 4096,
-    fallbackModels: string[] = ['gemini-2.5-flash-lite', 'gemini-1.5-flash']
+    fallbackModels: string[] = ['gemini-2.5-flash', 'gemini-flash-latest']
   ) {
     this.models = [model, ...fallbackModels].filter(
       (candidate, index, models) => candidate && models.indexOf(candidate) === index

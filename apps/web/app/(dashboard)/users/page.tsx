@@ -25,6 +25,7 @@ export default function UsersPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'active' | 'pending' | 'history'>('active');
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -133,12 +134,15 @@ export default function UsersPage() {
     }
   };
 
-  const admins = users.filter((u) => u.role === 'agency_admin');
-  const agents = users.filter((u) => u.role === 'agent');
+  const activeUsers = users.filter((user) => !user.accessStatus || user.accessStatus === 'active');
+  const admins = activeUsers.filter((u) => u.role === 'agency_admin');
+  const agents = activeUsers.filter((u) => u.role === 'agent');
+  const pendingUsers = users.filter((user) => user.accessStatus === 'pending');
+  const historyUsers = users.filter((user) => user.accessStatus === 'blocked' || (user.accessExpiresAt && new Date(user.accessExpiresAt) < new Date()));
 
   const renderTable = (list: User[], title: string, subtitle: string, badgeColorClass: string) => {
     return (
-      <div className="scroll-reveal bg-white rounded-xl border border-outline-variant overflow-hidden shadow-sm flex flex-col">
+      <div className="motion-panel-in bg-white rounded-xl border border-outline-variant overflow-hidden shadow-sm flex flex-col">
         <div className="px-6 py-4 border-b border-outline-variant bg-surface-container-low flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h3 className="font-bold text-sm text-primary tracking-wide">{title}</h3>
@@ -244,20 +248,28 @@ export default function UsersPage() {
   return (
     <div className="flex-1 space-y-6">
       {/* Header bar */}
-      <div className="scroll-reveal flex justify-between items-end">
+      <div className="page-heading scroll-reveal flex justify-between items-end">
         <div>
-          <h2 className="font-headline-lg text-2xl font-bold text-primary tracking-tight">TIME OPERACIONAL</h2>
+          <h2 className="font-headline-lg text-3xl font-black text-primary tracking-[-.035em]">Time operacional</h2>
           <p className="text-on-surface opacity-75 text-sm mt-1">
             Convide e gerencie a equipe e os níveis de permissão da sua agência.
           </p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="btn-interactive bg-primary text-on-primary font-semibold text-xs px-6 py-3 rounded-lg shadow-sm flex items-center gap-2 hover:shadow-md active:scale-95 transition-all"
+          className="btn-interactive bg-coral text-white font-bold text-xs px-6 py-3 rounded-xl shadow-[0_10px_24px_rgba(255,84,45,.2)] flex items-center gap-2 hover:shadow-md active:scale-95 transition-all"
         >
           <span className="material-symbols-outlined text-sm">person_add</span>
           CONVIDAR MEMBRO
         </button>
+      </div>
+
+      <div className="flex gap-1 overflow-x-auto rounded-2xl border border-primary/10 bg-white p-1.5 shadow-sm">
+        {[
+          ['active', 'group', 'Membros ativos', activeUsers.length],
+          ['pending', 'mark_email_unread', 'Convites pendentes', pendingUsers.length],
+          ['history', 'history', 'Histórico de acesso', historyUsers.length],
+        ].map(([id, icon, label, count]) => <button key={String(id)} onClick={() => setActiveTab(id as typeof activeTab)} className={`flex min-w-fit flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all duration-200 active:scale-[.98] ${activeTab === id ? 'bg-primary text-white shadow-sm' : 'text-on-surface/55 hover:bg-surface-container-low'}`}><span className="material-symbols-outlined text-[17px]">{icon}</span>{label}<span className={`rounded-full px-2 py-0.5 text-[9px] ${activeTab === id ? 'bg-white/15' : 'bg-primary/8 text-primary'}`}>{count}</span></button>)}
       </div>
 
       {loading ? (
@@ -267,19 +279,23 @@ export default function UsersPage() {
         </div>
       ) : (
         <div className="space-y-6">
+          {activeTab === 'active' && <>
           {renderTable(
             admins,
             'Administradores da Agência',
             'Usuários com controle total sobre as configurações da agência, faturamento e permissões da equipe.',
-            'bg-purple-50 text-purple-700 border-purple-200'
+            'bg-ice-blue text-primary border-primary/15'
           )}
 
           {renderTable(
             agents,
             'Consultores / Usuários do SaaS',
             'Usuários com acesso operacional para criar e gerenciar viagens, roteiros e reservas.',
-            'bg-blue-50 text-blue-700 border-blue-200'
+            'bg-ice-blue text-primary border-primary/15'
           )}
+          </>}
+          {activeTab === 'pending' && renderTable(pendingUsers, 'Convites pendentes', 'Pessoas convidadas que ainda não concluíram ou tiveram o acesso ativado.', 'bg-coral/10 text-coral border-coral/20')}
+          {activeTab === 'history' && renderTable(historyUsers, 'Histórico de acesso', 'Acessos bloqueados ou expirados para consulta e reativação.', 'bg-surface-container text-on-surface border-outline-variant')}
         </div>
       )}
 

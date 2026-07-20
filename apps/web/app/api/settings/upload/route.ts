@@ -1,44 +1,92 @@
 import { NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 import { getCurrentUser } from '../../../../lib/server-auth';
+import { updateAgencySettings } from '../../../../lib/server-account-store';
+import {
+  AGENCY_LOGO_BUCKET,
+  agencyLogoProxyUrl,
+  agencyLogoReference,
+  safeAgencyStorageId,
+} from '../../../../lib/agency-logo';
+
+const MAX_LOGO_SIZE = 2 * 1024 * 1024;
+const ALLOWED_TYPES: Record<string, string> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/webp': 'webp',
+  'image/avif': 'avif',
+};
+
+function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  if (!url || !serviceRoleKey) return null;
+  return createClient(url, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
+async function ensureLogoBucket(admin: NonNullable<ReturnType<typeof getSupabaseAdmin>>) {
+  const { data, error } = await admin.storage.getBucket(AGENCY_LOGO_BUCKET);
+  if (data && !error) {
+    if (data.public) {
+      const { error: updateError } = await admin.storage.updateBucket(AGENCY_LOGO_BUCKET, {
+        public: false,
+        fileSizeLimit: MAX_LOGO_SIZE,
+        allowedMimeTypes: Object.keys(ALLOWED_TYPES),
+      });
+      if (updateError) throw updateError;
+    }
+    return;
+  }
+
+  const { error: createError } = await admin.storage.createBucket(AGENCY_LOGO_BUCKET, {
+    public: false,
+    fileSizeLimit: MAX_LOGO_SIZE,
+    allowedMimeTypes: Object.keys(ALLOWED_TYPES),
+  });
+  if (createError && !/already exists|duplicate/i.test(createError.message)) throw createError;
+}
 
 export async function POST(request: Request) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
-    }
+    const user = await getCurrentUser(request);
+    if (!user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
 
     const formData = await request.formData();
-    const file = formData.get('logo') as File;
-    if (!file) {
+    const logo = formData.get('logo');
+    if (!(logo instanceof File)) {
       return NextResponse.json({ error: 'Nenhum arquivo enviado' }, { status: 400 });
     }
 
-    // Validate type
-    if (!file.type.startsWith('image/')) {
-      return NextResponse.json({ error: 'O arquivo enviado não é uma imagem válida' }, { status: 400 });
+    const extension = ALLOWED_TYPES[logo.type];
+    if (!extension) {
+      return NextResponse.json({ error: 'Use uma imagem PNG, JPG, WEBP ou AVIF.' }, { status: 400 });
+    }
+    if (logo.size <= 0 || logo.size > MAX_LOGO_SIZE) {
+      return NextResponse.json({ error: 'A imagem deve ter no máximo 2 MB.' }, { status: 400 });
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const admin = getSupabaseAdmin();
+    if (!admin) {
+      return NextResponse.json({ error: 'Armazenamento de imagens não configurado.' }, { status: 503 });
+    }
 
-    // Save to public/uploads
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-    await fs.mkdir(uploadsDir, { recursive: true });
+    await ensureLogoBucket(admin);
+    const safeAgencyId = safeAgencyStorageId(user.agencyId);
+    const objectPath = `${safeAgencyId}/logos/logo-${Date.now()}.${extension}`;
+    const bytes = Buffer.from(await logo.arrayBuffer());
+    const { error: uploadError } = await admin.storage.from(AGENCY_LOGO_BUCKET).upload(objectPath, bytes, {
+      contentType: logo.type,
+      cacheControl: '3600',
+      upsert: false,
+    });
+    if (uploadError) throw uploadError;
 
-    // Generate unique clean name
-    const ext = path.extname(file.name) || '.png';
-    const filename = `logo-${user.agencyId || 'agency'}-${Date.now()}${ext}`;
-    const filePath = path.join(uploadsDir, filename);
-    await fs.writeFile(filePath, buffer);
-
-    // Return the public URL
-    const logoUrl = `/uploads/${filename}`;
-    return NextResponse.json({ logoUrl });
+    await updateAgencySettings(user.agencyId, { logoUrl: agencyLogoReference(objectPath) });
+    return NextResponse.json({ logoUrl: `${agencyLogoProxyUrl()}?v=${Date.now()}` });
   } catch (error) {
-    console.error('Erro no upload de logo:', error);
-    return NextResponse.json({ error: 'Erro ao processar o arquivo de logo' }, { status: 500 });
+    console.error('[settings/logo-upload]', error);
+    return NextResponse.json({ error: 'Não foi possível armazenar a logo. Tente novamente.' }, { status: 500 });
   }
 }

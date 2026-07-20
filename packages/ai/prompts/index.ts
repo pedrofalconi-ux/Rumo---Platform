@@ -18,7 +18,7 @@ export function buildPlanTripPrompt(
     ? input.transportation
         .map(
           (transport) =>
-            `- ${transport.type.toUpperCase()}: ${transport.operator || 'Operadora nao informada'}${transport.number ? ` ${transport.number}` : ''}${transport.date ? ` em ${transport.date}` : ''}${transport.details ? ` | ${transport.details}` : ''}`
+            `- ${transport.type.toUpperCase()}: ${transport.operator || 'Operadora nao informada'}${transport.number ? ` ${transport.number}` : ''}${transport.date ? ` em ${transport.date}` : ''}${transport.bookingReference ? ` | reserva ${transport.bookingReference}` : ''}${transport.seat ? ` | assento ${transport.seat}` : ''}${transport.baggage ? ` | bagagem ${transport.baggage}` : ''}${transport.details ? ` | ${transport.details}` : ''}`
         )
         .join('\n')
     : 'Nenhum transporte cadastrado';
@@ -26,10 +26,26 @@ export function buildPlanTripPrompt(
     ? input.accommodations
         .map(
           (accommodation) =>
-            `- Hotel: ${accommodation.name || 'Hospedagem nao especificada'}${accommodation.destinationCity ? ` em ${accommodation.destinationCity}` : ''}${accommodation.checkIn || accommodation.checkOut ? ` (Check-in: ${accommodation.checkIn || 'a confirmar'}, Check-out: ${accommodation.checkOut || 'a confirmar'})` : ''}${accommodation.address ? ` | ${accommodation.address}` : ''}`
+            `- Hotel: ${accommodation.name || 'Hospedagem nao especificada'}${accommodation.destinationCity ? ` em ${accommodation.destinationCity}` : ''}${accommodation.checkIn || accommodation.checkOut ? ` (Check-in: ${accommodation.checkIn || 'a confirmar'}, Check-out: ${accommodation.checkOut || 'a confirmar'})` : ''}${accommodation.roomCategory ? ` | quarto ${accommodation.roomCategory}` : ''}${accommodation.mealPlan ? ` | regime ${accommodation.mealPlan}` : ''}${accommodation.reservationNotes ? ` | observacoes: ${accommodation.reservationNotes}` : ''}${accommodation.address ? ` | ${accommodation.address}` : ''}`
         )
         .join('\n')
     : 'Nenhuma acomodacao cadastrada';
+  const activityContext = input.activities?.length
+    ? input.activities
+        .map(
+          (activity) =>
+            `- ${activity.name}${activity.date ? ` em ${activity.date}` : ''}${activity.time ? ` as ${activity.time}` : ''}${activity.category ? ` | ${activity.category}` : ''}${activity.supplier ? ` | fornecedor ${activity.supplier}` : ''}${activity.voucher ? ` | voucher ${activity.voucher}` : ''}${activity.ticketsIncluded ? ' | ingressos incluidos' : ''}${activity.address ? ` | ${activity.address}` : ''}`
+        )
+        .join('\n')
+    : 'Nenhuma atividade previamente contratada';
+  const documentContext = input.insuranceAndVisas?.length
+    ? input.insuranceAndVisas
+        .map(
+          (entry) =>
+            `- ${entry.type === 'insurance' ? 'Seguro' : 'Visto'}: ${entry.provider}${entry.reference ? ` | ref. ${entry.reference}` : ''}${entry.validity ? ` | validade ${entry.validity}` : ''}${entry.details ? ` | ${entry.details}` : ''}`
+        )
+        .join('\n')
+    : 'Nenhum seguro ou visto cadastrado';
 
   return `Voce e um roteirista senior de viagens. Crie o planejamento macro de uma viagem real, com dias agrupados por regioes proximas.
 
@@ -50,6 +66,10 @@ Contexto logistico do passageiro:
 ${transportContext}
 [Logistica de Hoteis/Acomodacao]
 ${accommodationContext}
+[Atividades ja contratadas]
+${activityContext}
+[Seguros e vistos]
+${documentContext}
 
 Restricoes:
 ${formatConstraintsForPrompt(constraints)}
@@ -60,6 +80,7 @@ Regras de planejamento:
 - Respeite o destino correto de cada data quando houver detalhe dos destinos por periodo.
 - Considere o dia de chegada e os meios de transporte cadastrados para encaixar check-in, traslados e inicio gradual do roteiro.
 - Quando houver hotel cadastrado, use esse hotel como ancora geografica do dia para partida pela manha e retorno no fim do dia.
+- Preserve horarios e locais de atividades ja contratadas; organize o restante do dia ao redor delas.
 - Nao use temas genericos como "Explorando a cidade"; cite a regiao ou eixo real do dia.
 
 Retorne JSON com esta estrutura exata:
@@ -92,6 +113,9 @@ export function buildGenerateDayPrompt(
   previouslyUsedPlaceNames: string[] = []
 ): string {
   const allowedTypes = AI_BLOCK_TYPES.filter((t) => t !== 'trip_desc').join(', ');
+  const hasCuratedDining = Boolean(
+    poiContext?.pois.some((poi) => ['restaurant', 'cafe', 'bar'].includes(poi.type))
+  );
   const hotelDoDia = input.accommodations?.find(
     (accommodation) =>
       Boolean(accommodation.checkIn) &&
@@ -113,6 +137,15 @@ export function buildGenerateDayPrompt(
         )
         .join('\n')
     : 'Nenhum transporte especifico neste dia';
+  const activitiesDoDia = input.activities?.filter((activity) => activity.date === dayPlan.date) || [];
+  const activitiesContext = activitiesDoDia.length
+    ? activitiesDoDia
+        .map(
+          (activity) =>
+            `- ${activity.time ? `${activity.time} - ` : ''}${activity.name}${activity.category ? ` (${activity.category})` : ''}${activity.address ? ` | ${activity.address}` : ''}`
+        )
+        .join('\n')
+    : 'Nenhuma atividade previamente contratada neste dia';
 
   return `Gere uma trilha diaria real, detalhada e otimizada geograficamente.
 
@@ -133,6 +166,8 @@ ${transportationContext}
       ? `${hotelDoDia.name}${hotelDoDia.address ? ` (${hotelDoDia.address})` : ''}`
       : 'Nao especificado'
   }
+- Atividades ja contratadas neste dia (horarios e locais devem ser respeitados):
+${activitiesContext}
 
 Restricoes:
 ${formatConstraintsForPrompt(constraints)}
@@ -148,7 +183,7 @@ Qualidade obrigatoria do roteiro:
 - Use somente lugares, bairros, restaurantes, mercados, mirantes, museus, pracas e experiencias reais do destino.
 - Use estritamente pontos de interesse reais, com nomes oficiais e grafia correta no destino.
 - Nao use placeholders ou nomes genericos: proibido "Ponto emblematico", "Centro historico de X", "Experiencia cultural recomendada", "Sugestoes extras", "Dica Rumo" como titulo principal.
-- IMPORTANTE SOBRE RESTAURANTES: se voce nao tiver certeza absoluta da existencia e funcionamento atual de um restaurante especifico, nao invente nome fantasia. Prefira titulos descritivos e funcionais como "Almoco em trattoria local no Trastevere" ou "Jantar de frutos do mar na marina".
+- IMPORTANTE SOBRE RESTAURANTES: ${hasCuratedDining ? 'a base curada contem estabelecimentos reais. Almoco e jantar DEVEM usar nomes exatos dessa lista; nao use titulos genericos.' : 'se voce nao tiver certeza absoluta da existencia de um restaurante especifico, nao invente nome fantasia. Use uma descricao regional e marque para verificacao.'}
 - Ordene os blocos como uma trilha continua ponto a ponto, escolhendo locais geograficamente proximos. Evite cruzar a cidade sem motivo.
 - Preencha recommendedStartTime em todos os blocos no formato HH:mm.
 - Preencha estimatedDurationMinutes em todos os blocos.
@@ -160,7 +195,7 @@ Qualidade obrigatoria do roteiro:
 - Quando houver deslocamento maior que uma caminhada curta, inclua um bloco "transport" com horario, origem/destino e meio recomendado.
 - Para almoco e jantar, prefira restaurantes ou regioes reais adequados ao perfil; se citar restaurante especifico, recomende confirmar funcionamento/reserva.
 - Diversidade e obrigatoria: almocos e jantares devem usar estabelecimentos diferentes ao longo da viagem. Nunca repita um restaurante, cafe ou bar listado como ja utilizado.
-- Se nao tiver alta confianca sobre um nome proprio de restaurante, bar, cafe ou loja, use descricao generica qualificada no title e detalhe no campo details o perfil ideal do local.
+- ${hasCuratedDining ? 'Para blocos gastronomicos, e proibido responder apenas "almoco em restaurante", "jantar romantico", "churrascaria na regiao" ou equivalentes: selecione um POI curado nominal.' : 'Se nao tiver alta confianca sobre um nome proprio, use descricao generica qualificada e solicite verificacao.'}
 - Nao invente reservas, tickets comprados, disponibilidade, precos exatos ou promessas de acesso sem fila.
 - Se houver hotel especificado, use-o como base de partida pela manha e retorno a noite.
 - Se houver transporte no dia, inclua deslocamentos, chegada/saida, check-in/check-out e janelas realistas de transicao.

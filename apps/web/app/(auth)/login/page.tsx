@@ -24,9 +24,9 @@ function AuthInput({
 }) {
   return (
     <label className="block space-y-2">
-      <span className="text-xs font-bold uppercase tracking-[0.22em] text-white/62">{label}</span>
+      <span className="text-[11px] font-bold text-on-surface/70">{label}</span>
       <div className="relative">
-        <span className="material-symbols-outlined pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[21px] text-white/34">
+        <span className="material-symbols-outlined pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[20px] text-primary/45">
           {icon}
         </span>
         <input
@@ -35,7 +35,7 @@ function AuthInput({
           value={value}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
-          className="input-interactive h-16 w-full rounded-[22px] border border-white/12 bg-white/92 pl-14 pr-14 text-base font-medium text-[#0b1930] placeholder:text-[#78849a] focus:border-[#6FA8DC] focus:bg-white"
+          className="input-interactive h-14 w-full rounded-2xl border border-primary/15 bg-white pl-12 pr-14 text-sm font-medium text-on-surface shadow-sm placeholder:text-on-surface/35 focus:border-primary focus:bg-white"
         />
         {trailing ? <div className="absolute right-3 top-1/2 -translate-y-1/2">{trailing}</div> : null}
       </div>
@@ -83,27 +83,27 @@ export default function LoginPage() {
   return (
     <AuthShell
       mode="login"
-      eyebrow="Acesso seguro"
+      eyebrow="Área do cliente"
       title="Bem-vindo de volta"
-      description="Entre na operacao da sua agencia para acompanhar itinerarios, usuarios e configuracoes da experiencia Rumo."
+      description="Acesse sua conta e continue organizando viagens inesquecíveis."
       footer={
         <>
           <p>
-            Ainda nao tem conta?{' '}
-            <Link href="/register" className="font-semibold text-[#6FA8DC] transition hover:text-white">
-              Criar conta de agencia
+            Ainda não usa a Rumo?{' '}
+            <Link href="/register" className="font-bold text-primary transition hover:text-coral">
+              Criar conta
             </Link>
           </p>
-          <p className="mt-2">
-            Recebeu uma viagem de uma agencia?{' '}
-            <Link href="/traveler/register" className="font-semibold text-[#6FA8DC] transition hover:text-white">
-              Criar acesso de viajante
+          <p className="mt-1">
+            É viajante?{' '}
+            <Link href="/traveler/register" className="font-semibold text-primary transition hover:text-coral">
+              Acessar convite de viagem
             </Link>
           </p>
         </>
       }
     >
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <AuthInput
           label="Email ou usuario"
           icon="mail"
@@ -113,35 +113,29 @@ export default function LoginPage() {
           placeholder="consultor@rumo.com"
         />
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-xs font-bold uppercase tracking-[0.22em] text-white/62">Senha</span>
-            <span className="text-sm font-semibold text-[#6FA8DC]">Ambiente protegido</span>
-          </div>
-          <AuthInput
-            label="Senha"
-            icon="lock"
-            type={showPassword ? 'text' : 'password'}
-            value={formData.password}
-            onChange={(value) => setFormData((prev) => ({ ...prev, password: value }))}
-            placeholder="Digite sua senha"
-            trailing={
-              <button
-                type="button"
-                onClick={() => setShowPassword((value) => !value)}
-                className="flex h-10 w-10 items-center justify-center rounded-full text-[#607089] transition hover:bg-[#eef4fb]"
-                title={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-              >
-                <span className="material-symbols-outlined text-[20px]">
-                  {showPassword ? 'visibility_off' : 'visibility'}
-                </span>
-              </button>
-            }
-          />
-        </div>
+        <AuthInput
+          label="Senha"
+          icon="lock"
+          type={showPassword ? 'text' : 'password'}
+          value={formData.password}
+          onChange={(value) => setFormData((prev) => ({ ...prev, password: value }))}
+          placeholder="Digite sua senha"
+          trailing={
+            <button
+              type="button"
+              onClick={() => setShowPassword((value) => !value)}
+              className="flex h-9 w-9 items-center justify-center rounded-full text-primary/55 transition hover:bg-primary/5 hover:text-primary"
+              title={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+            >
+              <span className="material-symbols-outlined text-[19px]">
+                {showPassword ? 'visibility_off' : 'visibility'}
+              </span>
+            </button>
+          }
+        />
 
         {error ? (
-          <p className="rounded-[18px] border border-[#ff6b4a]/28 bg-[#ff6b4a]/12 px-4 py-3 text-sm font-semibold text-[#ffd6cd]">
+          <p className="rounded-2xl border border-coral/25 bg-coral/10 px-4 py-3 text-sm font-semibold text-[#9A3D20]">
             {error}
           </p>
         ) : null}
@@ -149,9 +143,9 @@ export default function LoginPage() {
         <button
           disabled={loading}
           type="submit"
-          className="btn-interactive flex h-16 w-full items-center justify-center gap-3 rounded-[22px] bg-[linear-gradient(135deg,#6FA8DC,#4F8DDA)] px-6 text-base font-bold text-white shadow-[0_14px_40px_rgba(79,141,218,0.35)] transition disabled:cursor-not-allowed disabled:opacity-65"
+          className="btn-interactive mt-2 flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-primary px-6 text-sm font-black text-white shadow-[0_12px_28px_rgba(24,59,78,0.2)] transition hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-65"
         >
-          <span>{loading ? 'Entrando...' : 'Entrar na plataforma'}</span>
+          <span>{loading ? 'Entrando...' : 'Entrar'}</span>
           <span className="material-symbols-outlined text-[22px]">arrow_forward</span>
         </button>
       </form>

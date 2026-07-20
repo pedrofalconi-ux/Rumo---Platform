@@ -12,12 +12,12 @@ export default function DashboardLayout({
       <Sidebar />
 
       {/* Main Content Area */}
-      <div className="flex-1 lg:ml-[272px] ml-0 flex flex-col min-h-screen w-full min-w-0">
+      <div className="flex-1 lg:ml-[260px] ml-0 flex flex-col min-h-screen w-full min-w-0">
         {/* Top Header */}
         <Header />
 
         {/* Dynamic Page Content */}
-        <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <main className="dashboard-content flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           {children}
         </main>
       </div>

@@ -42,9 +42,7 @@ function extractTag(xml: string, tagName: string): string {
   const match = xml.match(new RegExp(`<${tagName}[^>]*>([\\s\\S]*?)<\\/${tagName}>`));
   if (!match) return '';
   let content = match[1];
-  if (content.startsWith('<![CDATA[')) {
-    content = content.replace(/^<!\[CDATA\[/, '').replace(/\]\]>$/, '');
-  }
+  content = content.replace(/<!\[CDATA\[/gi, '').replace(/\]\]>/gi, '');
   return content.trim();
 }
 
@@ -81,7 +79,7 @@ export async function GET() {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
 
-    const feedUrl = 'https://g1.globo.com/dynamo/turismo-e-viagem/rss2.xml';
+    const feedUrl = 'https://g1.globo.com/rss/g1/turismo-e-viagem/';
     
     // Fetch feed with 1-hour cache
     const response = await fetch(feedUrl, {

@@ -94,13 +94,14 @@ export default function DashboardPage() {
   return (
     <div className="flex-1 space-y-7 max-w-[1480px] mx-auto animate-page-enter">
       {/* Top Banner */}
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-5">
+      <div className="relative overflow-hidden rounded-[26px] bg-[linear-gradient(125deg,#073BCE_0%,#061D59_100%)] p-6 text-white shadow-[0_18px_45px_rgba(7,59,206,.18)] sm:p-8 flex flex-col md:flex-row md:items-end md:justify-between gap-5">
+        <div aria-hidden="true" className="absolute -right-10 -top-24 h-64 w-64 rounded-full border-[46px] border-white/[.05]" />
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-primary/8 px-3 py-1 text-[10px] font-bold uppercase tracking-[.18em] text-primary"><span className="h-1.5 w-1.5 rounded-full bg-coral" />Central de operações</div>
-          <h2 className="mt-3 text-3xl sm:text-[38px] leading-tight font-extrabold text-primary tracking-[-.04em]">Olá, {user?.fullName?.split(' ')[0] || 'consultor'}.</h2>
-          <p className="text-on-surface/55 text-sm mt-2">Aqui está o pulso da sua agência hoje.</p>
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[.18em] text-sky-compass"><span className="h-1.5 w-1.5 rounded-full bg-coral" />Central de operações</div>
+          <h2 className="mt-3 text-3xl sm:text-[38px] leading-tight font-extrabold text-white tracking-[-.04em]">Olá, {user?.fullName?.split(' ')[0] || 'consultor'}.</h2>
+          <p className="text-white/60 text-sm mt-2">Aqui está o pulso da sua agência hoje.</p>
         </div>
-        <Link href="/trips/new" className="btn-interactive inline-flex items-center justify-center gap-2 rounded-xl bg-coral px-5 py-3 text-xs font-bold text-white shadow-[0_10px_24px_rgba(242,107,58,.20)]">
+        <Link href="/trips/new" className="btn-interactive relative inline-flex items-center justify-center gap-2 rounded-xl bg-coral px-5 py-3 text-xs font-bold text-white shadow-[0_10px_24px_rgba(255,84,45,.24)]">
           <span className="material-symbols-outlined text-[18px]">add</span> Nova viagem
         </Link>
       </div>
@@ -127,7 +128,7 @@ export default function DashboardPage() {
 
             {/* Total Trips */}
             <div className="scroll-reveal scroll-reveal-delay-100 rumo-card p-5 rounded-2xl flex items-center gap-4">
-              <div className="w-11 h-11 bg-[#e8efed] text-primary rounded-xl flex items-center justify-center">
+              <div className="w-11 h-11 bg-ice-blue text-primary rounded-xl flex items-center justify-center">
                 <span className="material-symbols-outlined text-[28px]">route</span>
               </div>
               <div>
@@ -149,7 +150,7 @@ export default function DashboardPage() {
 
             {/* Users */}
             <div className="scroll-reveal scroll-reveal-delay-300 rumo-card p-5 rounded-2xl flex items-center gap-4">
-              <div className="w-11 h-11 bg-[#fff0e9] text-coral rounded-xl flex items-center justify-center">
+              <div className="w-11 h-11 bg-coral/10 text-coral rounded-xl flex items-center justify-center">
                 <span className="material-symbols-outlined text-[28px]">shield</span>
               </div>
               <div>

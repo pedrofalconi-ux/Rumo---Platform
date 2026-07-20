@@ -24,9 +24,9 @@ function Field({
 }) {
   return (
     <label className="block space-y-2">
-      <span className="text-xs font-bold uppercase tracking-[0.22em] text-white/62">{label}</span>
+      <span className="text-[11px] font-bold text-on-surface/70">{label}</span>
       <div className="relative">
-        <span className="material-symbols-outlined pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[21px] text-white/34">
+        <span className="material-symbols-outlined pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[20px] text-primary/45">
           {icon}
         </span>
         <input
@@ -35,7 +35,7 @@ function Field({
           value={value}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
-          className="input-interactive h-14 w-full rounded-[20px] border border-white/12 bg-white/92 pl-14 pr-14 text-base font-medium text-[#0b1930] placeholder:text-[#78849a] focus:border-[#6FA8DC] focus:bg-white"
+          className="input-interactive h-14 w-full rounded-2xl border border-primary/15 bg-white pl-12 pr-14 text-sm font-medium text-on-surface shadow-sm placeholder:text-on-surface/35 focus:border-primary"
         />
         {trailing ? <div className="absolute right-3 top-1/2 -translate-y-1/2">{trailing}</div> : null}
       </div>
@@ -95,21 +95,21 @@ export default function RegisterPage() {
   return (
     <AuthShell
       mode="register"
-      eyebrow="Onboarding de agencias"
-      title="Estruture sua operacao"
-      description="Crie o tenant da sua agencia, configure o administrador inicial e entre em um fluxo preparado para escala, governanca e experiencia premium."
+      eyebrow="Comece agora"
+      title="Crie sua conta"
+      description="Configure sua agência e dê o primeiro passo para uma operação mais simples e conectada."
       footer={
         <>
           <p>
-            Ja possui acesso?{' '}
-            <Link href="/login" className="font-semibold text-[#6FA8DC] transition hover:text-white">
-              Entrar na plataforma
+            Já possui acesso?{' '}
+            <Link href="/login" className="font-bold text-primary transition hover:text-coral">
+              Entrar
             </Link>
           </p>
           <p className="mt-2">
-            Sou viajante convidado por uma agencia.{' '}
-            <Link href="/traveler/register" className="font-semibold text-[#6FA8DC] transition hover:text-white">
-              Criar acesso de viajante
+            É viajante convidado?{' '}
+            <Link href="/traveler/register" className="font-semibold text-primary transition hover:text-coral">
+              Acessar convite
             </Link>
           </p>
         </>
@@ -172,7 +172,7 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword((value) => !value)}
-                className="flex h-10 w-10 items-center justify-center rounded-full text-[#607089] transition hover:bg-[#eef4fb]"
+                className="flex h-10 w-10 items-center justify-center rounded-full text-primary/55 transition hover:bg-primary/5"
                 title={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
               >
                 <span className="material-symbols-outlined text-[20px]">
@@ -192,7 +192,7 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => setShowAccessKey((value) => !value)}
-                className="flex h-10 w-10 items-center justify-center rounded-full text-[#607089] transition hover:bg-[#eef4fb]"
+                className="flex h-10 w-10 items-center justify-center rounded-full text-primary/55 transition hover:bg-primary/5"
                 title={showAccessKey ? 'Ocultar chave' : 'Mostrar chave'}
               >
                 <span className="material-symbols-outlined text-[20px]">
@@ -204,7 +204,7 @@ export default function RegisterPage() {
         </div>
 
         {error ? (
-          <p className="rounded-[18px] border border-[#ff6b4a]/28 bg-[#ff6b4a]/12 px-4 py-3 text-sm font-semibold text-[#ffd6cd]">
+          <p className="rounded-2xl border border-coral/25 bg-coral/10 px-4 py-3 text-sm font-semibold text-[#9A3D20]">
             {error}
           </p>
         ) : null}
@@ -212,9 +212,9 @@ export default function RegisterPage() {
         <button
           disabled={loading}
           type="submit"
-          className="btn-interactive flex h-16 w-full items-center justify-center gap-3 rounded-[22px] bg-[linear-gradient(135deg,#6FA8DC,#4F8DDA)] px-6 text-base font-bold text-white shadow-[0_14px_40px_rgba(79,141,218,0.35)] transition disabled:cursor-not-allowed disabled:opacity-65"
+          className="btn-interactive flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-primary px-6 text-sm font-black text-white shadow-[0_12px_28px_rgba(7,59,206,.22)] transition disabled:cursor-not-allowed disabled:opacity-65"
         >
-          <span>{loading ? 'Criando ambiente...' : 'Criar conta da agencia'}</span>
+          <span>{loading ? 'Criando ambiente...' : 'Criar conta da agência'}</span>
           <span className="material-symbols-outlined text-[22px]">arrow_forward</span>
         </button>
       </form>

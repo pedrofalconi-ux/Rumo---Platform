@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import { spawnSync } from 'child_process';
 
 // Define the root data directory for our local JSON database
-const DATA_DIR = path.join(process.cwd(), '../../packages/db/data');
+const DATA_DIR = path.join(/*turbopackIgnore: true*/ process.cwd(), '../../packages/db/data');
 const REMOTE_DB_BUCKET = process.env.RUMO_REMOTE_DB_BUCKET || 'rumo-data';
 const REMOTE_DB_PREFIX = process.env.RUMO_REMOTE_DB_PREFIX || 'json-db';
 const REMOTE_DB_ENABLED = Boolean(
@@ -625,9 +625,24 @@ export const db = {
       writeData(CLIENTS_FILE, clients);
       return newClient;
     },
+    update: (id: string, data: any, agencyId?: string) => {
+      const clients = readData<any[]>(CLIENTS_FILE);
+      const index = clients.findIndex((client) => client.id === id && (!agencyId || client.agencyId === agencyId));
+      if (index === -1) return null;
+      clients[index] = { ...clients[index], ...data, id: clients[index].id, agencyId: clients[index].agencyId };
+      writeData(CLIENTS_FILE, clients);
+      return clients[index];
+    },
     delete: (id: string) => {
       const clients = readData<any[]>(CLIENTS_FILE);
       const filtered = clients.filter((c) => c.id !== id);
+      writeData(CLIENTS_FILE, filtered);
+      return true;
+    },
+    deleteForAgency: (id: string, agencyId: string) => {
+      const clients = readData<any[]>(CLIENTS_FILE);
+      const filtered = clients.filter((client) => !(client.id === id && client.agencyId === agencyId));
+      if (filtered.length === clients.length) return false;
       writeData(CLIENTS_FILE, filtered);
       return true;
     }

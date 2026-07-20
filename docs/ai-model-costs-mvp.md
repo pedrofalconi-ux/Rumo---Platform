@@ -96,7 +96,7 @@ Variaveis:
 ```env
 LLM_PROVIDER=gemini
 LLM_MODEL=gemini-2.5-flash
-GEMINI_FALLBACK_MODELS=gemini-2.5-flash-lite,gemini-1.5-flash
+GEMINI_FALLBACK_MODELS=gemini-2.5-flash,gemini-flash-latest
 LLM_TEMPERATURE=0.4
 LLM_MAX_TOKENS=8192
 ```

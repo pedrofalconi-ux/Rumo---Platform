@@ -30,6 +30,9 @@ export interface TripRecord extends Record<string, unknown> {
   documents?: any[];
   transportation?: any[];
   accommodations?: any[];
+  activities?: any[];
+  insuranceAndVisas?: any[];
+  wizardDraft?: JsonRecord;
   aiStatus?: string;
   aiGenerationId?: string;
   aiGeneratedAt?: string;
@@ -240,7 +243,13 @@ function buildSupabaseTripPayload(input: Partial<TripRecord>, agencyId: string, 
     content: {
       items: Array.isArray(input.itinerary) ? input.itinerary : [],
     },
-    metadata: {},
+    metadata: {
+      activities: Array.isArray(input.activities) ? input.activities : [],
+      insuranceAndVisas: Array.isArray(input.insuranceAndVisas) ? input.insuranceAndVisas : [],
+      wizardDraft: input.wizardDraft && typeof input.wizardDraft === 'object' ? input.wizardDraft : null,
+      templateId: input.templateId ? String(input.templateId) : null,
+      templateMatch: input.templateMatch && typeof input.templateMatch === 'object' ? input.templateMatch : null,
+    },
   };
 }
 
@@ -258,7 +267,7 @@ export async function listTripsForAgency(agencyId: string) {
   let query = supabaseAdmin
     .from('itineraries')
     .select(
-      'id, agency_id, created_at, title, destination, destinations, destinations_detail, start_date, end_date, travelers, travelers_data, status, client_name'
+      'id, agency_id, created_at, title, destination, destinations, destinations_detail, start_date, end_date, travelers, travelers_data, status, client_name, metadata'
     )
     .is('deleted_at', null)
     .order('created_at', { ascending: false });
@@ -365,6 +374,9 @@ export async function updateTripForAgency(id: string, patch: Partial<TripRecord>
       documents: patch.documents || current.documents,
       transportation: patch.transportation || current.transportation,
       accommodations: patch.accommodations || current.accommodations,
+      activities: patch.activities || current.activities,
+      insuranceAndVisas: patch.insuranceAndVisas || current.insuranceAndVisas,
+      wizardDraft: patch.wizardDraft || current.wizardDraft,
     },
     persistedAgencyId,
     userId

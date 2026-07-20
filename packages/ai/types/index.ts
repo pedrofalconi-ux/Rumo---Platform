@@ -42,6 +42,9 @@ export interface TransportationEntry {
   number?: string;
   date?: string;
   details?: string;
+  bookingReference?: string;
+  seat?: string;
+  baggage?: string;
 }
 
 export interface AccommodationEntry {
@@ -53,6 +56,32 @@ export interface AccommodationEntry {
   checkOut?: string;
   placeId?: string;
   photos?: string[];
+  roomCategory?: string;
+  mealPlan?: string;
+  reservationNotes?: string;
+}
+
+export interface ActivityEntry {
+  id: string;
+  name: string;
+  date?: string;
+  time?: string;
+  address?: string;
+  category?: string;
+  voucher?: string;
+  supplier?: string;
+  ticketsIncluded?: boolean;
+  placeId?: string;
+  photos?: string[];
+}
+
+export interface InsuranceEntry {
+  id: string;
+  type: 'insurance' | 'visa';
+  provider: string;
+  reference?: string;
+  validity?: string;
+  details?: string;
 }
 
 export type AiStatus =
@@ -84,6 +113,8 @@ export interface TripInput {
   preferences: string;
   transportation?: TransportationEntry[];
   accommodations?: AccommodationEntry[];
+  activities?: ActivityEntry[];
+  insuranceAndVisas?: InsuranceEntry[];
   locale: 'pt-BR';
 }
 
@@ -164,6 +195,15 @@ export interface AiGenerationMeta {
   latencyMs: number;
   daysGenerated: number;
   failedDays?: Array<{ day: number; error: string }>;
+  templateMatch?: {
+    templatePercent: number;
+    customizationPercent: number;
+    aiSuggestionsPercent: number;
+    matchedBlocks: number;
+    totalBlocks: number;
+    matchedRequired: number;
+    totalRequired: number;
+  };
 }
 
 export interface AiGenerationLog {

@@ -116,9 +116,18 @@ interface OnlineImageSettings {
 interface OnlinePhotoResult {
   url: string;
   credit: string;
-  source: 'unsplash' | 'pixabay';
+  source: 'unsplash' | 'pixabay' | 'google_places';
   creditUrl?: string;
+  placeId?: string;
 }
+
+interface GooglePlacePhotoResult {
+  id?: string;
+  photos?: Array<{ name?: string }>;
+}
+
+const GOOGLE_IMAGE_ELIGIBLE_TYPES = new Set(['places', 'activity', 'suggested_places']);
+const DEFAULT_GOOGLE_LOOKUP_LIMIT = 12;
 
 export async function selectImagesForItinerary(
   items: ItineraryItem[],
@@ -128,6 +137,9 @@ export async function selectImagesForItinerary(
   const photos = db.photos.findMany() as PhotoRecord[];
   const settings = db.settings.get(agencyId) as OnlineImageSettings;
   const cache = new Map<string, OnlinePhotoResult | null>();
+  const googleCache = new Map<string, OnlinePhotoResult | null>();
+  const googleLookupLimit = Math.max(0, Number(process.env.GOOGLE_PLACES_IMAGE_LOOKUP_LIMIT || DEFAULT_GOOGLE_LOOKUP_LIMIT) || 0);
+  let googleLookups = 0;
   const destinationByDay = buildDestinationByDay(items, tripContext);
 
   const enriched: ItineraryItem[] = [];
@@ -146,7 +158,30 @@ export async function selectImagesForItinerary(
 
     let selectedItem: ItineraryItem | null = null;
 
-    for (const candidate of candidates) {
+    // Google e consultado apenas para blocos definitivos de lugares. Resumos,
+    // textos e transportes continuam usando a biblioteca/fallback gratuito.
+    if (GOOGLE_IMAGE_ELIGIBLE_TYPES.has(item.type) && googleLookups < googleLookupLimit) {
+      const placeQuery = candidates[0];
+      if (placeQuery) {
+        const googleKey = normalize(`${placeQuery}|${destinationFallback}`);
+        if (!googleCache.has(googleKey)) {
+          googleLookups += 1;
+          googleCache.set(googleKey, await findGooglePlacePhoto(placeQuery, destinationFallback, item));
+        }
+        const googlePhoto = googleCache.get(googleKey);
+        if (googlePhoto?.url) {
+          selectedItem = withImage(item, googlePhoto.url, {
+            source: googlePhoto.source,
+            query: placeQuery,
+            credit: googlePhoto.credit,
+            creditUrl: googlePhoto.creditUrl,
+            placeId: googlePhoto.placeId,
+          });
+        }
+      }
+    }
+
+    for (const candidate of selectedItem ? [] : candidates) {
       const localPhoto = findLocalPhoto(candidate, photos);
       if (localPhoto?.url && !isInlineImage(localPhoto.url)) {
         selectedItem = withImage(item, localPhoto.url, {
@@ -186,6 +221,60 @@ export async function selectImagesForItinerary(
   }
 
   return enriched;
+}
+
+async function findGooglePlacePhoto(
+  query: string,
+  destination: string,
+  item: ItineraryItem
+): Promise<OnlinePhotoResult | null> {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY || '';
+  if (!apiKey || !query.trim()) return null;
+
+  const searchableText = normalize(`${item.title} ${item.details || ''} ${item.customSymbol || ''}`);
+  const includedType = /restaurant|restaurante|jantar|almoco|gastronomia|cafe|bar/.test(searchableText)
+    ? 'restaurant'
+    : /museum|museu|attraction|atracao|monumento|parque|mirante|ponto turistico/.test(searchableText)
+      ? 'tourist_attraction'
+      : undefined;
+
+  try {
+    const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': apiKey,
+        // Somente o necessário para identificar e exibir uma foto.
+        'X-Goog-FieldMask': 'places.id,places.photos',
+      },
+      body: JSON.stringify({
+        textQuery: [query, destination].filter(Boolean).join(' '),
+        ...(includedType ? { includedType, strictTypeFiltering: false } : {}),
+        languageCode: 'pt-BR',
+        pageSize: 1,
+      }),
+      next: { revalidate: 60 * 60 * 24 * 30 },
+    });
+    if (!response.ok) {
+      console.warn(`[Google Places] Foto indisponível (${response.status}) para "${query}"`);
+      return null;
+    }
+
+    const payload = (await response.json()) as { places?: GooglePlacePhotoResult[] };
+    const place = payload.places?.[0];
+    const photoName = place?.photos?.[0]?.name;
+    if (!photoName) return null;
+
+    return {
+      url: `/api/media/places/photo?name=${encodeURIComponent(photoName)}`,
+      credit: 'Google Places',
+      source: 'google_places',
+      placeId: place?.id,
+    };
+  } catch (error) {
+    console.warn(`[Google Places] Falha ao buscar foto para "${query}"`, error);
+    return null;
+  }
 }
 
 export function buildImageQueryCandidates(
@@ -409,7 +498,7 @@ export function isInlineImage(value: string) {
 function withImage(
   item: ItineraryItem,
   image: string,
-  imageMeta: { source: string; query: string; credit: string; creditUrl?: string }
+  imageMeta: { source: string; query: string; credit: string; creditUrl?: string; placeId?: string }
 ): ItineraryItem {
   return {
     ...item,
@@ -421,6 +510,7 @@ function withImage(
       imageSearchQuery: imageMeta.query,
       imageCredit: imageMeta.credit,
       imageCreditUrl: imageMeta.creditUrl,
+      ...(imageMeta.placeId ? { googlePlaceId: imageMeta.placeId } : {}),
     },
   };
 }
