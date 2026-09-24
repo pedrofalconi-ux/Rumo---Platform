@@ -13,7 +13,7 @@ import { useLocalSearchParams } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { BottomTabInset, Brand, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useExpenses, Expense } from '@/hooks/use-traveler-store';
 
@@ -84,9 +84,9 @@ function AddExpenseModal({
                   styles.categoryChip,
                   {
                     backgroundColor:
-                      category === cat.value ? '#183B4E' : theme.backgroundElement,
+                      category === cat.value ? Brand.navyDeep : theme.backgroundElement,
                     borderColor:
-                      category === cat.value ? '#183B4E' : theme.backgroundSelected,
+                      category === cat.value ? Brand.navyDeep : theme.backgroundSelected,
                   },
                 ]}
               >
@@ -131,9 +131,9 @@ function AddExpenseModal({
                   styles.currencyChip,
                   {
                     backgroundColor:
-                      currency === cur ? '#183B4E' : theme.backgroundElement,
+                      currency === cur ? Brand.navyDeep : theme.backgroundElement,
                     borderColor:
-                      currency === cur ? '#183B4E' : theme.backgroundSelected,
+                      currency === cur ? Brand.navyDeep : theme.backgroundSelected,
                   },
                 ]}
               >
@@ -236,7 +236,7 @@ function ExpenseItem({
 
 export default function ExpensesScreen() {
   const { tripId } = useLocalSearchParams<{ tripId?: string }>();
-  const activeTripId = tripId ?? 'HOR-9921';
+  const activeTripId = tripId ?? 'unselected';
   const theme = useTheme();
   const { expenses, addExpense, deleteExpense, total } = useExpenses(activeTripId);
   const [modalVisible, setModalVisible] = useState(false);
@@ -256,6 +256,7 @@ export default function ExpensesScreen() {
           style={[styles.header, { borderBottomColor: theme.backgroundSelected }]}
         >
           <View>
+            <ThemedText style={styles.headerEyebrow}>SUAS DESPESAS</ThemedText>
             <ThemedText style={styles.headerTitle}>Despesas</ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
               {expenses.length} {expenses.length === 1 ? 'item' : 'itens'}
@@ -285,10 +286,10 @@ export default function ExpensesScreen() {
         {/* List */}
         {expenses.length === 0 ? (
           <View style={styles.empty}>
-            <ThemedText style={styles.emptyEmoji}>💸</ThemedText>
-            <ThemedText style={styles.emptyText} themeColor="textSecondary">
-              Nenhuma despesa registrada.
-            </ThemedText>
+            <View style={[styles.emptyIconTile, { backgroundColor: theme.accentSoft }]}>
+              <ThemedText style={styles.emptyEmoji}>💸</ThemedText>
+            </View>
+            <ThemedText style={styles.emptyText}>Nenhuma despesa registrada.</ThemedText>
             <Pressable
               onPress={() => setModalVisible(true)}
               style={styles.emptyAddBtn}
@@ -355,19 +356,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  headerTitle: { fontSize: 22, fontWeight: '700' },
+  headerEyebrow: { fontSize: 10, fontWeight: '900', letterSpacing: 1.4, color: Brand.coral, marginBottom: 4 },
+  headerTitle: { fontSize: 26, fontWeight: '900', color: Brand.navyDeep, letterSpacing: -0.6 },
   addButton: {
-    backgroundColor: '#F26B3A',
+    backgroundColor: Brand.coral,
     paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two,
-    borderRadius: 8,
+    paddingVertical: Spacing.two + 2,
+    borderRadius: 14,
   },
   addButtonText: { color: '#fff', fontWeight: '700', fontSize: 13 },
   totalCard: {
-    backgroundColor: '#183B4E',
+    backgroundColor: Brand.navyDeep,
     marginHorizontal: Spacing.four,
     marginVertical: Spacing.three,
-    borderRadius: 12,
+    borderRadius: 18,
     padding: Spacing.three,
   },
   totalLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '600' },
@@ -383,13 +385,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  sectionTitle: { fontSize: 13, fontWeight: '800', color: '#183B4E' },
+  sectionTitle: { fontSize: 13, fontWeight: '800', color: Brand.navyDeep },
   sectionTotal: { fontSize: 12, fontWeight: '600' },
   expenseCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderRadius: 10,
+    borderRadius: 18,
     borderWidth: 1,
     padding: Spacing.two + 4,
   },
@@ -398,7 +400,7 @@ const styles = StyleSheet.create({
   expenseInfo: { flex: 1 },
   expenseDesc: { fontSize: 13, fontWeight: '600' },
   expenseRight: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-  expenseAmount: { fontSize: 13, fontWeight: '800', color: '#183B4E' },
+  expenseAmount: { fontSize: 13, fontWeight: '800', color: Brand.navyDeep },
   deleteIcon: { fontSize: 14 },
   empty: {
     flex: 1,
@@ -407,13 +409,21 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
     paddingHorizontal: Spacing.four,
   },
-  emptyEmoji: { fontSize: 48 },
-  emptyText: { fontSize: 16, fontWeight: '600' },
+  emptyIconTile: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  emptyEmoji: { fontSize: 26 },
+  emptyText: { fontSize: 17, fontWeight: '800', color: Brand.navyDeep },
   emptyAddBtn: {
-    backgroundColor: '#F26B3A',
+    backgroundColor: Brand.coral,
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.two,
-    borderRadius: 8,
+    borderRadius: 14,
     marginTop: Spacing.two,
   },
   emptyAddText: { color: '#fff', fontWeight: '700' },
@@ -424,13 +434,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.4)',
   },
   modalSheet: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     padding: Spacing.four,
     gap: Spacing.two,
   },
-  modalTitle: { fontSize: 18, fontWeight: '700', marginBottom: Spacing.two },
-  label: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, color: '#183B4E' },
+  modalTitle: { fontSize: 18, fontWeight: '800', marginBottom: Spacing.two, color: Brand.navyDeep },
+  label: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, color: Brand.navyDeep },
   categoryRow: { flexDirection: 'row', marginBottom: Spacing.two },
   categoryChip: {
     flexDirection: 'row',
@@ -446,7 +456,7 @@ const styles = StyleSheet.create({
   categoryLabel: { fontSize: 12, fontWeight: '600' },
   input: {
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 14,
     padding: Spacing.two,
     fontSize: 14,
     marginBottom: Spacing.two,
@@ -455,14 +465,14 @@ const styles = StyleSheet.create({
   currencyChip: {
     paddingHorizontal: Spacing.two,
     paddingVertical: Spacing.one,
-    borderRadius: 6,
+    borderRadius: 10,
     borderWidth: 1,
   },
   currencyText: { fontSize: 12, fontWeight: '700' },
   amountInput: {
     flex: 1,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 14,
     padding: Spacing.two,
     fontSize: 14,
   },
@@ -470,14 +480,14 @@ const styles = StyleSheet.create({
   cancelBtn: {
     flex: 1,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 14,
     padding: Spacing.two,
     alignItems: 'center',
   },
   addBtn: {
     flex: 1,
-    backgroundColor: '#F26B3A',
-    borderRadius: 8,
+    backgroundColor: Brand.coral,
+    borderRadius: 14,
     padding: Spacing.two,
     alignItems: 'center',
   },
