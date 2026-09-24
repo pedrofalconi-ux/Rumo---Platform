@@ -13,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { BottomTabInset, Brand, MaxContentWidth, Spacing } from "@/constants/theme";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
 import { getTravelerTrips, TripDocument } from "@/lib/traveler-api";
@@ -105,7 +105,7 @@ function DocumentCard({
         onPress={handleOpen}
         style={({ pressed }) => [
           styles.openButton,
-          { backgroundColor: pressed ? "#DF5A2C" : "#F26B3A", opacity: pressed ? 0.92 : 1 },
+          { backgroundColor: pressed ? "#D95638" : Brand.coral, opacity: pressed ? 0.92 : 1 },
         ]}
       >
         <ThemedText style={styles.openButtonText}>
@@ -163,6 +163,7 @@ export default function DocumentsScreen() {
     <ThemedView style={[styles.container, { backgroundColor: theme.background }]}>
       <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
         <ThemedView style={[styles.header, { borderBottomColor: theme.backgroundSelected }]}>
+          <ThemedText style={styles.headerEyebrow}>SEUS ARQUIVOS</ThemedText>
           <ThemedText style={styles.headerTitle}>Documentos</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
             {documents.length} {documents.length === 1 ? "arquivo" : "arquivos"}
@@ -171,17 +172,17 @@ export default function DocumentsScreen() {
 
         {loading ? (
           <View style={styles.loadingState}>
-            <ActivityIndicator size="large" color="#F26B3A" />
+            <ActivityIndicator size="large" color={Brand.coral} />
             <ThemedText style={styles.loadingText} themeColor="textSecondary">
               Carregando documentos das suas viagens...
             </ThemedText>
           </View>
         ) : documents.length === 0 ? (
           <View style={styles.empty}>
-            <ThemedText style={styles.emptyEmoji}>📂</ThemedText>
-            <ThemedText style={styles.emptyText} themeColor="textSecondary">
-              Nenhum documento disponível ainda.
-            </ThemedText>
+            <View style={[styles.emptyIconTile, { backgroundColor: theme.accentSoft }]}>
+              <ThemedText style={styles.emptyEmoji}>📂</ThemedText>
+            </View>
+            <ThemedText style={styles.emptyText}>Nenhum documento disponível ainda.</ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
               Quando sua agência anexar arquivos à viagem, eles aparecerão aqui.
             </ThemedText>
@@ -218,13 +219,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.three,
     borderBottomWidth: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
   },
+  headerEyebrow: { fontSize: 10, fontWeight: "900", letterSpacing: 1.4, color: Brand.coral, marginBottom: 4 },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: "700",
+    fontSize: 26,
+    fontWeight: "900",
+    color: Brand.navyDeep,
+    letterSpacing: -0.6,
   },
   scrollContent: {
     paddingHorizontal: Spacing.four,
@@ -238,11 +239,11 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     textTransform: "uppercase",
     letterSpacing: 0.8,
-    color: "#183B4E",
+    color: Brand.navyDeep,
     marginBottom: Spacing.one,
   },
   card: {
-    borderRadius: 12,
+    borderRadius: 18,
     borderWidth: 1,
     padding: Spacing.three,
     gap: Spacing.two,
@@ -274,7 +275,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "700",
     textTransform: "uppercase",
-    color: "#183B4E",
+    color: Brand.navyDeep,
     letterSpacing: 0.6,
   },
   cardTitle: {
@@ -299,8 +300,16 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
     paddingHorizontal: Spacing.four,
   },
-  emptyEmoji: { fontSize: 48 },
-  emptyText: { fontSize: 16, fontWeight: "600" },
+  emptyIconTile: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 4,
+  },
+  emptyEmoji: { fontSize: 26 },
+  emptyText: { fontSize: 17, fontWeight: "800", color: Brand.navyDeep },
   loadingState: {
     flex: 1,
     alignItems: "center",
