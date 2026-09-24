@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#183B4E',
+    backgroundColor: Brand.navyDeep,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
