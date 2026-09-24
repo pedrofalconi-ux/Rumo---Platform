@@ -13,9 +13,11 @@ import { useLocalSearchParams } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { BottomTabInset, Brand, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useChat, ChatMessage } from '@/hooks/use-traveler-store';
+import { useAuth } from '@/hooks/use-auth';
+import { getTravelerTrips, MobileItinerary } from '@/lib/traveler-api';
 
 function formatTime(isoString: string) {
   const date = new Date(isoString);
@@ -56,7 +58,7 @@ function MessageBubble({
           style={[
             styles.bubble,
             isMe
-              ? { backgroundColor: '#183B4E' }
+              ? { backgroundColor: Brand.navyDeep }
               : { backgroundColor: theme.backgroundElement, borderColor: theme.backgroundSelected, borderWidth: 1 },
           ]}
         >
@@ -77,11 +79,20 @@ function MessageBubble({
 
 export default function ChatScreen() {
   const { tripId } = useLocalSearchParams<{ tripId?: string }>();
-  const activeTripId = tripId ?? 'HOR-9921';
+  const { sessionId } = useAuth();
+  const [activeTrip, setActiveTrip] = useState<MobileItinerary | null>(null);
+  const activeTripId = tripId ?? activeTrip?.id ?? 'unselected';
   const theme = useTheme();
   const { messages, sendMessage } = useChat(activeTripId);
   const [inputText, setInputText] = useState('');
   const scrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    if (!sessionId) return;
+    void getTravelerTrips(sessionId)
+      .then((trips) => setActiveTrip(trips.find((trip) => trip.id === tripId) || trips[0] || null))
+      .catch(() => setActiveTrip(null));
+  }, [sessionId, tripId]);
 
   useEffect(() => {
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
@@ -114,11 +125,11 @@ export default function ChatScreen() {
           style={[styles.header, { borderBottomColor: theme.backgroundSelected }]}
         >
           <View style={styles.agentInfo}>
-            <View style={[styles.agentAvatar, { backgroundColor: '#183B4E' }]}>
-              <ThemedText style={styles.agentAvatarText}>D</ThemedText>
+            <View style={[styles.agentAvatar, { backgroundColor: Brand.navyDeep }]}>
+              <ThemedText style={styles.agentAvatarText}>{(activeTrip?.agency?.name || 'A').charAt(0).toUpperCase()}</ThemedText>
             </View>
             <View>
-              <ThemedText style={styles.agentName}>Digueira Rumo</ThemedText>
+              <ThemedText style={styles.agentName}>{activeTrip?.agency?.name || 'Sua agência'}</ThemedText>
               <ThemedText type="small" themeColor="textSecondary">
                 Seu consultor de viagem
               </ThemedText>
@@ -157,9 +168,12 @@ export default function ChatScreen() {
 
             {messages.length === 0 && (
               <View style={styles.emptyChat}>
-                <ThemedText style={styles.emptyChatEmoji}>💬</ThemedText>
+                <View style={[styles.emptyChatIconTile, { backgroundColor: theme.accentSoft }]}>
+                  <ThemedText style={styles.emptyChatEmoji}>💬</ThemedText>
+                </View>
+                <ThemedText style={styles.emptyChatTitle}>Nenhuma mensagem ainda</ThemedText>
                 <ThemedText style={styles.emptyChatText} themeColor="textSecondary">
-                  Comece uma conversa com seu consultor!
+                  {activeTrip ? 'Comece uma conversa com sua agência.' : 'Adicione uma viagem para acessar o suporte da agência.'}
                 </ThemedText>
               </View>
             )}
@@ -201,8 +215,8 @@ export default function ChatScreen() {
                 {
                   backgroundColor: inputText.trim()
                     ? pressed
-                      ? '#DF5A2C'
-                      : '#F26B3A'
+                      ? '#D95638'
+                      : Brand.coral
                     : theme.backgroundSelected,
                 },
               ]}
@@ -285,7 +299,7 @@ const styles = StyleSheet.create({
   bubbleColumn: { maxWidth: '75%', gap: 2 },
   senderName: { fontSize: 11, fontWeight: '600', marginLeft: Spacing.one },
   bubble: {
-    borderRadius: 16,
+    borderRadius: 18,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
   },
@@ -299,8 +313,17 @@ const styles = StyleSheet.create({
     paddingTop: 80,
     gap: Spacing.two,
   },
-  emptyChatEmoji: { fontSize: 48 },
-  emptyChatText: { fontSize: 15, fontWeight: '500', textAlign: 'center' },
+  emptyChatIconTile: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  emptyChatEmoji: { fontSize: 26 },
+  emptyChatTitle: { fontSize: 16, fontWeight: '800', color: Brand.navyDeep },
+  emptyChatText: { fontSize: 14, fontWeight: '500', textAlign: 'center', maxWidth: 260 },
   inputBar: {
     flexDirection: 'row',
     alignItems: 'flex-end',
