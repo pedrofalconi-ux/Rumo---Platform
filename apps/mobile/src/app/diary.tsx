@@ -13,7 +13,7 @@ import { useLocalSearchParams } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { BottomTabInset, Brand, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useDiary, DiaryEntry } from '@/hooks/use-traveler-store';
 
@@ -187,7 +187,7 @@ function DiaryCard({
 
 export default function DiaryScreen() {
   const { tripId } = useLocalSearchParams<{ tripId?: string }>();
-  const activeTripId = tripId ?? 'HOR-9921';
+  const activeTripId = tripId ?? 'unselected';
   const theme = useTheme();
   const { entries, addEntry, deleteEntry } = useDiary(activeTripId);
   const [modalVisible, setModalVisible] = useState(false);
@@ -202,6 +202,7 @@ export default function DiaryScreen() {
           style={[styles.header, { borderBottomColor: theme.backgroundSelected }]}
         >
           <View>
+            <ThemedText style={styles.headerEyebrow}>SEU DIÁRIO</ThemedText>
             <ThemedText style={styles.headerTitle}>Diário</ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
               {entries.length} {entries.length === 1 ? 'entrada' : 'entradas'}
@@ -221,10 +222,10 @@ export default function DiaryScreen() {
         {/* List */}
         {sorted.length === 0 ? (
           <View style={styles.empty}>
-            <ThemedText style={styles.emptyEmoji}>📖</ThemedText>
-            <ThemedText style={styles.emptyTitle} themeColor="textSecondary">
-              Seu diário está vazio.
-            </ThemedText>
+            <View style={[styles.emptyIconTile, { backgroundColor: theme.accentSoft }]}>
+              <ThemedText style={styles.emptyEmoji}>📖</ThemedText>
+            </View>
+            <ThemedText style={styles.emptyTitle}>Seu diário está vazio.</ThemedText>
             <ThemedText type="small" themeColor="textSecondary" style={styles.emptySubtitle}>
               Registre suas memórias, experiências e sentimentos desta viagem.
             </ThemedText>
@@ -278,12 +279,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  headerTitle: { fontSize: 22, fontWeight: '700' },
+  headerEyebrow: { fontSize: 10, fontWeight: '900', letterSpacing: 1.4, color: Brand.coral, marginBottom: 4 },
+  headerTitle: { fontSize: 26, fontWeight: '900', color: Brand.navyDeep, letterSpacing: -0.6 },
   addButton: {
-    backgroundColor: '#F26B3A',
+    backgroundColor: Brand.coral,
     paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two,
-    borderRadius: 8,
+    paddingVertical: Spacing.two + 2,
+    borderRadius: 14,
   },
   addButtonText: { color: '#fff', fontWeight: '700', fontSize: 13 },
   scrollContent: {
@@ -293,7 +295,7 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
   },
   card: {
-    borderRadius: 12,
+    borderRadius: 18,
     borderWidth: 1,
     padding: Spacing.three,
     gap: Spacing.two,
@@ -309,7 +311,7 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   dayBadge: {
-    backgroundColor: '#183B4E',
+    backgroundColor: Brand.navyDeep,
     paddingHorizontal: Spacing.two,
     paddingVertical: 2,
     borderRadius: 4,
@@ -327,7 +329,7 @@ const styles = StyleSheet.create({
   expandText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#183B4E',
+    color: Brand.navyDeep,
     marginTop: -4,
   },
   empty: {
@@ -337,14 +339,22 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
     paddingHorizontal: Spacing.four,
   },
-  emptyEmoji: { fontSize: 52 },
-  emptyTitle: { fontSize: 16, fontWeight: '600' },
+  emptyIconTile: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  emptyEmoji: { fontSize: 26 },
+  emptyTitle: { fontSize: 17, fontWeight: '800', color: Brand.navyDeep },
   emptySubtitle: { textAlign: 'center', lineHeight: 20 },
   emptyAddBtn: {
-    backgroundColor: '#F26B3A',
+    backgroundColor: Brand.coral,
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.two,
-    borderRadius: 8,
+    borderRadius: 14,
     marginTop: Spacing.two,
   },
   emptyAddText: { color: '#fff', fontWeight: '700' },
@@ -355,29 +365,29 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.4)',
   },
   modalSheet: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     padding: Spacing.four,
     gap: Spacing.two,
   },
-  modalTitle: { fontSize: 18, fontWeight: '700', marginBottom: Spacing.two },
+  modalTitle: { fontSize: 18, fontWeight: '800', marginBottom: Spacing.two, color: Brand.navyDeep },
   label: {
     fontSize: 12,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    color: '#183B4E',
+    color: Brand.navyDeep,
   },
   input: {
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 14,
     padding: Spacing.two,
     fontSize: 14,
     marginBottom: Spacing.two,
   },
   textArea: {
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 14,
     padding: Spacing.two,
     fontSize: 14,
     minHeight: 120,
@@ -388,14 +398,14 @@ const styles = StyleSheet.create({
   cancelBtn: {
     flex: 1,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 14,
     padding: Spacing.two,
     alignItems: 'center',
   },
   addBtn: {
     flex: 1,
-    backgroundColor: '#F26B3A',
-    borderRadius: 8,
+    backgroundColor: Brand.coral,
+    borderRadius: 14,
     padding: Spacing.two,
     alignItems: 'center',
   },
