@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   openButton: {
-    borderRadius: 8,
+    borderRadius: 14,
     paddingVertical: Spacing.two,
     alignItems: "center",
   },
