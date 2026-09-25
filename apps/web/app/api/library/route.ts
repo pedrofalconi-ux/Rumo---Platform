@@ -13,6 +13,11 @@ import {
   setFolderCoverForAgency,
   updateOrderForAgency,
 } from '../../../lib/server-library-store';
+import {
+  libraryMediaStoragePath,
+  persistLibraryMedia,
+  removeLibraryMedia,
+} from '../../../lib/server-library-media';
 
 export async function GET(request: Request) {
   try {
@@ -152,16 +157,49 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Parâmetro insuficiente' }, { status: 400 });
       }
 
-      const state = await setFolderCoverForAgency(user.agencyId, String(folderPath), String(coverUrl || ''));
-      return NextResponse.json({ success: true, folderCovers: state.folderCovers });
+      const requestedCoverUrl = String(coverUrl || '');
+      const currentState = await getLibraryState(user.agencyId);
+      const previousCoverUrl = currentState.folderCovers[String(folderPath)] || '';
+      let storedCoverUrl = requestedCoverUrl;
+      let newlyUploadedUrl = '';
+
+      try {
+        if (requestedCoverUrl && !libraryMediaStoragePath(requestedCoverUrl)) {
+          const stored = await persistLibraryMedia({ agencyId: user.agencyId, sourceUrl: requestedCoverUrl });
+          storedCoverUrl = stored.publicUrl;
+          newlyUploadedUrl = stored.publicUrl;
+        }
+
+        const state = await setFolderCoverForAgency(user.agencyId, String(folderPath), storedCoverUrl);
+        if (previousCoverUrl && previousCoverUrl !== storedCoverUrl && libraryMediaStoragePath(previousCoverUrl)) {
+          await removeLibraryMedia(previousCoverUrl);
+        }
+        return NextResponse.json({ success: true, folderCovers: state.folderCovers });
+      } catch (error) {
+        if (newlyUploadedUrl) await removeLibraryMedia(newlyUploadedUrl);
+        throw error;
+      }
     }
 
-    const newPhoto = await createPhotoForAgency(user.agencyId, {
-      folder: String(folder || ''),
-      name: String(name || 'Foto'),
-      url: String(url || ''),
-    });
-    return NextResponse.json(newPhoto);
+    const requestedUrl = String(url || '');
+    let storedUrl = requestedUrl;
+    let newlyUploadedUrl = '';
+    try {
+      if (requestedUrl && !libraryMediaStoragePath(requestedUrl)) {
+        const stored = await persistLibraryMedia({ agencyId: user.agencyId, sourceUrl: requestedUrl });
+        storedUrl = stored.publicUrl;
+        newlyUploadedUrl = stored.publicUrl;
+      }
+      const newPhoto = await createPhotoForAgency(user.agencyId, {
+        folder: String(folder || ''),
+        name: String(name || 'Foto'),
+        url: storedUrl,
+      });
+      return NextResponse.json(newPhoto);
+    } catch (error) {
+      if (newlyUploadedUrl) await removeLibraryMedia(newlyUploadedUrl);
+      throw error;
+    }
   } catch (error) {
     console.error('Erro na biblioteca de mídia:', error);
     const message = error instanceof Error ? error.message : 'Erro na biblioteca de mídia';

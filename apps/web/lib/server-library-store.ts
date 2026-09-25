@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto';
 import { createClient } from '@supabase/supabase-js';
+import { libraryMediaStoragePath, removeLibraryMedia } from './server-library-media';
 
 export interface LibraryPhotoRecord {
   id: string;
@@ -21,7 +22,6 @@ const hasSupabaseServerAccess = Boolean(supabaseUrl && supabaseServiceRoleKey);
 const SUPABASE_SERVER_TIMEOUT_MS = 5000;
 const TABLE_CACHE_TTL_MS = 30_000;
 const DEFAULT_SORT_ORDER = 2_147_483_647;
-const LIBRARY_MEDIA_BUCKET = 'library-media';
 
 const tableReadinessCache = new Map<string, { ready: boolean; checkedAt: number }>();
 
@@ -55,16 +55,9 @@ function isUuid(value: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }
 
-function libraryStoragePath(url: string) {
-  if (!supabaseUrl || !url) return null;
-  const prefix = `${supabaseUrl.replace(/\/$/, '')}/storage/v1/object/public/${LIBRARY_MEDIA_BUCKET}/`;
-  return url.startsWith(prefix) ? decodeURIComponent(url.slice(prefix.length)) : null;
-}
-
 async function removeStoredPhotos(photos: LibraryPhotoRecord[]) {
   if (!supabaseAdmin) return;
-  const paths = photos.map((photo) => libraryStoragePath(photo.url)).filter((path): path is string => Boolean(path));
-  if (paths.length) await supabaseAdmin.storage.from(LIBRARY_MEDIA_BUCKET).remove(paths);
+  await Promise.all(photos.filter((photo) => libraryMediaStoragePath(photo.url)).map((photo) => removeLibraryMedia(photo.url)));
 }
 
 function getParentPath(path: string) {
@@ -359,6 +352,9 @@ export async function createPhotoForAgency(
   agencyId: string,
   input: { folder: string; name: string; url: string }
 ) {
+  if (hasSupabaseServerAccess && !libraryMediaStoragePath(input.url)) {
+    throw new Error('A imagem precisa ser armazenada no Supabase antes de entrar na biblioteca.');
+  }
   const state = await ensureLibraryState(agencyId);
   const photo: LibraryPhotoRecord = {
     id: randomUUID(),
