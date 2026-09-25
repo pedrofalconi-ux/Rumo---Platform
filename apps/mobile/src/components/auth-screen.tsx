@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "@/hooks/use-auth";
+import { ApiError } from "@/lib/traveler-api";
 
 type Mode = "login" | "invite";
 const ONBOARDING_KEY = "rumo.traveler.onboarding.v1";
@@ -32,6 +33,7 @@ export function AuthScreen() {
   const [mode, setMode] = useState<Mode>("invite");
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [pendingInviteToken, setPendingInviteToken] = useState<string | null>(null);
   const [form, setForm] = useState({
     fullName: "",
     email: "",
@@ -71,17 +73,28 @@ export function AuthScreen() {
 
   const handleSubmit = async () => {
     if (mode === "login") {
-      await signIn(form.email.trim(), form.password);
+      await signIn(form.email.trim(), form.password, pendingInviteToken || undefined);
+      setPendingInviteToken(null);
       return;
     }
-    await signUp({
-      fullName: form.fullName.trim(),
-      email: form.email.trim(),
-      emailConfirm: form.emailConfirm.trim(),
-      phone: form.phone.trim(),
-      password: form.password,
-      inviteToken: form.inviteToken.trim(),
-    });
+    try {
+      await signUp({
+        fullName: form.fullName.trim(),
+        email: form.email.trim(),
+        emailConfirm: form.emailConfirm.trim(),
+        phone: form.phone.trim(),
+        password: form.password,
+        inviteToken: form.inviteToken.trim(),
+      });
+    } catch (err) {
+      if (err instanceof ApiError && err.code === "account_exists") {
+        // Dead end today: registration just rejects a known email. Guide the traveler into
+        // logging in instead, carrying the invite so it imports automatically on success.
+        setPendingInviteToken(form.inviteToken.trim());
+        setMode("login");
+        clearError();
+      }
+    }
   };
 
   const isInvite = mode === "invite";
@@ -115,17 +128,21 @@ export function AuthScreen() {
                   <View style={styles.formEyebrowDot} />
                   <Text style={styles.formEyebrow}>ACESSO DO VIAJANTE</Text>
                 </View>
-                <Text style={styles.formTitle}>{isInvite ? "Sua viagem começa aqui" : "Bem-vindo de volta"}</Text>
+                <Text style={styles.formTitle}>
+                  {pendingInviteToken ? "Você já tem uma conta Rumo" : isInvite ? "Sua viagem começa aqui" : "Bem-vindo de volta"}
+                </Text>
                 <Text style={styles.formDescription}>
-                  {isInvite
-                    ? "Use o convite enviado pelo seu consultor para liberar seu roteiro no app."
-                    : "Entre para acompanhar sua próxima viagem e falar com sua agência."}
+                  {pendingInviteToken
+                    ? "Entre com sua senha para adicionar esta nova viagem à conta que você já tem. Suas viagens e seu diário continuam exatamente onde estão."
+                    : isInvite
+                      ? "Use o convite enviado pelo seu consultor para liberar seu roteiro no app."
+                      : "Entre para acompanhar sua próxima viagem e falar com sua agência."}
                 </Text>
               </View>
 
               <View style={styles.modeSelector}>
-                <ModeButton active={isInvite} label="Recebi um convite" onPress={() => { clearError(); setMode("invite"); }} />
-                <ModeButton active={!isInvite} label="Já tenho acesso" onPress={() => { clearError(); setMode("login"); }} />
+                <ModeButton active={isInvite} label="Recebi um convite" onPress={() => { clearError(); setPendingInviteToken(null); setMode("invite"); }} />
+                <ModeButton active={!isInvite} label="Já tenho acesso" onPress={() => { clearError(); setPendingInviteToken(null); setMode("login"); }} />
               </View>
 
               <View style={styles.fields}>
@@ -188,7 +205,9 @@ export function AuthScreen() {
               >
                 {authBusy ? <ActivityIndicator color="#fff" /> : (
                   <>
-                    <Text style={styles.submitText}>{isInvite ? "Liberar minha viagem" : "Entrar no app"}</Text>
+                    <Text style={styles.submitText}>
+                      {pendingInviteToken ? "Entrar e importar viagem" : isInvite ? "Liberar minha viagem" : "Entrar no app"}
+                    </Text>
                     <Text style={styles.submitArrow}>→</Text>
                   </>
                 )}

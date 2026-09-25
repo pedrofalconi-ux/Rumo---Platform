@@ -146,10 +146,19 @@ async function request<T>(
   const data = text ? JSON.parse(text) : null;
 
   if (!response.ok) {
-    throw new Error(data?.error || "Falha na comunicacao com a plataforma.");
+    throw new ApiError(data?.error || "Falha na comunicacao com a plataforma.", data?.code);
   }
 
   return data as T;
+}
+
+export class ApiError extends Error {
+  code?: string;
+  constructor(message: string, code?: string) {
+    super(message);
+    this.name = "ApiError";
+    this.code = code;
+  }
 }
 
 function normalizeTrip(raw: any): MobileItinerary {

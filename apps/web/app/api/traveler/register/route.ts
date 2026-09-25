@@ -41,6 +41,7 @@ export async function POST(request: Request) {
     return response;
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Erro ao criar conta do viajante';
-    return NextResponse.json({ error: message }, { status: 400 });
+    const code = message.includes('Esta conta de viajante ja existe') ? 'account_exists' : undefined;
+    return NextResponse.json({ error: message, code }, { status: 400 });
   }
 }

@@ -3,8 +3,10 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from "
 import { Platform } from "react-native";
 
 import {
+  ApiError,
   AuthUser,
   getCurrentTraveler,
+  importTravelerTrip,
   loginTraveler,
   logoutTraveler,
   registerTraveler,
@@ -18,7 +20,8 @@ interface AuthContextValue {
   loading: boolean;
   authBusy: boolean;
   error: string | null;
-  signIn: (email: string, password: string) => Promise<void>;
+  errorCode: string | null;
+  signIn: (email: string, password: string, importInviteToken?: string) => Promise<void>;
   signUp: (payload: {
     fullName: string;
     email: string;
@@ -64,6 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [authBusy, setAuthBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
 
   useEffect(() => {
     async function bootstrap() {
@@ -93,14 +97,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading,
       authBusy,
       error,
-      async signIn(email, password) {
+      errorCode,
+      async signIn(email, password, importInviteToken) {
         setAuthBusy(true);
         setError(null);
+        setErrorCode(null);
         try {
           const result = await loginTraveler(email, password);
           await persistSession(result.session.id);
           setSessionId(result.session.id);
           setUser(result.user);
+          if (importInviteToken) {
+            try {
+              await importTravelerTrip(result.session.id, importInviteToken);
+            } catch {
+              // Login already succeeded; surface the import failure without blocking access.
+              setError("Voce entrou, mas nao foi possivel importar o convite automaticamente. Tente novamente na tela de importar viagem.");
+            }
+          }
         } catch (err) {
           setError(err instanceof Error ? err.message : "Nao foi possivel entrar.");
           throw err;
@@ -111,6 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       async signUp(payload) {
         setAuthBusy(true);
         setError(null);
+        setErrorCode(null);
         try {
           const result = await registerTraveler(payload);
           await persistSession(result.session.id);
@@ -118,6 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(result.user);
         } catch (err) {
           setError(err instanceof Error ? err.message : "Nao foi possivel criar sua conta.");
+          setErrorCode(err instanceof ApiError ? err.code || null : null);
           throw err;
         } finally {
           setAuthBusy(false);
@@ -136,14 +152,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSessionId(null);
           setUser(null);
           setError(null);
+          setErrorCode(null);
           setAuthBusy(false);
         }
       },
       clearError() {
         setError(null);
+        setErrorCode(null);
       },
     }),
-    [authBusy, error, loading, sessionId, user]
+    [authBusy, error, errorCode, loading, sessionId, user]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
