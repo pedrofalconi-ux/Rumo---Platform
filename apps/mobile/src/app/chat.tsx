@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
+  ActivityIndicator,
   StyleSheet,
   ScrollView,
   Pressable,
@@ -83,7 +84,7 @@ export default function ChatScreen() {
   const [activeTrip, setActiveTrip] = useState<MobileItinerary | null>(null);
   const activeTripId = tripId ?? activeTrip?.id ?? 'unselected';
   const theme = useTheme();
-  const { messages, sendMessage } = useChat(activeTripId);
+  const { messages, loading, error, sendMessage } = useChat(activeTripId);
   const [inputText, setInputText] = useState('');
   const scrollRef = useRef<ScrollView>(null);
 
@@ -102,7 +103,7 @@ export default function ChatScreen() {
     const text = inputText.trim();
     if (!text) return;
     setInputText('');
-    sendMessage(text);
+    void sendMessage(text);
   };
 
   // Group messages by date
@@ -166,7 +167,15 @@ export default function ChatScreen() {
               </View>
             ))}
 
-            {messages.length === 0 && (
+            {loading ? (
+              <View style={styles.emptyChat}>
+                <ActivityIndicator size="large" color={Brand.coral} />
+              </View>
+            ) : error ? (
+              <View style={styles.emptyChat}>
+                <ThemedText style={styles.emptyChatText} themeColor="textSecondary">{error}</ThemedText>
+              </View>
+            ) : messages.length === 0 ? (
               <View style={styles.emptyChat}>
                 <View style={[styles.emptyChatIconTile, { backgroundColor: theme.accentSoft }]}>
                   <ThemedText style={styles.emptyChatEmoji}>💬</ThemedText>
@@ -176,7 +185,7 @@ export default function ChatScreen() {
                   {activeTrip ? 'Comece uma conversa com sua agência.' : 'Adicione uma viagem para acessar o suporte da agência.'}
                 </ThemedText>
               </View>
-            )}
+            ) : null}
           </ScrollView>
 
           {/* Input Bar */}

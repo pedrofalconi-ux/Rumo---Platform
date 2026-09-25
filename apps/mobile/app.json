@@ -37,7 +37,13 @@
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O Rumo usa suas fotos para ilustrar as entradas do seu diário de viagem."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

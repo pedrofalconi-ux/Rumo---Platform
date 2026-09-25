@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   StyleSheet,
   ScrollView,
   Pressable,
@@ -34,15 +35,16 @@ function AddExpenseModal({
 }: {
   visible: boolean;
   onClose: () => void;
-  onAdd: (data: Omit<Expense, 'id' | 'tripId' | 'emoji'>) => void;
+  onAdd: (data: Omit<Expense, 'id' | 'tripId' | 'createdAt'>) => Promise<void>;
   theme: ReturnType<typeof useTheme>;
 }) {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState<Expense['category']>('alimentação');
   const [currency, setCurrency] = useState('EUR');
+  const [saving, setSaving] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!description.trim() || !amount.trim()) {
       Alert.alert('Campos obrigatórios', 'Preencha descrição e valor.');
       return;
@@ -52,17 +54,24 @@ function AddExpenseModal({
       Alert.alert('Valor inválido', 'Insira um valor numérico positivo.');
       return;
     }
-    onAdd({
-      description: description.trim(),
-      amount: parsed,
-      currency,
-      category,
-      date: new Date().toISOString().split('T')[0],
-    });
-    setDescription('');
-    setAmount('');
-    setCategory('alimentação');
-    onClose();
+    setSaving(true);
+    try {
+      await onAdd({
+        description: description.trim(),
+        amount: parsed,
+        currency,
+        category,
+        date: new Date().toISOString().split('T')[0],
+      });
+      setDescription('');
+      setAmount('');
+      setCategory('alimentação');
+      onClose();
+    } catch (err) {
+      Alert.alert('Erro', err instanceof Error ? err.message : 'Não foi possível salvar a despesa.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -174,9 +183,10 @@ function AddExpenseModal({
             </Pressable>
             <Pressable
               onPress={handleSubmit}
-              style={styles.addBtn}
+              disabled={saving}
+              style={[styles.addBtn, { opacity: saving ? 0.7 : 1 }]}
             >
-              <ThemedText style={styles.addBtnText}>Adicionar</ThemedText>
+              {saving ? <ActivityIndicator color="#fff" /> : <ThemedText style={styles.addBtnText}>Adicionar</ThemedText>}
             </Pressable>
           </View>
         </ThemedView>
@@ -212,7 +222,9 @@ function ExpenseItem({
       ]}
     >
       <View style={styles.expenseLeft}>
-        <ThemedText style={styles.expenseEmoji}>{expense.emoji}</ThemedText>
+        <ThemedText style={styles.expenseEmoji}>
+          {CATEGORIES.find((c) => c.value === expense.category)?.emoji ?? '💰'}
+        </ThemedText>
         <View style={styles.expenseInfo}>
           <ThemedText style={styles.expenseDesc} numberOfLines={1}>
             {expense.description}
@@ -238,7 +250,7 @@ export default function ExpensesScreen() {
   const { tripId } = useLocalSearchParams<{ tripId?: string }>();
   const activeTripId = tripId ?? 'unselected';
   const theme = useTheme();
-  const { expenses, addExpense, deleteExpense, total } = useExpenses(activeTripId);
+  const { expenses, loading, error, addExpense, deleteExpense, total } = useExpenses(activeTripId);
   const [modalVisible, setModalVisible] = useState(false);
 
   // Group by category
@@ -283,8 +295,18 @@ export default function ExpensesScreen() {
           </ThemedText>
         </View>
 
+        {error ? (
+          <View style={styles.errorBanner}>
+            <ThemedText style={styles.errorBannerText}>{error}</ThemedText>
+          </View>
+        ) : null}
+
         {/* List */}
-        {expenses.length === 0 ? (
+        {loading ? (
+          <View style={styles.empty}>
+            <ActivityIndicator size="large" color={Brand.coral} />
+          </View>
+        ) : expenses.length === 0 ? (
           <View style={styles.empty}>
             <View style={[styles.emptyIconTile, { backgroundColor: theme.accentSoft }]}>
               <ThemedText style={styles.emptyEmoji}>💸</ThemedText>
@@ -427,6 +449,14 @@ const styles = StyleSheet.create({
     marginTop: Spacing.two,
   },
   emptyAddText: { color: '#fff', fontWeight: '700' },
+  errorBanner: {
+    marginHorizontal: Spacing.four,
+    marginTop: Spacing.two,
+    padding: Spacing.three,
+    borderRadius: 12,
+    backgroundColor: '#FFF0ED',
+  },
+  errorBannerText: { color: '#9D321F', fontSize: 12, fontWeight: '700' },
   // Modal
   modalOverlay: {
     flex: 1,

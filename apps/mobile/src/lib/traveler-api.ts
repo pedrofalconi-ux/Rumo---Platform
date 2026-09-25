@@ -122,7 +122,8 @@ async function request<T>(
   const baseUrl = requireApiUrl();
   const headers = new Headers(init?.headers);
 
-  if (!headers.has("Content-Type") && init?.body) {
+  const isFormData = typeof FormData !== "undefined" && init?.body instanceof FormData;
+  if (!headers.has("Content-Type") && init?.body && !isFormData) {
     headers.set("Content-Type", "application/json");
   }
   if (sessionId) {
@@ -243,4 +244,101 @@ export async function importTravelerTrip(sessionId: string, linkOrToken: string)
 export async function getInvitePreview(tokenOrLink: string) {
   const token = normalizeInviteToken(tokenOrLink);
   return request<InvitePreview>(`/api/mobile/invites/${token}`);
+}
+
+// ─── Diary ─────────────────────────────────────────────────────────────────
+
+export interface DiaryEntry {
+  id: string;
+  tripId: string;
+  day: number;
+  title: string;
+  body: string;
+  photoUrl: string | null;
+  createdAt: string;
+}
+
+export async function getDiaryEntries(sessionId: string, tripId: string) {
+  return request<DiaryEntry[]>(`/api/traveler/diary?tripId=${encodeURIComponent(tripId)}`, undefined, sessionId);
+}
+
+export async function addDiaryEntry(
+  sessionId: string,
+  data: { tripId: string; day: number; title: string; body: string; photoUri?: string | null }
+) {
+  const form = new FormData();
+  form.append("tripId", data.tripId);
+  form.append("day", String(data.day));
+  form.append("title", data.title);
+  form.append("body", data.body);
+  if (data.photoUri) {
+    const filename = data.photoUri.split("/").pop() || "foto.jpg";
+    const extMatch = /\.(\w+)$/.exec(filename);
+    const ext = (extMatch?.[1] || "jpg").toLowerCase();
+    const type = ext === "png" ? "image/png" : ext === "heic" ? "image/heic" : ext === "webp" ? "image/webp" : "image/jpeg";
+    form.append("photo", { uri: data.photoUri, name: filename, type } as unknown as Blob);
+  }
+  return request<DiaryEntry>("/api/traveler/diary", { method: "POST", body: form }, sessionId);
+}
+
+export async function deleteDiaryEntry(sessionId: string, entryId: string) {
+  return request<{ success: boolean }>(`/api/traveler/diary/${entryId}`, { method: "DELETE" }, sessionId);
+}
+
+// ─── Expenses ──────────────────────────────────────────────────────────────
+
+export interface Expense {
+  id: string;
+  tripId: string;
+  description: string;
+  amount: number;
+  currency: string;
+  category: "alimentação" | "transporte" | "hospedagem" | "compras" | "entretenimento" | "outro";
+  date: string;
+  createdAt: string;
+}
+
+export async function getExpenses(sessionId: string, tripId: string) {
+  return request<Expense[]>(`/api/traveler/expenses?tripId=${encodeURIComponent(tripId)}`, undefined, sessionId);
+}
+
+export async function addExpense(
+  sessionId: string,
+  data: { tripId: string; description: string; amount: number; currency: string; category: string; date: string }
+) {
+  return request<Expense>(
+    "/api/traveler/expenses",
+    { method: "POST", body: JSON.stringify(data) },
+    sessionId
+  );
+}
+
+export async function deleteExpense(sessionId: string, expenseId: string) {
+  return request<{ success: boolean }>(`/api/traveler/expenses/${expenseId}`, { method: "DELETE" }, sessionId);
+}
+
+// ─── Chat ──────────────────────────────────────────────────────────────────
+
+export interface ChatMessage {
+  id: string;
+  tripId: string;
+  agencyId: string;
+  senderId: string | null;
+  senderName: string;
+  senderRole: "traveler" | "agent";
+  text: string;
+  read: boolean;
+  sentAt: string;
+}
+
+export async function getChatMessages(sessionId: string, tripId: string) {
+  return request<ChatMessage[]>(`/api/traveler/chat?tripId=${encodeURIComponent(tripId)}`, undefined, sessionId);
+}
+
+export async function sendChatMessage(sessionId: string, tripId: string, text: string) {
+  return request<ChatMessage>(
+    "/api/traveler/chat",
+    { method: "POST", body: JSON.stringify({ tripId, text }) },
+    sessionId
+  );
 }

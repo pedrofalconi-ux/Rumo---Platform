@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   StyleSheet,
   ScrollView,
   Pressable,
@@ -9,6 +10,8 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
@@ -33,14 +36,33 @@ function AddEntryModal({
 }: {
   visible: boolean;
   onClose: () => void;
-  onAdd: (data: Omit<DiaryEntry, 'id' | 'tripId' | 'createdAt'>) => void;
+  onAdd: (data: { title: string; body: string; day: number; photoUri?: string | null }) => Promise<void>;
   theme: ReturnType<typeof useTheme>;
 }) {
   const [title, setTitle] = useState('');
   const [text, setText] = useState('');
   const [day, setDay] = useState('1');
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  const handleSubmit = () => {
+  const pickPhoto = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Permissão necessária', 'Autorize o acesso às fotos para anexar uma imagem.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.7,
+      allowsEditing: true,
+      aspect: [1, 1],
+    });
+    if (!result.canceled && result.assets[0]) {
+      setPhotoUri(result.assets[0].uri);
+    }
+  };
+
+  const handleSubmit = async () => {
     if (!title.trim() || !text.trim()) {
       Alert.alert('Campos obrigatórios', 'Preencha o título e o texto.');
       return;
@@ -50,11 +72,19 @@ function AddEntryModal({
       Alert.alert('Dia inválido', 'Informe um número de dia válido.');
       return;
     }
-    onAdd({ title: title.trim(), text: text.trim(), day: dayNum });
-    setTitle('');
-    setText('');
-    setDay('1');
-    onClose();
+    setSaving(true);
+    try {
+      await onAdd({ title: title.trim(), body: text.trim(), day: dayNum, photoUri });
+      setTitle('');
+      setText('');
+      setDay('1');
+      setPhotoUri(null);
+      onClose();
+    } catch (err) {
+      Alert.alert('Erro', err instanceof Error ? err.message : 'Não foi possível salvar a entrada.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -104,15 +134,33 @@ function AddEntryModal({
             numberOfLines={5}
           />
 
+          <ThemedText style={styles.label}>Foto</ThemedText>
+          {photoUri ? (
+            <View style={styles.photoAttached}>
+              <Image source={{ uri: photoUri }} style={styles.photoAttachedImage} contentFit="cover" />
+              <Pressable onPress={() => setPhotoUri(null)} style={styles.photoRemove} hitSlop={8}>
+                <ThemedText style={styles.photoRemoveText}>✕</ThemedText>
+              </Pressable>
+            </View>
+          ) : (
+            <Pressable
+              onPress={pickPhoto}
+              style={[styles.photoEmpty, { borderColor: theme.backgroundSelected }]}
+            >
+              <ThemedText style={styles.photoEmptyText}>+ Adicionar foto</ThemedText>
+            </Pressable>
+          )}
+
           <View style={styles.modalActions}>
             <Pressable
               onPress={onClose}
-              style={[styles.cancelBtn, { borderColor: theme.backgroundSelected }]}
+              disabled={saving}
+              style={[styles.cancelBtn, { borderColor: theme.backgroundSelected, opacity: saving ? 0.6 : 1 }]}
             >
               <ThemedText>Cancelar</ThemedText>
             </Pressable>
-            <Pressable onPress={handleSubmit} style={styles.addBtn}>
-              <ThemedText style={styles.addBtnText}>Salvar</ThemedText>
+            <Pressable onPress={handleSubmit} disabled={saving} style={[styles.addBtn, { opacity: saving ? 0.7 : 1 }]}>
+              {saving ? <ActivityIndicator color="#fff" /> : <ThemedText style={styles.addBtnText}>Salvar</ThemedText>}
             </Pressable>
           </View>
         </ThemedView>
@@ -165,16 +213,20 @@ function DiaryCard({
       {/* Title */}
       <ThemedText style={styles.cardTitle}>{entry.title}</ThemedText>
 
+      {entry.photoUrl ? (
+        <Image source={{ uri: entry.photoUrl }} style={styles.cardPhoto} contentFit="cover" />
+      ) : null}
+
       {/* Body (collapsible) */}
       <ThemedText
         style={styles.cardBody}
         themeColor="textSecondary"
         numberOfLines={expanded ? undefined : 3}
       >
-        {entry.text}
+        {entry.body}
       </ThemedText>
 
-      {entry.text.length > 120 && (
+      {entry.body.length > 120 && (
         <Pressable onPress={() => setExpanded((v) => !v)}>
           <ThemedText style={styles.expandText}>
             {expanded ? 'Ver menos ↑' : 'Continuar lendo ↓'}
@@ -189,7 +241,7 @@ export default function DiaryScreen() {
   const { tripId } = useLocalSearchParams<{ tripId?: string }>();
   const activeTripId = tripId ?? 'unselected';
   const theme = useTheme();
-  const { entries, addEntry, deleteEntry } = useDiary(activeTripId);
+  const { entries, loading, error, addEntry, deleteEntry } = useDiary(activeTripId);
   const [modalVisible, setModalVisible] = useState(false);
 
   const sorted = [...entries].sort((a, b) => a.day - b.day);
@@ -219,8 +271,18 @@ export default function DiaryScreen() {
           </Pressable>
         </ThemedView>
 
+        {error ? (
+          <View style={styles.errorBanner}>
+            <ThemedText style={styles.errorBannerText}>{error}</ThemedText>
+          </View>
+        ) : null}
+
         {/* List */}
-        {sorted.length === 0 ? (
+        {loading ? (
+          <View style={styles.empty}>
+            <ActivityIndicator size="large" color={Brand.coral} />
+          </View>
+        ) : sorted.length === 0 ? (
           <View style={styles.empty}>
             <View style={[styles.emptyIconTile, { backgroundColor: theme.accentSoft }]}>
               <ThemedText style={styles.emptyEmoji}>📖</ThemedText>
@@ -325,6 +387,7 @@ const styles = StyleSheet.create({
   cardDate: { flex: 1 },
   deleteIcon: { fontSize: 14 },
   cardTitle: { fontSize: 16, fontWeight: '700' },
+  cardPhoto: { width: '100%', height: 160, borderRadius: 12, backgroundColor: '#E9EDF2' },
   cardBody: { fontSize: 13, lineHeight: 20 },
   expandText: {
     fontSize: 12,
@@ -394,6 +457,39 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     marginBottom: Spacing.three,
   },
+  photoEmpty: {
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginBottom: Spacing.three,
+  },
+  photoEmptyText: { color: Brand.coral, fontWeight: '700', fontSize: 13 },
+  photoAttached: { width: 88, height: 88, marginBottom: Spacing.three },
+  photoAttachedImage: { width: '100%', height: '100%', borderRadius: 12, backgroundColor: '#E9EDF2' },
+  photoRemove: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#DDD1B8',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoRemoveText: { fontSize: 10, fontWeight: '800' },
+  errorBanner: {
+    marginHorizontal: Spacing.four,
+    marginTop: Spacing.two,
+    padding: Spacing.three,
+    borderRadius: 12,
+    backgroundColor: '#FFF0ED',
+  },
+  errorBannerText: { color: '#9D321F', fontSize: 12, fontWeight: '700' },
   modalActions: { flexDirection: 'row', gap: Spacing.two },
   cancelBtn: {
     flex: 1,
