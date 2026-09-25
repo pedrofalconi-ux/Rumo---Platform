@@ -351,3 +351,59 @@ export async function sendChatMessage(sessionId: string, tripId: string, text: s
     sessionId
   );
 }
+
+// ─── Profile, privacy, and search ───────────────────────────────────────────
+
+export interface ProfileTrip {
+  id: string;
+  title: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  coverImage?: string;
+  isPublic: boolean;
+}
+
+export interface OwnProfile {
+  fullName: string;
+  handle: string;
+  stats: { completedTrips: number; destinations: number };
+  trips: ProfileTrip[];
+}
+
+export interface PublicProfile {
+  fullName: string;
+  handle: string;
+  stats: { publicTrips: number; destinations: number };
+  trips: Omit<ProfileTrip, "isPublic">[];
+}
+
+export interface TravelerSearchResult {
+  fullName: string;
+  handle: string;
+  publicTripCount: number;
+}
+
+export async function getOwnProfile(sessionId: string) {
+  return request<OwnProfile>("/api/traveler/profile", undefined, sessionId);
+}
+
+export async function setTripVisibility(sessionId: string, tripId: string, isPublic: boolean) {
+  return request<{ success: boolean }>(
+    "/api/traveler/profile/visibility",
+    { method: "PATCH", body: JSON.stringify({ tripId, isPublic }) },
+    sessionId
+  );
+}
+
+export async function searchTravelers(sessionId: string, query: string) {
+  return request<TravelerSearchResult[]>(
+    `/api/traveler/search?q=${encodeURIComponent(query)}`,
+    undefined,
+    sessionId
+  );
+}
+
+export async function getPublicProfile(sessionId: string, handle: string) {
+  return request<PublicProfile>(`/api/traveler/public-profile/${encodeURIComponent(handle)}`, undefined, sessionId);
+}

@@ -922,6 +922,14 @@ export const db = {
       }
       return { id: invite.tripId, agencyId: invite.agencyId };
     },
+    setVisibility: (userId: string, tripId: string, isPublic: boolean) => {
+      const accessRows = readData<any[]>(TRAVELER_TRIP_ACCESS_FILE);
+      const access = accessRows.find((row) => row.userId === userId && row.tripId === tripId);
+      if (!access) throw new Error('Viagem nao encontrada para este usuario');
+      access.isPublic = isPublic;
+      writeData(TRAVELER_TRIP_ACCESS_FILE, accessRows);
+      return access;
+    },
   },
   photos: {
     findMany: () => readData<any[]>(PHOTOS_FILE),

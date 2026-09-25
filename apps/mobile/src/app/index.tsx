@@ -256,6 +256,9 @@ export default function HomeScreen() {
           <Pressable onPress={() => setImportOpen(true)} style={styles.headerAction}>
             <ThemedText style={styles.headerActionText}>＋ Viagem</ThemedText>
           </Pressable>
+          <Pressable onPress={() => router.push("/profile")} style={[styles.headerAction, styles.logoutAction]}>
+            <ThemedText style={styles.logoutActionText}>👤</ThemedText>
+          </Pressable>
           <Pressable onPress={signOut} style={[styles.headerAction, styles.logoutAction]}>
             <ThemedText style={styles.logoutActionText}>↗</ThemedText>
           </Pressable>
