@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  FlatList,
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   TextInput,
   View,
@@ -110,6 +110,61 @@ function TripCard({
   );
 }
 
+function MemoryCard({
+  item,
+  theme,
+  onPress,
+}: {
+  item: MobileItinerary;
+  theme: ReturnType<typeof useTheme>;
+  onPress: () => void;
+}) {
+  const [coverFailed, setCoverFailed] = useState(false);
+  const showCover = Boolean(item.coverImage) && !coverFailed;
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.memoryCard,
+        { backgroundColor: theme.backgroundElement, borderColor: theme.backgroundSelected, opacity: pressed ? 0.9 : 1 },
+      ]}
+    >
+      {showCover ? (
+        <Image
+          source={{ uri: item.coverImage }}
+          style={styles.memoryPhoto}
+          contentFit="cover"
+          onError={() => setCoverFailed(true)}
+        />
+      ) : (
+        <View style={[styles.memoryPhoto, styles.memoryPhotoFallback]}>
+          <ThemedText style={styles.memoryPhotoFallbackIcon}>🧭</ThemedText>
+        </View>
+      )}
+      <View style={styles.memoryBody}>
+        <ThemedText style={styles.memoryTitle} numberOfLines={1}>{item.title}</ThemedText>
+        <ThemedText type="small" themeColor="textSecondary" style={styles.memoryMeta} numberOfLines={1}>
+          {item.destination || "Destino"} · {item.startDate} a {item.endDate}
+        </ThemedText>
+        <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
+          {item.agency?.name || "Agência"}
+        </ThemedText>
+      </View>
+      <ThemedText style={styles.memoryChevron}>›</ThemedText>
+    </Pressable>
+  );
+}
+
+function isTripUpcoming(item: MobileItinerary) {
+  if (!item.endDate) return true;
+  const end = new Date(item.endDate);
+  if (Number.isNaN(end.getTime())) return true;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return end >= today;
+}
+
 export default function HomeScreen() {
   const router = useRouter();
   const theme = useTheme();
@@ -174,13 +229,14 @@ export default function HomeScreen() {
     }
   };
 
-  const renderTripCard = ({ item }: { item: MobileItinerary }) => (
-    <TripCard
-      item={item}
-      theme={theme}
-      onPress={() => router.push({ pathname: "/explore", params: { tripId: item.id } })}
-    />
-  );
+  const { upcoming, past } = useMemo(() => {
+    const nextUpcoming: MobileItinerary[] = [];
+    const nextPast: MobileItinerary[] = [];
+    for (const trip of trips) {
+      (isTripUpcoming(trip) ? nextUpcoming : nextPast).push(trip);
+    }
+    return { upcoming: nextUpcoming, past: nextPast };
+  }, [trips]);
 
   return (
     <ThemedView style={[styles.container, { backgroundColor: theme.background }]}>
@@ -212,50 +268,86 @@ export default function HomeScreen() {
           <ThemedText style={styles.welcomeText}>Roteiro, documentos e suporte da sua agência em um só lugar.</ThemedText>
         </View>
 
-        <View style={styles.sectionHeading}>
-          <ThemedText style={styles.sectionTitle} type="title">Suas viagens</ThemedText>
-          <ThemedText style={styles.tripCount}>{trips.length} {trips.length === 1 ? "roteiro" : "roteiros"}</ThemedText>
-        </View>
-
         {loading ? (
           <ThemedView style={styles.centerContainer}>
             <ActivityIndicator size="large" color={Brand.coral} />
             <ThemedText style={styles.loadingText}>Carregando suas viagens...</ThemedText>
           </ThemedView>
-        ) : (
-          <FlatList
-            data={trips}
-            keyExtractor={(item) => item.id}
-            renderItem={renderTripCard}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-            ListEmptyComponent={
-              <ThemedView style={styles.emptyContainer}>
-                <View style={styles.emptyIcon}><ThemedText style={styles.emptyIconText}>⌁</ThemedText></View>
-                <ThemedText style={styles.emptyTitle}>Adicione sua primeira viagem</ThemedText>
-                <ThemedText themeColor="textSecondary" style={styles.emptyText}>
-                  Cole o convite que seu consultor enviou. A identidade da agência e todo o roteiro serão carregados automaticamente.
-                </ThemedText>
-                <Pressable onPress={() => setImportOpen(true)} style={styles.emptyButton}>
-                  <ThemedText style={styles.emptyButtonText}>Usar convite da agência</ThemedText>
-                </Pressable>
-                <View style={styles.emptySteps}>
-                  <ThemedText style={styles.emptyStep}>1  Cole o link</ThemedText>
-                  <View style={styles.stepDivider} />
-                  <ThemedText style={styles.emptyStep}>2  Confira a viagem</ThemedText>
-                  <View style={styles.stepDivider} />
-                  <ThemedText style={styles.emptyStep}>3  Viaje tranquilo</ThemedText>
-                </View>
+        ) : trips.length === 0 ? (
+          <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
+            {error ? (
+              <ThemedView style={styles.errorBanner}>
+                <ThemedText style={styles.errorBannerText}>{error}</ThemedText>
               </ThemedView>
-            }
-            ListHeaderComponent={
-              error ? (
-                <ThemedView style={styles.errorBanner}>
-                  <ThemedText style={styles.errorBannerText}>{error}</ThemedText>
-                </ThemedView>
-              ) : null
-            }
-          />
+            ) : null}
+            <ThemedView style={styles.emptyContainer}>
+              <View style={styles.emptyIcon}><ThemedText style={styles.emptyIconText}>⌁</ThemedText></View>
+              <ThemedText style={styles.emptyTitle}>Adicione sua primeira viagem</ThemedText>
+              <ThemedText themeColor="textSecondary" style={styles.emptyText}>
+                Cole o convite que seu consultor enviou. A identidade da agência e todo o roteiro serão carregados automaticamente.
+              </ThemedText>
+              <Pressable onPress={() => setImportOpen(true)} style={styles.emptyButton}>
+                <ThemedText style={styles.emptyButtonText}>Usar convite da agência</ThemedText>
+              </Pressable>
+              <View style={styles.emptySteps}>
+                <ThemedText style={styles.emptyStep}>1  Cole o link</ThemedText>
+                <View style={styles.stepDivider} />
+                <ThemedText style={styles.emptyStep}>2  Confira a viagem</ThemedText>
+                <View style={styles.stepDivider} />
+                <ThemedText style={styles.emptyStep}>3  Viaje tranquilo</ThemedText>
+              </View>
+            </ThemedView>
+          </ScrollView>
+        ) : (
+          <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
+            {error ? (
+              <ThemedView style={styles.errorBanner}>
+                <ThemedText style={styles.errorBannerText}>{error}</ThemedText>
+              </ThemedView>
+            ) : null}
+
+            <View style={styles.sectionHeading}>
+              <ThemedText style={styles.sectionTitle} type="title">Próximas</ThemedText>
+              <ThemedText style={styles.tripCount}>{upcoming.length} {upcoming.length === 1 ? "roteiro" : "roteiros"}</ThemedText>
+            </View>
+            {upcoming.length === 0 ? (
+              <ThemedView style={styles.noUpcomingCard}>
+                <ThemedText themeColor="textSecondary" style={styles.noUpcomingText}>
+                  Nenhuma viagem agendada no momento.
+                </ThemedText>
+              </ThemedView>
+            ) : (
+              <View style={{ gap: Spacing.three }}>
+                {upcoming.map((trip) => (
+                  <TripCard
+                    key={trip.id}
+                    item={trip}
+                    theme={theme}
+                    onPress={() => router.push({ pathname: "/explore", params: { tripId: trip.id } })}
+                  />
+                ))}
+              </View>
+            )}
+
+            {past.length > 0 ? (
+              <>
+                <View style={[styles.sectionHeading, { marginTop: Spacing.five }]}>
+                  <ThemedText style={styles.sectionTitle} type="title">Memórias</ThemedText>
+                  <ThemedText style={styles.tripCount}>{past.length} {past.length === 1 ? "viagem" : "viagens"}</ThemedText>
+                </View>
+                <View style={{ gap: Spacing.two }}>
+                  {past.map((trip) => (
+                    <MemoryCard
+                      key={trip.id}
+                      item={trip}
+                      theme={theme}
+                      onPress={() => router.push({ pathname: "/explore", params: { tripId: trip.id } })}
+                    />
+                  ))}
+                </View>
+              </>
+            ) : null}
+          </ScrollView>
         )}
       </SafeAreaView>
 
@@ -526,6 +618,39 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   buttonArrow: { color: Brand.coral, fontSize: 18, fontWeight: "800" },
+  noUpcomingCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E1E7EE",
+    backgroundColor: "#FFFFFF",
+    padding: Spacing.four,
+    alignItems: "center",
+  },
+  noUpcomingText: { fontSize: 13, textAlign: "center" },
+  memoryCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.two,
+    padding: 10,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  memoryPhoto: {
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    backgroundColor: "#E9EDF4",
+  },
+  memoryPhotoFallback: {
+    backgroundColor: Brand.navyDeep,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  memoryPhotoFallbackIcon: { fontSize: 20, opacity: 0.5 },
+  memoryBody: { flex: 1, gap: 2 },
+  memoryTitle: { fontSize: 14, fontWeight: "800" },
+  memoryMeta: { marginBottom: 1 },
+  memoryChevron: { fontSize: 22, color: Brand.navy, fontWeight: "800" },
   emptyContainer: {
     marginTop: 8,
     borderRadius: 22,
