@@ -25,14 +25,35 @@ export default function UsersPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'active' | 'pending' | 'history'>('active');
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     role: 'agent' as User['role'],
     phone: '',
+    password: '',
+    passwordConfirm: '',
+    accessStatus: 'active' as 'active' | 'blocked',
     accessExpiresAt: getDefaultAccessDate(),
   });
+
+  const resetForm = () => {
+    setFormData({
+      fullName: '',
+      email: '',
+      role: 'agent',
+      phone: '',
+      password: '',
+      passwordConfirm: '',
+      accessStatus: 'active',
+      accessExpiresAt: getDefaultAccessDate(),
+    });
+    setFormError('');
+    setShowPassword(false);
+  };
 
   const fetchUsers = async () => {
     try {
@@ -61,6 +82,8 @@ export default function UsersPage() {
   };
 
   useEffect(() => {
+    // Initial client-side hydration from the authenticated API.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchUsers();
     fetchCurrentUser();
   }, []);
@@ -74,8 +97,21 @@ export default function UsersPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.fullName || !formData.email) return;
+    setFormError('');
+    if (!formData.fullName || !formData.email || !formData.password) {
+      setFormError('Preencha nome, e-mail e senha inicial.');
+      return;
+    }
+    if (formData.password.length < 8) {
+      setFormError('A senha inicial deve ter pelo menos 8 caracteres.');
+      return;
+    }
+    if (formData.password !== formData.passwordConfirm) {
+      setFormError('As senhas não coincidem.');
+      return;
+    }
 
+    setSubmitting(true);
     try {
       const response = await fetch('/api/users', {
         method: 'POST',
@@ -84,12 +120,18 @@ export default function UsersPage() {
       });
 
       if (response.ok) {
-        fetchUsers();
-        setFormData({ fullName: '', email: '', role: 'agent', phone: '', accessExpiresAt: getDefaultAccessDate() });
+        await fetchUsers();
+        resetForm();
         setShowModal(false);
+      } else {
+        const data = await response.json().catch(() => null);
+        setFormError(data?.error || 'Não foi possível criar o colaborador.');
       }
     } catch (error) {
       console.error(error);
+      setFormError('Erro de conexão ao criar o colaborador.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -134,11 +176,12 @@ export default function UsersPage() {
     }
   };
 
-  const activeUsers = users.filter((user) => !user.accessStatus || user.accessStatus === 'active');
+  const canManageTeam = currentUser?.role === 'agency_admin';
+  const isExpired = (user: User) => Boolean(user.accessExpiresAt && new Date(user.accessExpiresAt) < new Date());
+  const activeUsers = users.filter((user) => (!user.accessStatus || user.accessStatus === 'active') && !isExpired(user));
   const admins = activeUsers.filter((u) => u.role === 'agency_admin');
   const agents = activeUsers.filter((u) => u.role === 'agent');
-  const pendingUsers = users.filter((user) => user.accessStatus === 'pending');
-  const historyUsers = users.filter((user) => user.accessStatus === 'blocked' || (user.accessExpiresAt && new Date(user.accessExpiresAt) < new Date()));
+  const historyUsers = users.filter((user) => user.accessStatus === 'blocked' || user.accessStatus === 'pending' || isExpired(user));
 
   const renderTable = (list: User[], title: string, subtitle: string, badgeColorClass: string) => {
     return (
@@ -201,19 +244,18 @@ export default function UsersPage() {
                       <td className="px-6 py-3.5 opacity-80">{u.phone || 'Não informado'}</td>
                       <td className="px-6 py-3.5">
                         <select
-                          disabled={isSelf}
-                          value={u.accessStatus || 'active'}
-                          onChange={(event) => handleUpdateAccess(u, { accessStatus: event.target.value as User['accessStatus'] })}
+                          disabled={isSelf || !canManageTeam}
+                          value={u.accessStatus === 'active' || !u.accessStatus ? 'active' : 'blocked'}
+                          onChange={(event) => handleUpdateAccess(u, { accessStatus: event.target.value as 'active' | 'blocked' })}
                           className="border border-outline-variant rounded-lg p-1 text-[11px] bg-white font-bold disabled:opacity-60"
                         >
                           <option value="active">Ativo</option>
-                          <option value="pending">Pendente</option>
                           <option value="blocked">Bloqueado</option>
                         </select>
                       </td>
                       <td className="px-6 py-3.5">
                         <input
-                          disabled={isSelf}
+                          disabled={isSelf || !canManageTeam}
                           type="date"
                           value={u.accessExpiresAt ? u.accessExpiresAt.slice(0, 10) : ''}
                           onChange={(event) => handleUpdateAccess(u, { accessExpiresAt: new Date(`${event.target.value}T23:59:59`).toISOString() })}
@@ -222,11 +264,11 @@ export default function UsersPage() {
                       </td>
                       <td className="px-6 py-3.5 text-right">
                         <button
-                          disabled={isSelf}
+                          disabled={isSelf || !canManageTeam}
                           onClick={() => handleDeleteUser(u.id, u.fullName)}
-                          title={isSelf ? 'Você não pode remover a si mesmo' : 'Remover usuário'}
+                          title={isSelf ? 'Você não pode remover a si mesmo' : !canManageTeam ? 'Apenas administradores podem remover membros' : 'Remover usuário'}
                           className={`btn-interactive p-1.5 rounded-lg transition-all active:scale-95 inline-flex items-center justify-center ${
-                            isSelf
+                            isSelf || !canManageTeam
                               ? 'text-gray-300 bg-gray-50 cursor-not-allowed'
                               : 'text-red-500 hover:text-red-700 hover:bg-red-50 bg-red-50/20'
                           }`}
@@ -252,23 +294,24 @@ export default function UsersPage() {
         <div>
           <h2 className="font-headline-lg text-3xl font-black text-primary tracking-[-.035em]">Time operacional</h2>
           <p className="text-on-surface opacity-75 text-sm mt-1">
-            Convide e gerencie a equipe e os níveis de permissão da sua agência.
+            Cadastre e gerencie a equipe e os níveis de permissão da sua agência.
           </p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="btn-interactive bg-coral text-white font-bold text-xs px-6 py-3 rounded-xl shadow-[0_10px_24px_rgba(255,84,45,.2)] flex items-center gap-2 hover:shadow-md active:scale-95 transition-all"
-        >
-          <span className="material-symbols-outlined text-sm">person_add</span>
-          CONVIDAR MEMBRO
-        </button>
+        {canManageTeam && (
+          <button
+            onClick={() => setShowModal(true)}
+            className="btn-interactive bg-coral text-white font-bold text-xs px-6 py-3 rounded-xl shadow-[0_10px_24px_rgba(255,84,45,.2)] flex items-center gap-2 hover:shadow-md active:scale-95 transition-all"
+          >
+            <span className="material-symbols-outlined text-sm">person_add</span>
+            ADICIONAR MEMBRO
+          </button>
+        )}
       </div>
 
       <div className="flex gap-1 overflow-x-auto rounded-2xl border border-primary/10 bg-white p-1.5 shadow-sm">
         {[
           ['active', 'group', 'Membros ativos', activeUsers.length],
-          ['pending', 'mark_email_unread', 'Convites pendentes', pendingUsers.length],
-          ['history', 'history', 'Histórico de acesso', historyUsers.length],
+          ['history', 'history', 'Acessos inativos', historyUsers.length],
         ].map(([id, icon, label, count]) => <button key={String(id)} onClick={() => setActiveTab(id as typeof activeTab)} className={`flex min-w-fit flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all duration-200 active:scale-[.98] ${activeTab === id ? 'bg-primary text-white shadow-sm' : 'text-on-surface/55 hover:bg-surface-container-low'}`}><span className="material-symbols-outlined text-[17px]">{icon}</span>{label}<span className={`rounded-full px-2 py-0.5 text-[9px] ${activeTab === id ? 'bg-white/15' : 'bg-primary/8 text-primary'}`}>{count}</span></button>)}
       </div>
 
@@ -294,16 +337,18 @@ export default function UsersPage() {
             'bg-ice-blue text-primary border-primary/15'
           )}
           </>}
-          {activeTab === 'pending' && renderTable(pendingUsers, 'Convites pendentes', 'Pessoas convidadas que ainda não concluíram ou tiveram o acesso ativado.', 'bg-coral/10 text-coral border-coral/20')}
-          {activeTab === 'history' && renderTable(historyUsers, 'Histórico de acesso', 'Acessos bloqueados ou expirados para consulta e reativação.', 'bg-surface-container text-on-surface border-outline-variant')}
+          {activeTab === 'history' && renderTable(historyUsers, 'Acessos inativos', 'Membros com acesso bloqueado ou expirado, disponíveis para consulta e reativação.', 'bg-surface-container text-on-surface border-outline-variant')}
         </div>
       )}
 
-      {/* INVITE MODAL */}
+      {/* DIRECT USER REGISTRATION MODAL */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl border border-outline-variant shadow-2xl p-6 w-full max-w-md">
-            <h3 className="font-bold text-base text-primary mb-4">Convidar Novo Membro</h3>
+          <div className="max-h-[calc(100vh-2rem)] w-full max-w-md overflow-y-auto rounded-xl border border-outline-variant bg-white p-6 shadow-2xl">
+            <h3 className="font-bold text-base text-primary">Adicionar membro</h3>
+            <p className="mb-4 mt-1 text-xs text-on-surface/65">
+              Crie o acesso agora e compartilhe o e-mail e a senha inicial com o colaborador.
+            </p>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-semibold">Nome Completo</label>
@@ -357,8 +402,64 @@ export default function UsersPage() {
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold">Acesso valido ate</label>
+                <label className="text-xs font-semibold">Status inicial do acesso</label>
+                <select
+                  name="accessStatus"
+                  value={formData.accessStatus}
+                  onChange={handleChange}
+                  className="input-interactive border border-outline-variant rounded-lg p-2 text-xs bg-white focus:ring-1 focus:ring-primary outline-none"
+                >
+                  <option value="active">Ativo — pode acessar imediatamente</option>
+                  <option value="blocked">Bloqueado — login impedido</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold">Senha inicial</label>
+                  <div className="relative">
+                    <input
+                      required
+                      minLength={8}
+                      type={showPassword ? 'text' : 'password'}
+                      name="password"
+                      autoComplete="new-password"
+                      placeholder="Mínimo 8 caracteres"
+                      value={formData.password}
+                      onChange={handleChange}
+                      className="input-interactive w-full rounded-lg border border-outline-variant p-2 pr-9 text-xs outline-none focus:ring-1 focus:ring-primary"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((value) => !value)}
+                      className="absolute inset-y-0 right-0 flex w-9 items-center justify-center text-on-surface/50"
+                      aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                    >
+                      <span className="material-symbols-outlined text-base">{showPassword ? 'visibility_off' : 'visibility'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold">Confirmar senha</label>
+                  <input
+                    required
+                    minLength={8}
+                    type={showPassword ? 'text' : 'password'}
+                    name="passwordConfirm"
+                    autoComplete="new-password"
+                    placeholder="Repita a senha"
+                    value={formData.passwordConfirm}
+                    onChange={handleChange}
+                    className="input-interactive rounded-lg border border-outline-variant p-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold">Acesso válido até</label>
                 <input
+                  required
                   type="date"
                   name="accessExpiresAt"
                   value={formData.accessExpiresAt}
@@ -367,19 +468,30 @@ export default function UsersPage() {
                 />
               </div>
 
+              {formError && (
+                <div role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700">
+                  {formError}
+                </div>
+              )}
+
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
+                  onClick={() => {
+                    resetForm();
+                    setShowModal(false);
+                  }}
+                  disabled={submitting}
                   className="btn-interactive px-4 py-2 border border-outline rounded-lg text-xs font-semibold hover:bg-surface-container"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="btn-interactive px-4 py-2 bg-primary text-on-primary rounded-lg text-xs font-bold hover:opacity-90"
+                  disabled={submitting}
+                  className="btn-interactive px-4 py-2 bg-primary text-on-primary rounded-lg text-xs font-bold hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
                 >
-                  Enviar Convite
+                  {submitting ? 'Adicionando...' : 'Adicionar membro'}
                 </button>
               </div>
             </form>
