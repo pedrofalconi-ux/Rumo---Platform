@@ -24,6 +24,92 @@ import {
   MobileItinerary,
 } from "@/lib/traveler-api";
 
+function TripCard({
+  item,
+  theme,
+  onPress,
+}: {
+  item: MobileItinerary;
+  theme: ReturnType<typeof useTheme>;
+  onPress: () => void;
+}) {
+  const [coverFailed, setCoverFailed] = useState(false);
+  const isPublished =
+    item.status === "Confirmado" ||
+    item.status === "Publicado" ||
+    item.status === "confirmed" ||
+    item.status === "active";
+  const showCover = Boolean(item.coverImage) && !coverFailed;
+
+  return (
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.card, { shadowOpacity: pressed ? 0.08 : 0.12 }]}>
+      <View style={[styles.cardInner, { backgroundColor: theme.backgroundElement, borderColor: theme.backgroundSelected }]}>
+        <View style={styles.coverWrap}>
+          {showCover ? (
+            <Image
+              source={{ uri: item.coverImage }}
+              style={styles.coverImage}
+              contentFit="cover"
+              transition={300}
+              onError={() => setCoverFailed(true)}
+            />
+          ) : (
+            <View style={styles.coverFallback}>
+              <ThemedText style={styles.coverFallbackIcon}>🧭</ThemedText>
+            </View>
+          )}
+          <View style={styles.coverScrimSoft} />
+          <View style={styles.coverScrimStrong} />
+
+          {item.agency?.logoUrl ? (
+            <Image source={{ uri: item.agency.logoUrl }} style={styles.agencyBadgeLogo} contentFit="cover" />
+          ) : (
+            <View style={styles.agencyBadge}>
+              <ThemedText style={styles.agencyBadgeText}>
+                {(item.agency?.name || "AG").slice(0, 2).toUpperCase()}
+              </ThemedText>
+            </View>
+          )}
+
+          <View style={[styles.statusBadge, { backgroundColor: isPublished ? "#E1F5EE" : "#FBEAF0" }]}>
+            <ThemedText style={[styles.statusBadgeText, { color: isPublished ? "#0F6E56" : "#703800" }]}>
+              {item.status.toUpperCase()}
+            </ThemedText>
+          </View>
+
+          <View style={styles.coverTextBlock}>
+            <ThemedText style={styles.coverTitle} numberOfLines={1}>{item.title}</ThemedText>
+            <ThemedText style={styles.coverSubtitle} numberOfLines={1}>
+              {item.agency?.name || "Agência"} · {item.destination || "Destino a confirmar"}
+            </ThemedText>
+          </View>
+        </View>
+
+        <View style={styles.cardFooter}>
+          <View style={styles.metaRow}>
+            <View style={styles.metaItem}>
+              <ThemedText style={styles.metaIcon}>📅</ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                {item.startDate} a {item.endDate}
+              </ThemedText>
+            </View>
+            <View style={styles.metaItem}>
+              <ThemedText style={styles.metaIcon}>🗺️</ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                {item.itinerary.length} blocos na trilha
+              </ThemedText>
+            </View>
+          </View>
+          <View style={styles.cardFooterCta}>
+            <ThemedText style={styles.buttonText}>Explorar</ThemedText>
+            <ThemedText style={styles.buttonArrow}>→</ThemedText>
+          </View>
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
 export default function HomeScreen() {
   const router = useRouter();
   const theme = useTheme();
@@ -88,91 +174,13 @@ export default function HomeScreen() {
     }
   };
 
-  const renderTripCard = ({ item }: { item: MobileItinerary }) => {
-    const isPublished =
-      item.status === "Confirmado" ||
-      item.status === "Publicado" ||
-      item.status === "confirmed" ||
-      item.status === "active";
-
-    return (
-      <Pressable
-        onPress={() => {
-          router.push({
-            pathname: "/explore",
-            params: { tripId: item.id },
-          });
-        }}
-        style={({ pressed }) => [
-          styles.card,
-          {
-            backgroundColor: theme.backgroundElement,
-            borderColor: pressed ? Brand.coral : theme.backgroundSelected,
-            opacity: pressed ? 0.92 : 1,
-          },
-        ]}
-      >
-        <ThemedView style={styles.cardHeader}>
-          {item.agency?.logoUrl ? (
-            <Image
-              source={{ uri: item.agency.logoUrl }}
-              style={styles.tripAgencyLogo}
-              contentFit="cover"
-              transition={300}
-            />
-          ) : (
-            <View style={styles.tripAgencyFallback}>
-              <ThemedText style={styles.tripAgencyFallbackText}>
-                {(item.agency?.name || "AG").slice(0, 2).toUpperCase()}
-              </ThemedText>
-            </View>
-          )}
-          <ThemedText style={styles.cardTitle} type="subtitle">
-            {item.title}
-          </ThemedText>
-          <ThemedView
-            style={[
-              styles.badge,
-              { backgroundColor: isPublished ? "#E1F5EE" : "#FBEAF0" },
-            ]}
-          >
-            <ThemedText
-              style={[
-                styles.badgeText,
-                { color: isPublished ? "#0F6E56" : "#703800" },
-              ]}
-            >
-              {item.status.toUpperCase()}
-            </ThemedText>
-          </ThemedView>
-        </ThemedView>
-
-        <ThemedText style={styles.destinationText} themeColor="textSecondary">
-          {item.agency?.name || "Agência"} | Destino: {item.destination || "A confirmar"}
-        </ThemedText>
-
-        <ThemedView style={styles.cardFooter}>
-          <ThemedView style={styles.metaItem}>
-            <ThemedText style={styles.metaIcon}>📅</ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">
-              {item.startDate} a {item.endDate}
-            </ThemedText>
-          </ThemedView>
-          <ThemedView style={styles.metaItem}>
-            <ThemedText style={styles.metaIcon}>🗺️</ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">
-              {item.itinerary.length} blocos na trilha
-            </ThemedText>
-          </ThemedView>
-        </ThemedView>
-
-        <ThemedView style={styles.buttonPlaceholder}>
-          <ThemedText style={styles.buttonText}>Explorar roteiro</ThemedText>
-          <ThemedText style={styles.buttonArrow}>→</ThemedText>
-        </ThemedView>
-      </Pressable>
-    );
-  };
+  const renderTripCard = ({ item }: { item: MobileItinerary }) => (
+    <TripCard
+      item={item}
+      theme={theme}
+      onPress={() => router.push({ pathname: "/explore", params: { tripId: item.id } })}
+    />
+  );
 
   return (
     <ThemedView style={[styles.container, { backgroundColor: theme.background }]}>
@@ -198,6 +206,7 @@ export default function HomeScreen() {
         </ThemedView>
 
         <View style={styles.welcomeBlock}>
+          <View style={styles.welcomeGlow} />
           <ThemedText style={styles.welcomeLabel}>OLÁ, {(user?.fullName?.split(" ")[0] || "VIAJANTE").toUpperCase()}</ThemedText>
           <ThemedText style={styles.welcomeTitle}>Sua jornada, sempre à mão.</ThemedText>
           <ThemedText style={styles.welcomeText}>Roteiro, documentos e suporte da sua agência em um só lugar.</ThemedText>
@@ -370,7 +379,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
   },
-  welcomeBlock: { marginHorizontal: 20, marginTop: 10, padding: 20, borderRadius: 22, backgroundColor: Brand.navyDeep, overflow: "hidden" },
+  welcomeBlock: { marginHorizontal: 20, marginTop: 10, padding: 20, borderRadius: 22, backgroundColor: Brand.navyDeep, overflow: "hidden", position: "relative" },
+  welcomeGlow: { position: "absolute", width: 180, height: 180, borderRadius: 90, backgroundColor: "#8FB1FF", opacity: 0.22, top: -60, right: -50 },
   welcomeLabel: { color: "#8FB1FF", fontSize: 9, lineHeight: 12, fontWeight: "900", letterSpacing: 1.4 },
   welcomeTitle: { marginTop: 8, color: "#fff", fontSize: 26, lineHeight: 31, fontWeight: "900", letterSpacing: -0.8 },
   welcomeText: { marginTop: 7, color: "#C8D5EB", fontSize: 13, lineHeight: 19, maxWidth: 370 },
@@ -383,63 +393,119 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
   },
   card: {
-    borderWidth: 1,
-    borderRadius: 20,
-    padding: 18,
+    borderRadius: 22,
     shadowColor: Brand.navy,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 18,
+    elevation: 4,
   },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: Spacing.one,
+  cardInner: {
+    borderRadius: 22,
+    borderWidth: 1,
+    overflow: "hidden",
   },
-  tripAgencyLogo: {
-    width: 34,
-    height: 34,
-    borderRadius: 7,
-    backgroundColor: "#eee",
-    marginRight: Spacing.two,
+  coverWrap: {
+    height: 180,
+    position: "relative",
+    backgroundColor: "#E9EDF4",
   },
-  tripAgencyFallback: {
-    width: 34,
-    height: 34,
-    borderRadius: 7,
-    backgroundColor: "#D9E6F2",
+  coverImage: {
+    width: "100%",
+    height: "100%",
+  },
+  coverFallback: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: Brand.navyDeep,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: Spacing.two,
   },
-  tripAgencyFallbackText: {
-    color: "#183B4E",
+  coverFallbackIcon: {
+    fontSize: 40,
+    opacity: 0.35,
+  },
+  coverScrimSoft: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(6,20,50,0.12)",
+  },
+  coverScrimStrong: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: "58%",
+    backgroundColor: "rgba(6,20,50,0.68)",
+  },
+  agencyBadge: {
+    position: "absolute",
+    top: 12,
+    left: 12,
+    width: 34,
+    height: 34,
+    borderRadius: 11,
+    backgroundColor: "rgba(255,255,255,0.92)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  agencyBadgeLogo: {
+    position: "absolute",
+    top: 12,
+    left: 12,
+    width: 34,
+    height: 34,
+    borderRadius: 11,
+    backgroundColor: "#fff",
+  },
+  agencyBadgeText: {
+    color: Brand.navyDeep,
     fontSize: 12,
     fontWeight: "800",
   },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    flex: 1,
-    marginRight: Spacing.two,
-  },
-  badge: {
+  statusBadge: {
+    position: "absolute",
+    top: 12,
+    right: 12,
     paddingHorizontal: Spacing.two,
     paddingVertical: 6,
     borderRadius: 999,
   },
-  badgeText: {
+  statusBadgeText: {
     fontSize: 10,
-    fontWeight: "700",
+    fontWeight: "800",
   },
-  destinationText: {
-    fontSize: 13,
-    marginBottom: Spacing.three,
+  coverTextBlock: {
+    position: "absolute",
+    left: 16,
+    right: 16,
+    bottom: 14,
+  },
+  coverTitle: {
+    color: "#fff",
+    fontSize: 19,
+    fontWeight: "900",
+    letterSpacing: -0.4,
+    marginBottom: 3,
+  },
+  coverSubtitle: {
+    color: "rgba(255,255,255,0.85)",
+    fontSize: 12,
+    fontWeight: "600",
   },
   cardFooter: {
-    gap: Spacing.two,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 17,
+    paddingVertical: 14,
+  },
+  metaRow: {
+    flexDirection: "row",
+    gap: Spacing.three,
   },
   metaItem: {
     flexDirection: "row",
@@ -447,22 +513,19 @@ const styles = StyleSheet.create({
     gap: Spacing.one,
   },
   metaIcon: {
-    fontSize: 14,
+    fontSize: 13,
   },
-  buttonPlaceholder: {
-    marginTop: Spacing.three,
-    paddingTop: Spacing.three,
-    borderTopWidth: 1,
-    borderTopColor: "#E8EDF2",
+  cardFooterCta: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    gap: 4,
   },
   buttonText: {
     color: Brand.navy,
     fontWeight: "800",
+    fontSize: 13,
   },
-  buttonArrow: { color: Brand.coral, fontSize: 20, fontWeight: "800" },
+  buttonArrow: { color: Brand.coral, fontSize: 18, fontWeight: "800" },
   emptyContainer: {
     marginTop: 8,
     borderRadius: 22,
