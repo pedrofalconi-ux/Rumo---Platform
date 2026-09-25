@@ -40,6 +40,27 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [news, setNews] = useState<NewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(true);
+  const [newsRefreshing, setNewsRefreshing] = useState(false);
+  const [newsUpdatedAt, setNewsUpdatedAt] = useState<Date | null>(null);
+
+  const fetchNews = async (refresh = false) => {
+    if (refresh) setNewsRefreshing(true);
+    else setNewsLoading(true);
+    try {
+      const endpoint = refresh ? `/api/news?refresh=${Date.now()}` : '/api/news';
+      const res = await fetch(endpoint, { cache: refresh ? 'no-store' : 'default' });
+      if (res.ok) {
+        const data = await res.json();
+        setNews(data);
+        setNewsUpdatedAt(new Date());
+      }
+    } catch (error) {
+      console.error('Error loading news:', error);
+    } finally {
+      setNewsLoading(false);
+      setNewsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -73,22 +94,8 @@ export default function DashboardPage() {
       }
     };
 
-    const fetchNews = async () => {
-      try {
-        const res = await fetch('/api/news');
-        if (res.ok) {
-          const data = await res.json();
-          setNews(data);
-        }
-      } catch (error) {
-        console.error('Error loading news:', error);
-      } finally {
-        setNewsLoading(false);
-      }
-    };
-
     fetchStats();
-    fetchNews();
+    void fetchNews();
   }, []);
 
   return (
@@ -228,7 +235,21 @@ export default function DashboardPage() {
                 <span className="material-symbols-outlined text-primary text-[24px]">newspaper</span>
                 <h3 className="font-bold text-sm text-primary uppercase tracking-wider">Rumo News: O Mundo das Viagens</h3>
               </div>
-              <span className="text-xs text-on-surface opacity-60">Atualizado recentemente</span>
+              <div className="flex items-center gap-3">
+                <span className="hidden text-[10px] text-on-surface opacity-55 sm:inline">
+                  {newsUpdatedAt ? `Atualizado às ${newsUpdatedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : 'Atualizado recentemente'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => void fetchNews(true)}
+                  disabled={newsLoading || newsRefreshing}
+                  className="btn-interactive inline-flex items-center gap-1.5 rounded-lg border border-primary/15 bg-primary/[0.04] px-3 py-2 text-[10px] font-bold text-primary transition-colors hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  title="Atualizar minhas notícias"
+                >
+                  <span className={`material-symbols-outlined text-[16px] ${newsRefreshing ? 'animate-spin' : ''}`}>refresh</span>
+                  <span>{newsRefreshing ? 'Atualizando...' : 'Atualizar'}</span>
+                </button>
+              </div>
             </div>
 
             {newsLoading ? (

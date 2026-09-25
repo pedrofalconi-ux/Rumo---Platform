@@ -74,16 +74,40 @@ function extractImage(itemXml: string, description: string): string | undefined 
   return undefined;
 }
 
-export async function GET() {
+function hashSeed(value: string) {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function selectForUser(items: NewsItem[], seedValue: string, limit = 3) {
+  let seed = hashSeed(seedValue) || 1;
+  const shuffled = [...items];
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    const target = seed % (index + 1);
+    [shuffled[index], shuffled[target]] = [shuffled[target], shuffled[index]];
+  }
+  return shuffled.slice(0, limit);
+}
+
+export async function GET(request: Request) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(request);
     if (!user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
+    const { searchParams } = new URL(request.url);
+    const refreshToken = searchParams.get('refresh')?.slice(0, 80) || 'initial';
+    const forceRefresh = refreshToken !== 'initial';
+    const userSeed = `${user.id}:${refreshToken}`;
 
     const feedUrl = 'https://g1.globo.com/rss/g1/turismo-e-viagem/';
     
     // Fetch feed with 1-hour cache
     const response = await fetch(feedUrl, {
-      next: { revalidate: 3600 },
+      ...(forceRefresh ? { cache: 'no-store' as const } : { next: { revalidate: 3600 } }),
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
       },
@@ -98,10 +122,10 @@ export async function GET() {
     
     // Skip the first split element (channel headers before <item>)
     if (items.length <= 1) {
-      return NextResponse.json(FALLBACK_NEWS);
+      return NextResponse.json(selectForUser(FALLBACK_NEWS, userSeed));
     }
 
-    const parsedItems: NewsItem[] = items.slice(1, 7).map((itemXml) => {
+    const parsedItems: NewsItem[] = items.slice(1, 13).map((itemXml) => {
       const title = extractTag(itemXml, 'title');
       const link = extractTag(itemXml, 'link');
       const rawDescription = extractTag(itemXml, 'description');
@@ -120,7 +144,7 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json(parsedItems);
+    return NextResponse.json(selectForUser(parsedItems, userSeed));
   } catch (error) {
     console.error('Error fetching travel news:', error);
     // Graceful fallback to static news
