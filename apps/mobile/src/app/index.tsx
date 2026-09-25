@@ -345,6 +345,9 @@ export default function HomeScreen() {
                     />
                   ))}
                 </View>
+                <Pressable onPress={() => router.push("/retrospective")} style={styles.retrospectiveLink}>
+                  <ThemedText style={styles.retrospectiveLinkText}>Ver sua retrospectiva →</ThemedText>
+                </Pressable>
               </>
             ) : null}
           </ScrollView>
@@ -651,6 +654,8 @@ const styles = StyleSheet.create({
   memoryTitle: { fontSize: 14, fontWeight: "800" },
   memoryMeta: { marginBottom: 1 },
   memoryChevron: { fontSize: 22, color: Brand.navy, fontWeight: "800" },
+  retrospectiveLink: { alignSelf: "center", marginTop: Spacing.three },
+  retrospectiveLinkText: { color: Brand.coral, fontWeight: "800", fontSize: 13 },
   emptyContainer: {
     marginTop: 8,
     borderRadius: 22,
