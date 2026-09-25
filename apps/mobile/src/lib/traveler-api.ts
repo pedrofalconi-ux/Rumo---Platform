@@ -86,6 +86,27 @@ export interface AuthSessionPayload {
 
 const API_URL = (process.env.EXPO_PUBLIC_API_URL || "").replace(/\/$/, "");
 
+function normalizeInviteToken(value: string) {
+  const input = value.trim();
+  if (!input) return "";
+
+  try {
+    const url = new URL(input);
+    const queryToken = url.searchParams.get("invite") || url.searchParams.get("token");
+    if (queryToken) return decodeURIComponent(queryToken).trim();
+    return decodeURIComponent(url.pathname.split("/").filter(Boolean).pop() || "").trim();
+  } catch {
+    const withoutFragment = input.split("#")[0];
+    const query = withoutFragment.includes("?") ? withoutFragment.split("?").pop() || "" : "";
+    if (query) {
+      const params = new URLSearchParams(query);
+      const queryToken = params.get("invite") || params.get("token");
+      if (queryToken) return decodeURIComponent(queryToken).trim();
+    }
+    return decodeURIComponent(withoutFragment.split("/").filter(Boolean).pop() || input).trim();
+  }
+}
+
 function requireApiUrl() {
   if (!API_URL) {
     throw new Error("EXPO_PUBLIC_API_URL nao configurada.");
@@ -108,10 +129,17 @@ async function request<T>(
     headers.set("x-rumo-session", sessionId);
   }
 
-  const response = await fetch(`${baseUrl}${path}`, {
-    ...init,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${baseUrl}${path}`, {
+      ...init,
+      headers,
+    });
+  } catch {
+    throw new Error(
+      "Não foi possível conectar ao servidor. Verifique se a API está publicada e tente novamente."
+    );
+  }
 
   const text = await response.text();
   const data = text ? JSON.parse(text) : null;
@@ -175,7 +203,10 @@ export async function registerTraveler(payload: {
 }) {
   return request<AuthSessionPayload>("/api/traveler/register", {
     method: "POST",
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      ...payload,
+      inviteToken: normalizeInviteToken(payload.inviteToken),
+    }),
   });
 }
 
@@ -210,7 +241,6 @@ export async function importTravelerTrip(sessionId: string, linkOrToken: string)
 }
 
 export async function getInvitePreview(tokenOrLink: string) {
-  const token = tokenOrLink.trim().split("/").filter(Boolean).pop() || tokenOrLink.trim();
+  const token = normalizeInviteToken(tokenOrLink);
   return request<InvitePreview>(`/api/mobile/invites/${token}`);
 }
-

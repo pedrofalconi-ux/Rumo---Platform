@@ -223,7 +223,7 @@ let _diary: Record<string, DiaryEntry[]> = {
 // ─── Hooks ────────────────────────────────────────────────────────────────────
 
 export function useDocuments(tripId: string) {
-  const [documents, setDocuments] = useState<TripDocument[]>(
+  const [documents] = useState<TripDocument[]>(
     _documents.filter((d) => d.tripId === tripId)
   );
   return { documents };

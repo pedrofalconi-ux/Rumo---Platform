@@ -36,7 +36,7 @@ export default function HomeScreen() {
   const [inviteToken, setInviteToken] = useState("");
   const [inviteHint, setInviteHint] = useState<string | null>(null);
 
-  const fetchTrips = async () => {
+  const fetchTrips = React.useCallback(async () => {
     if (!sessionId) return;
     setLoading(true);
     setError(null);
@@ -48,11 +48,12 @@ export default function HomeScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [sessionId]);
 
   useEffect(() => {
-    fetchTrips();
-  }, [sessionId]);
+    const task = setTimeout(() => void fetchTrips(), 0);
+    return () => clearTimeout(task);
+  }, [fetchTrips]);
 
   const handlePreviewInvite = async (value: string) => {
     setInviteToken(value);
@@ -98,8 +99,8 @@ export default function HomeScreen() {
       <Pressable
         onPress={() => {
           router.push({
-            pathname: "/trip/[id]",
-            params: { id: item.id },
+            pathname: "/explore",
+            params: { tripId: item.id },
           });
         }}
         style={({ pressed }) => [
@@ -178,19 +179,29 @@ export default function HomeScreen() {
       <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
         <ThemedView style={[styles.headerContainer, { borderColor: theme.backgroundSelected }]}>
           <ThemedView style={styles.agencyInfo}>
-            <ThemedText style={styles.headerEyebrow}>RUMO DO VIAJANTE</ThemedText>
-            <ThemedText style={styles.agencyName} type="subtitle">Olá, {user?.fullName?.split(" ")[0] || "viajante"}.</ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">
-              Sua próxima história começa aqui.
-            </ThemedText>
+            {trips[0]?.agency?.logoUrl ? (
+              <Image source={{ uri: trips[0].agency.logoUrl }} style={styles.brandLogo} contentFit="contain" />
+            ) : (
+              <View style={styles.brandMark}><ThemedText style={styles.brandLetter}>R</ThemedText></View>
+            )}
+            <View>
+              <ThemedText style={styles.brandName} numberOfLines={1}>{trips[0]?.agency?.name || "Rumo"}</ThemedText>
+              <ThemedText style={styles.headerEyebrow}>{trips[0]?.agency ? "SUA AGÊNCIA" : "ESPAÇO DO VIAJANTE"}</ThemedText>
+            </View>
           </ThemedView>
           <Pressable onPress={() => setImportOpen(true)} style={styles.headerAction}>
-            <ThemedText style={styles.headerActionText}>+ Convite</ThemedText>
+            <ThemedText style={styles.headerActionText}>＋ Viagem</ThemedText>
           </Pressable>
           <Pressable onPress={signOut} style={[styles.headerAction, styles.logoutAction]}>
-            <ThemedText style={styles.logoutActionText}>Sair</ThemedText>
+            <ThemedText style={styles.logoutActionText}>↗</ThemedText>
           </Pressable>
         </ThemedView>
+
+        <View style={styles.welcomeBlock}>
+          <ThemedText style={styles.welcomeLabel}>OLÁ, {(user?.fullName?.split(" ")[0] || "VIAJANTE").toUpperCase()}</ThemedText>
+          <ThemedText style={styles.welcomeTitle}>Sua jornada, sempre à mão.</ThemedText>
+          <ThemedText style={styles.welcomeText}>Roteiro, documentos e suporte da sua agência em um só lugar.</ThemedText>
+        </View>
 
         <View style={styles.sectionHeading}>
           <ThemedText style={styles.sectionTitle} type="title">Suas viagens</ThemedText>
@@ -211,13 +222,21 @@ export default function HomeScreen() {
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={
               <ThemedView style={styles.emptyContainer}>
-                <ThemedText style={styles.emptyTitle}>Nenhuma viagem importada</ThemedText>
+                <View style={styles.emptyIcon}><ThemedText style={styles.emptyIconText}>⌁</ThemedText></View>
+                <ThemedText style={styles.emptyTitle}>Adicione sua primeira viagem</ThemedText>
                 <ThemedText themeColor="textSecondary" style={styles.emptyText}>
-                  Use o convite enviado pela agência para liberar sua primeira trilha no app.
+                  Cole o convite que seu consultor enviou. A identidade da agência e todo o roteiro serão carregados automaticamente.
                 </ThemedText>
                 <Pressable onPress={() => setImportOpen(true)} style={styles.emptyButton}>
-                  <ThemedText style={styles.emptyButtonText}>Importar convite</ThemedText>
+                  <ThemedText style={styles.emptyButtonText}>Usar convite da agência</ThemedText>
                 </Pressable>
+                <View style={styles.emptySteps}>
+                  <ThemedText style={styles.emptyStep}>1  Cole o link</ThemedText>
+                  <View style={styles.stepDivider} />
+                  <ThemedText style={styles.emptyStep}>2  Confira a viagem</ThemedText>
+                  <View style={styles.stepDivider} />
+                  <ThemedText style={styles.emptyStep}>3  Viaje tranquilo</ThemedText>
+                </View>
               </ThemedView>
             }
             ListHeaderComponent={
@@ -313,26 +332,27 @@ const styles = StyleSheet.create({
   headerContainer: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: Spacing.four,
-    paddingVertical: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
     borderBottomWidth: 0,
     gap: Spacing.two,
   },
   agencyInfo: {
     flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
   },
-  agencyName: {
-    fontSize: 24,
-    fontWeight: "900",
-    color: Brand.navy,
-    letterSpacing: -0.6,
-  },
-  headerEyebrow: { fontSize: 9, fontWeight: "800", letterSpacing: 1.6, color: Brand.coral, marginBottom: 3 },
+  brandMark: { width: 38, height: 38, borderRadius: 13, backgroundColor: Brand.navyDeep, alignItems: "center", justifyContent: "center" },
+  brandLogo: { width: 38, height: 38, borderRadius: 12, backgroundColor: "#fff" },
+  brandLetter: { color: "#fff", fontSize: 17, fontWeight: "900" },
+  brandName: { color: Brand.navyDeep, fontSize: 15, lineHeight: 17, fontWeight: "900" },
+  headerEyebrow: { fontSize: 8, lineHeight: 11, fontWeight: "800", letterSpacing: 1.2, color: "#7A8595" },
   headerAction: {
     backgroundColor: Brand.coral,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    borderRadius: 11,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
   },
   headerActionText: {
     color: "#fff",
@@ -340,13 +360,20 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   logoutAction: {
-    backgroundColor: "#E8EFED",
+    backgroundColor: "#EDF1F5",
+    width: 36,
+    paddingHorizontal: 0,
+    alignItems: "center",
   },
   logoutActionText: {
     color: Brand.navy,
     fontSize: 12,
     fontWeight: "700",
   },
+  welcomeBlock: { marginHorizontal: 20, marginTop: 10, padding: 20, borderRadius: 22, backgroundColor: Brand.navyDeep, overflow: "hidden" },
+  welcomeLabel: { color: "#8FB1FF", fontSize: 9, lineHeight: 12, fontWeight: "900", letterSpacing: 1.4 },
+  welcomeTitle: { marginTop: 8, color: "#fff", fontSize: 26, lineHeight: 31, fontWeight: "900", letterSpacing: -0.8 },
+  welcomeText: { marginTop: 7, color: "#C8D5EB", fontSize: 13, lineHeight: 19, maxWidth: 370 },
   sectionHeading: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: Spacing.four, marginTop: Spacing.four, marginBottom: Spacing.two },
   sectionTitle: { fontSize: 24, lineHeight: 30, fontWeight: "900", color: Brand.navy, letterSpacing: -0.6 },
   tripCount: { fontSize: 10, fontWeight: "800", color: "#667176", letterSpacing: .7, textTransform: "uppercase" },
@@ -437,15 +464,17 @@ const styles = StyleSheet.create({
   },
   buttonArrow: { color: Brand.coral, fontSize: 20, fontWeight: "800" },
   emptyContainer: {
-    marginTop: Spacing.six,
-    borderRadius: 16,
+    marginTop: 8,
+    borderRadius: 22,
     borderWidth: 1,
-    borderStyle: "dashed",
-    borderColor: "#D6E0E8",
-    padding: Spacing.five,
+    borderColor: "#E1E7EE",
+    backgroundColor: "#FFFFFF",
+    padding: 24,
     alignItems: "center",
-    gap: Spacing.two,
+    gap: 10,
   },
+  emptyIcon: { width: 52, height: 52, borderRadius: 18, backgroundColor: "#EEF3FF", alignItems: "center", justifyContent: "center", marginBottom: 2 },
+  emptyIconText: { fontSize: 28, color: Brand.navyDeep, fontWeight: "900" },
   emptyTitle: {
     fontSize: 18,
     fontWeight: "800",
@@ -455,16 +484,21 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   emptyButton: {
-    marginTop: Spacing.one,
+    marginTop: 6,
     backgroundColor: Brand.coral,
-    borderRadius: 999,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
+    borderRadius: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    width: "100%",
+    alignItems: "center",
   },
   emptyButtonText: {
     color: "#fff",
     fontWeight: "700",
   },
+  emptySteps: { width: "100%", marginTop: 10, flexDirection: "row", alignItems: "center", justifyContent: "center" },
+  emptyStep: { color: "#748094", fontSize: 9, lineHeight: 12, fontWeight: "700" },
+  stepDivider: { width: 14, height: 1, marginHorizontal: 6, backgroundColor: "#D8DFE8" },
   errorBanner: {
     backgroundColor: "#FBEAF0",
     borderRadius: 12,

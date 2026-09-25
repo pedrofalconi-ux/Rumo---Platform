@@ -1,5 +1,6 @@
 import * as SecureStore from "expo-secure-store";
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { Platform } from "react-native";
 
 import {
   AuthUser,
@@ -33,11 +34,28 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 async function persistSession(sessionId: string | null) {
+  if (Platform.OS === "web") {
+    if (typeof window === "undefined") return;
+    if (sessionId) {
+      window.localStorage.setItem(SESSION_KEY, sessionId);
+    } else {
+      window.localStorage.removeItem(SESSION_KEY);
+    }
+    return;
+  }
+
   if (sessionId) {
     await SecureStore.setItemAsync(SESSION_KEY, sessionId);
     return;
   }
   await SecureStore.deleteItemAsync(SESSION_KEY);
+}
+
+async function readPersistedSession() {
+  if (Platform.OS === "web") {
+    return typeof window === "undefined" ? null : window.localStorage.getItem(SESSION_KEY);
+  }
+  return SecureStore.getItemAsync(SESSION_KEY);
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -50,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function bootstrap() {
       try {
-        const storedSessionId = await SecureStore.getItemAsync(SESSION_KEY);
+        const storedSessionId = await readPersistedSession();
         if (!storedSessionId) return;
 
         const result = await getCurrentTraveler(storedSessionId);
@@ -138,4 +156,3 @@ export function useAuth() {
   }
   return context;
 }
-
