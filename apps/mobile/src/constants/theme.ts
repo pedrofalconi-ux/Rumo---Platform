@@ -9,17 +9,17 @@ import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    text: '#172126',
-    background: '#F5F3EE',
+    text: '#14213D',
+    background: '#F5F7FB',
     backgroundElement: '#FFFFFF',
-    backgroundSelected: '#DDE2DE',
-    textSecondary: '#667176',
-    primary: '#183B4E',
-    primarySoft: '#E8EFED',
-    accent: '#F26B3A',
-    accentSoft: '#FFF0E9',
-    success: '#0F6E56',
-    border: '#DDE2DE',
+    backgroundSelected: '#E1E8F5',
+    textSecondary: '#68728A',
+    primary: '#073BCE',
+    primarySoft: '#EAF0FF',
+    accent: '#FF6542',
+    accentSoft: '#FFF0EC',
+    success: '#12805C',
+    border: '#DCE4F2',
   },
   dark: {
     text: '#F7F6F1',
@@ -81,13 +81,13 @@ export const Radius = {
 } as const;
 
 export const Brand = {
-  navy: '#183B4E',
-  navyDeep: '#102B38',
-  coral: '#F26B3A',
-  sand: '#F5F3EE',
-  mineral: '#79A9A4',
+  navy: '#073BCE',
+  navyDeep: '#061D59',
+  coral: '#FF6542',
+  sand: '#F5F7FB',
+  mineral: '#6F98F5',
   white: '#FFFFFF',
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
-export const MaxContentWidth = 800;
+export const BottomTabInset = Platform.select({ ios: 54, android: 76, web: 92 }) ?? 76;
+export const MaxContentWidth = 560;

@@ -4,11 +4,8 @@
  */
 
 import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
 export function useTheme() {
-  const scheme = useColorScheme();
-  const theme = scheme === 'unspecified' ? 'light' : scheme;
-
-  return Colors[theme];
+  // The traveler experience is intentionally light and co-branded. Following the
+  // device dark mode here used to invert only part of the interface on web.
+  return Colors.light;
 }

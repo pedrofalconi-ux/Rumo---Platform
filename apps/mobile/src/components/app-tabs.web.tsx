@@ -1,81 +1,88 @@
-import { Tabs, TabList, TabTrigger, TabSlot, TabTriggerSlotProps, TabListProps } from 'expo-router/ui';
+import { Tabs, TabList, TabTrigger, TabSlot, TabTriggerSlotProps } from 'expo-router/ui';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from './themed-text';
-import { ThemedView } from './themed-view';
-import { Brand, MaxContentWidth, Spacing } from '@/constants/theme';
+import { Brand } from '@/constants/theme';
 
 const tabs = [
-  { name: 'home', href: '/' as const, label: 'Viagens', icon: '⌂' },
-  { name: 'documents', href: '/documents' as const, label: 'Documentos', icon: '▤' },
-  { name: 'chat', href: '/chat' as const, label: 'Mensagens', icon: '◌' },
+  { name: 'home', href: '/' as const, label: 'Início', icon: '⌂' },
   { name: 'explore', href: '/explore' as const, label: 'Explorar', icon: '⌖' },
-  { name: 'utilities', href: '/utilities' as const, label: 'Utilidades', icon: '✦' },
+  { name: 'documents', href: '/documents' as const, label: 'Documentos', icon: '▤' },
+  { name: 'chat', href: '/chat' as const, label: 'Suporte', icon: '◉' },
 ];
 
 export default function AppTabs() {
   return (
-    <Tabs>
-      <TabSlot style={{ height: '100%' }} />
-      <TabList asChild>
-        <CustomTabList>
+    <View style={styles.viewport}>
+      <Tabs style={styles.tabsRoot}>
+        <TabSlot style={styles.content} />
+        <TabList style={styles.tabBar}>
           {tabs.map((tab) => (
             <TabTrigger key={tab.name} name={tab.name} href={tab.href as never} asChild>
               <TabButton icon={tab.icon}>{tab.label}</TabButton>
             </TabTrigger>
           ))}
-        </CustomTabList>
-      </TabList>
-    </Tabs>
+        </TabList>
+      </Tabs>
+    </View>
   );
 }
 
 function TabButton({ children, isFocused, icon, ...props }: TabTriggerSlotProps & { icon: string }) {
   return (
-    <Pressable {...props} style={({ pressed }) => [styles.tabButton, pressed && styles.pressed]}>
+    <Pressable
+      {...props}
+      style={({ pressed }) => [styles.tabButton, isFocused && styles.tabButtonActive, pressed && styles.pressed]}
+    >
       <ThemedText style={[styles.tabIcon, isFocused && styles.tabActive]}>{icon}</ThemedText>
-      <ThemedText type="small" style={[styles.tabLabel, isFocused && styles.tabActive]}>
-        {children}
-      </ThemedText>
-      {isFocused ? <View style={styles.activeDot} /> : null}
+      <ThemedText style={[styles.tabLabel, isFocused && styles.tabActive]}>{children}</ThemedText>
+      {isFocused ? <View style={styles.activeLine} /> : null}
     </Pressable>
   );
 }
 
-function CustomTabList(props: TabListProps) {
-  return (
-    <View {...props} style={styles.tabListContainer}>
-      <ThemedView type="backgroundElement" style={styles.innerContainer}>
-        <View style={styles.brandMark}>
-          <ThemedText style={styles.brandLetter}>R</ThemedText>
-        </View>
-        <View style={styles.brandCopy}>
-          <ThemedText style={styles.brandText}>Rumo</ThemedText>
-          <ThemedText style={styles.brandCaption}>APP DO VIAJANTE</ThemedText>
-        </View>
-        <View style={styles.tabsRow}>{props.children}</View>
-      </ThemedView>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  tabListContainer: { position: 'absolute', width: '100%', padding: Spacing.three, alignItems: 'center' },
-  innerContainer: {
-    width: '100%', maxWidth: MaxContentWidth, minHeight: 68, paddingVertical: 8, paddingHorizontal: 12,
-    borderRadius: 18, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#DDE2DE',
-    boxShadow: '0 12px 32px rgba(24,59,78,.12)',
+  viewport: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    minHeight: 0,
+    backgroundColor: '#E9EEF2',
+    alignItems: 'center',
+    overflow: 'hidden',
   },
-  brandMark: { width: 38, height: 38, borderRadius: 12, backgroundColor: Brand.navy, alignItems: 'center', justifyContent: 'center' },
-  brandLetter: { color: Brand.white, fontWeight: '900', fontSize: 17 },
-  brandCopy: { marginLeft: 10, marginRight: 'auto' },
-  brandText: { fontWeight: '800', color: Brand.navy, lineHeight: 18 },
-  brandCaption: { fontSize: 8, letterSpacing: 1.2, color: '#667176', fontWeight: '700' },
-  tabsRow: { flexDirection: 'row', gap: 3 },
-  tabButton: { minWidth: 72, paddingHorizontal: 10, paddingVertical: 7, borderRadius: 12, alignItems: 'center' },
-  tabIcon: { fontSize: 15, lineHeight: 17, color: '#788388' },
-  tabLabel: { fontSize: 10, lineHeight: 14, color: '#667176' },
-  tabActive: { color: Brand.navy, fontWeight: '800' },
-  activeDot: { position: 'absolute', bottom: 2, width: 4, height: 4, borderRadius: 2, backgroundColor: Brand.coral },
-  pressed: { opacity: 0.7 },
+  tabsRoot: { flex: 1, width: '100%', minHeight: 0 },
+  content: {
+    flex: 1,
+    height: '100%',
+    minHeight: 0,
+    width: '100%',
+    maxWidth: 560,
+    alignSelf: 'center',
+    backgroundColor: '#F7F8FA',
+    overflow: 'hidden',
+    boxShadow: '0 0 48px rgba(6, 29, 89, 0.10)',
+  },
+  tabBar: {
+    position: 'absolute',
+    alignSelf: 'center',
+    width: '94%',
+    maxWidth: 536,
+    bottom: 12,
+    height: 70,
+    padding: 6,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E1E7EE',
+    boxShadow: '0 10px 30px rgba(6, 29, 89, 0.14)',
+    flexDirection: 'row',
+  },
+  tabButton: { flex: 1, borderRadius: 16, alignItems: 'center', justifyContent: 'center', gap: 2 },
+  tabButtonActive: { backgroundColor: '#EEF3FF' },
+  tabIcon: { color: '#778297', fontSize: 19, lineHeight: 21, fontWeight: '800' },
+  tabLabel: { color: '#778297', fontSize: 10, lineHeight: 14, fontWeight: '700' },
+  tabActive: { color: Brand.navyDeep },
+  activeLine: { position: 'absolute', bottom: 3, width: 18, height: 3, borderRadius: 3, backgroundColor: Brand.coral },
+  pressed: { opacity: 0.72 },
 });

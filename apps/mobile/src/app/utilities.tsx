@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'expo-router';
 import { Animated, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,7 +12,7 @@ const tools = [
 ];
 
 export default function UtilitiesScreen() {
-  const entrance = useRef(new Animated.Value(0)).current;
+  const [entrance] = useState(() => new Animated.Value(0));
   useEffect(() => { Animated.timing(entrance, { toValue: 1, duration: 420, useNativeDriver: true }).start(); }, [entrance]);
   return <SafeAreaView style={styles.safe}><ScrollView contentContainerStyle={styles.content}><Animated.View style={[styles.container, { opacity: entrance, transform: [{ translateY: entrance.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) }] }]}>
     <ThemedText style={styles.eyebrow}>FERRAMENTAS DE VIAGEM</ThemedText><ThemedText style={styles.title}>Utilidades</ThemedText><ThemedText themeColor="textSecondary">Tudo que ajuda no caminho, sem sobrecarregar sua navegação.</ThemedText>

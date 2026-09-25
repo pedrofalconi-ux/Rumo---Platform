@@ -1,5 +1,4 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import { useColorScheme } from 'react-native';
+import { DefaultTheme, ThemeProvider } from 'expo-router';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { AuthScreen } from '@/components/auth-screen';
@@ -10,12 +9,11 @@ import { ActivityIndicator, StyleSheet } from 'react-native';
 import { Brand, Colors } from '@/constants/theme';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-  const palette = Colors[colorScheme === 'dark' ? 'dark' : 'light'];
+  const palette = Colors.light;
   const navigationTheme = {
-    ...(colorScheme === 'dark' ? DarkTheme : DefaultTheme),
+    ...DefaultTheme,
     colors: {
-      ...(colorScheme === 'dark' ? DarkTheme.colors : DefaultTheme.colors),
+      ...DefaultTheme.colors,
       primary: palette.accent,
       background: palette.background,
       card: palette.backgroundElement,
