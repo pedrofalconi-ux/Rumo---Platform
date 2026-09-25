@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '../../../../lib/server-auth';
-import { db } from '@rumo/db';
+import { db, normalizeTravelerInviteToken } from '@rumo/db';
+import { findTripById } from '../../../../lib/server-trip-store';
 
 export async function POST(request: Request) {
   try {
@@ -15,7 +16,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Informe o link ou codigo de convite' }, { status: 400 });
     }
 
-    const trip = db.travelerTrips.importByInviteToken(user.id, body.linkOrToken);
+    const normalizedToken = normalizeTravelerInviteToken(body.linkOrToken);
+    const invite = db.travelerInvites.findByToken(normalizedToken);
+    if (!invite) return NextResponse.json({ error: 'Convite inválido ou expirado' }, { status: 400 });
+    const trip = await findTripById(invite.tripId, invite.agencyId);
+    if (!trip || trip.agencyId !== invite.agencyId) {
+      return NextResponse.json({ error: 'Viagem não encontrada' }, { status: 404 });
+    }
+    db.travelerTrips.importByInviteToken(user.id, normalizedToken);
     return NextResponse.json({ trip });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Erro ao importar viagem';

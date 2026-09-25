@@ -32,19 +32,30 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     }
 
     const body = await request.json();
-    if (!body.travelerName || (!body.email && !body.phone)) {
+    const client = body.clientId
+      ? db.clients.findMany(user.agencyId).find((entry: any) => entry.id === body.clientId)
+      : null;
+    const travelerName = String(client?.fullName || body.travelerName || '').trim();
+    const email = String(client?.email || body.email || '').trim();
+    const phone = String(client?.phone || body.phone || '').trim();
+    if (body.clientId && !client) {
+      return NextResponse.json({ error: 'Cliente nao encontrado nesta agencia' }, { status: 404 });
+    }
+    if (!travelerName || (!email && !phone)) {
       return NextResponse.json({ error: 'Informe nome e e-mail ou telefone do viajante' }, { status: 400 });
     }
 
     const invite = db.travelerInvites.create({
       agencyId: user.agencyId,
       tripId: resolvedParams.id,
-      travelerName: body.travelerName,
-      email: body.email || '',
-      phone: body.phone || '',
+      clientId: client?.id || body.clientId || null,
+      travelerName,
+      email,
+      phone,
       channel: body.channel || 'email',
       createdBy: user.id,
     });
+    if (client) db.clients.update(client.id, { appAccessStatus: 'invited' }, user.agencyId);
 
     const url = `${new URL(request.url).origin}/mobile/invite/${invite.token}`;
     return NextResponse.json({ ...invite, url });

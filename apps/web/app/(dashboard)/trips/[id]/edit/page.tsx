@@ -1827,10 +1827,10 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
               setInviteUrl('');
               setIsInviteModalOpen(true);
             }}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-outline-variant hover:bg-surface-container-low text-xs font-bold transition-all"
+            className="flex items-center gap-2 rounded-lg bg-coral px-3.5 py-2 text-xs font-bold text-white shadow-sm transition-all hover:brightness-105"
           >
-            <span className="material-symbols-outlined text-base">app_registration</span>
-            <span>Convite App</span>
+            <span className="material-symbols-outlined text-base">phone_iphone</span>
+            <span>Liberar no app</span>
           </button>
           <button
             onClick={handleOpenPushModal}
@@ -1847,9 +1847,9 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
           <div className="bg-white w-full max-w-[560px] shadow-2xl rounded-xl border border-outline-variant overflow-hidden">
             <div className="px-6 py-5 border-b border-outline-variant flex items-start justify-between gap-4">
               <div>
-                <h2 className="font-headline-md text-xl font-bold text-on-surface">Convite do app</h2>
+                <h2 className="font-headline-md text-xl font-bold text-on-surface">Liberar esta viagem no app</h2>
                 <p className="text-on-surface opacity-70 text-xs mt-1">
-                  Gere um link unico para o viajante acessar esta viagem com a logo correta da agencia.
+                  O viajante importa somente esta viagem na conta pessoal dele. A identidade e os dados da sua agência ficam vinculados a este roteiro.
                 </p>
               </div>
               <button

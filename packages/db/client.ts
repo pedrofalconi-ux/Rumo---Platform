@@ -20,6 +20,33 @@ function cloneData<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
+export function normalizeTravelerInviteToken(value: unknown): string {
+  const input = String(value || '').trim();
+  if (!input) return '';
+
+  try {
+    const url = new URL(input);
+    const queryToken = url.searchParams.get('invite') || url.searchParams.get('token');
+    if (queryToken) return decodeURIComponent(queryToken).trim();
+
+    const pathToken = url.pathname.split('/').filter(Boolean).pop();
+    if (pathToken) return decodeURIComponent(pathToken).trim();
+  } catch {
+    // A plain invitation code is expected to fail URL parsing.
+  }
+
+  const withoutFragment = input.split('#')[0];
+  const query = withoutFragment.includes('?') ? withoutFragment.split('?').pop() || '' : '';
+  if (query) {
+    const params = new URLSearchParams(query);
+    const queryToken = params.get('invite') || params.get('token');
+    if (queryToken) return decodeURIComponent(queryToken).trim();
+  }
+
+  const pathToken = withoutFragment.split('/').filter(Boolean).pop() || withoutFragment;
+  return decodeURIComponent(pathToken).trim();
+}
+
 function encodeStoragePath(key: string) {
   return key
     .split('/')
@@ -742,25 +769,27 @@ export const db = {
       }
 
       const inviteToken = data.inviteToken || data.linkOrToken || '';
-      const normalizedToken = String(inviteToken).trim().split('/').filter(Boolean).pop() || '';
+      const normalizedToken = normalizeTravelerInviteToken(inviteToken);
       const invite = normalizedToken ? db.travelerInvites.findByToken(normalizedToken) : null;
       if (!invite || invite.status !== 'active' || new Date(invite.expiresAt) < new Date()) {
         throw new Error('Cadastro de viajante exige um convite valido de uma agencia');
       }
 
-      const trip = db.trips.findOne(invite.tripId);
-      if (!trip || trip.agencyId !== invite.agencyId) {
-        throw new Error('Viagem do convite nao encontrada');
+      if (invite.email && invite.email.toLowerCase() !== String(data.email).toLowerCase()) {
+        throw new Error('Use o mesmo e-mail para o qual a agencia enviou o convite');
       }
 
       const existingUser = db.users.findByEmail(data.email);
-      if (existingUser && existingUser.agencyId !== invite.agencyId) {
-        throw new Error('Este e-mail ja pertence a outro tenant/agencia');
+      if (existingUser) {
+        if (existingUser.role === 'traveler') {
+          throw new Error('Esta conta de viajante ja existe. Entre com sua senha e importe este convite.');
+        }
+        throw new Error('Este e-mail ja esta vinculado a um acesso profissional. Use outro e-mail para o app do viajante.');
       }
 
       const traveler = db.users.create({
         fullName: data.fullName,
-        agencyId: invite.agencyId,
+        agencyId: null,
         email: data.email,
         phone: data.phone || '',
         role: 'traveler',
@@ -803,19 +832,45 @@ export const db = {
     },
   },
   travelerTrips: {
+    findAccessManyForUser: (userId: string) =>
+      readData<any[]>(TRAVELER_TRIP_ACCESS_FILE).filter((access) => access.userId === userId),
+    reassignUserAccess: (fromUserId: string, toUserId: string) => {
+      if (!fromUserId || !toUserId || fromUserId === toUserId) return;
+      const accessRows = readData<any[]>(TRAVELER_TRIP_ACCESS_FILE);
+      let changed = false;
+
+      for (const access of accessRows) {
+        if (access.userId !== fromUserId) continue;
+        const duplicate = accessRows.some(
+          (candidate) =>
+            candidate !== access &&
+            candidate.userId === toUserId &&
+            candidate.tripId === access.tripId &&
+            candidate.agencyId === access.agencyId
+        );
+        if (!duplicate) access.userId = toUserId;
+        else access.__removeAfterReassignment = true;
+        changed = true;
+      }
+
+      if (changed) {
+        writeData(
+          TRAVELER_TRIP_ACCESS_FILE,
+          accessRows.filter((access) => !access.__removeAfterReassignment)
+        );
+      }
+    },
     findManyForUser: (userId: string) => {
       const user = db.users.findOne(userId);
       if (!user || user.role !== 'traveler') return [];
       const accessRows = readData<any[]>(TRAVELER_TRIP_ACCESS_FILE).filter(
-        (access) => access.userId === userId && access.agencyId === user.agencyId
+        (access) => access.userId === userId
       );
-      return accessRows
-        .map((access) => db.trips.findOne(access.tripId))
-        .filter(Boolean)
-        .filter((trip: any) => trip.agencyId === user.agencyId)
-        .map((trip: any) => {
+      return accessRows.flatMap((access) => {
+          const trip = db.trips.findOne(access.tripId);
+          if (!trip || trip.agencyId !== access.agencyId) return [];
           const agency = db.agencies.findOne(trip.agencyId);
-          return {
+          return [{
             ...trip,
             agency: agency
               ? {
@@ -825,7 +880,7 @@ export const db = {
                   plan: agency.plan,
                 }
               : null,
-          };
+          }];
         });
     },
     importByInviteToken: (userId: string, token: string) => {
@@ -834,37 +889,38 @@ export const db = {
         throw new Error('Acesso permitido apenas para viajantes');
       }
 
-      const normalizedToken = token.trim().split('/').filter(Boolean).pop() || token.trim();
+      const normalizedToken = normalizeTravelerInviteToken(token);
       const invite = db.travelerInvites.findByToken(normalizedToken);
-      if (!invite || invite.status !== 'active' || new Date(invite.expiresAt) < new Date()) {
+      const canReuseAcceptedInvite = invite?.status === 'accepted' && invite.acceptedBy === userId;
+      if (!invite || (!canReuseAcceptedInvite && invite.status !== 'active') || new Date(invite.expiresAt) < new Date()) {
         throw new Error('Convite invalido ou expirado');
       }
 
-      const trip = db.trips.findOne(invite.tripId);
-      if (!trip || trip.agencyId !== invite.agencyId) {
-        throw new Error('Viagem nao encontrada');
-      }
-      if (user.agencyId !== invite.agencyId) {
-        throw new Error('Este convite pertence a outra agencia');
+      if (invite.email && user.email && invite.email.toLowerCase() !== user.email.toLowerCase()) {
+        throw new Error('Este convite foi emitido para outro e-mail');
       }
 
       const accessRows = readData<any[]>(TRAVELER_TRIP_ACCESS_FILE);
       const existing = accessRows.find(
-        (access) => access.userId === userId && access.tripId === trip.id && access.agencyId === invite.agencyId
+        (access) => access.userId === userId && access.tripId === invite.tripId && access.agencyId === invite.agencyId
       );
       if (!existing) {
         accessRows.push({
           id: `traveler-access-${Date.now()}`,
           agencyId: invite.agencyId,
           userId,
-          tripId: trip.id,
+          tripId: invite.tripId,
           inviteId: invite.id,
           travelerName: invite.travelerName,
           createdAt: new Date().toISOString(),
         });
         writeData(TRAVELER_TRIP_ACCESS_FILE, accessRows);
       }
-      return trip;
+      db.travelerInvites.accept(invite.id, userId);
+      if (invite.clientId) {
+        db.clients.update(invite.clientId, { appAccessStatus: 'active' }, invite.agencyId);
+      }
+      return { id: invite.tripId, agencyId: invite.agencyId };
     },
   },
   photos: {
@@ -999,6 +1055,22 @@ export const db = {
       invites.push(newInvite);
       writeData(TRAVELER_INVITES_FILE, invites);
       return newInvite;
+    },
+    accept: (inviteId: string, userId: string) => {
+      const invites = readData<any[]>(TRAVELER_INVITES_FILE);
+      const index = invites.findIndex((invite) => invite.id === inviteId);
+      if (index === -1) return null;
+      if (invites[index].status === 'accepted' && invites[index].acceptedBy !== userId) {
+        throw new Error('Este convite ja foi utilizado por outro viajante');
+      }
+      invites[index] = {
+        ...invites[index],
+        status: 'accepted',
+        acceptedBy: userId,
+        acceptedAt: invites[index].acceptedAt || new Date().toISOString(),
+      };
+      writeData(TRAVELER_INVITES_FILE, invites);
+      return invites[index];
     },
   },
   aiGenerations: {

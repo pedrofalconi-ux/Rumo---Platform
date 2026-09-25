@@ -18,5 +18,15 @@
     "subscriptionStatus": "active",
     "accessExpiresAt": "2026-07-25T22:45:49.770Z",
     "createdAt": "2026-06-25T22:45:49.770Z"
+  },
+  {
+    "id": "agency-1790189842063",
+    "name": "Hub PB ",
+    "slug": "hub-pb",
+    "logoUrl": "",
+    "plan": "starter",
+    "subscriptionStatus": "active",
+    "accessExpiresAt": "2026-10-23T18:57:22.062Z",
+    "createdAt": "2026-09-23T18:57:22.063Z"
   }
 ]

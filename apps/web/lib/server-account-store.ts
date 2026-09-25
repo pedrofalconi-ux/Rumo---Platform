@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto';
 import { createClient, type User as SupabaseAuthUser } from '@supabase/supabase-js';
 import { db } from '@rumo/db';
 
@@ -492,19 +491,8 @@ async function provisionLegacyUser(localRawUser: any, password: string) {
 
 export async function getUserById(id: string) {
   if (!looksLikeUuid(id)) {
-    const legacyUser = db.users.findOne(id);
-    if (legacyUser && hasSupabaseServerAccess && !canUseLegacyReadFallback) {
-      try {
-        const existing = await findSupabaseUserByEmail(legacyUser.email);
-        if (existing) return existing;
-
-        const provisioned = await provisionLegacyUser(legacyUser, randomUUID());
-        if (provisioned) return provisioned;
-      } catch (error) {
-        if (!shouldFallbackToLocal(error)) throw error;
-      }
-    }
-
+    // Never provision an authenticated identity during session hydration: there
+    // is no real password available here and changing the id severs trip access.
     return db.users.findOne(id);
   }
 
@@ -533,7 +521,11 @@ export async function getAgencyById(id: string) {
 
 export async function authenticateAccount(email: string, password: string) {
   const normalizedEmail = String(email || '').trim().toLowerCase();
-  const localRawUser = canUseLegacyReadFallback ? db.users.findByEmail(normalizedEmail) : null;
+  const candidateLocalUser = db.users.findByEmail(normalizedEmail);
+  const localRawUser =
+    canUseLegacyReadFallback || candidateLocalUser?.role === 'traveler'
+      ? candidateLocalUser
+      : null;
   if (localRawUser && !looksLikeUuid(localRawUser.id) && !hasSupabaseServerAccess) {
     const legacyLogin = db.auth.login(email, password);
     return legacyLogin ? legacyLogin.user : null;
@@ -548,7 +540,7 @@ export async function authenticateAccount(email: string, password: string) {
       });
 
       if (error) {
-        if (!canUseLegacyReadFallback) {
+        if (!canUseLegacyReadFallback && localRawUser?.role !== 'traveler') {
           return null;
         }
 
@@ -565,6 +557,9 @@ export async function authenticateAccount(email: string, password: string) {
 
       if (hydratedUser) {
         ensureUserCanSignIn(hydratedUser);
+        if (localRawUser?.role === 'traveler' && localRawUser.id !== hydratedUser.id) {
+          db.travelerTrips.reassignUserAccess(localRawUser.id, hydratedUser.id);
+        }
         return hydratedUser;
       }
 
@@ -573,11 +568,16 @@ export async function authenticateAccount(email: string, password: string) {
       }
     } catch (error) {
       console.warn('[auth] Falha ao autenticar via Supabase, avaliando fallback:', error);
-      if (!canUseLegacyReadFallback || !shouldFallbackToLocal(error)) throw error;
+      if (
+        (!canUseLegacyReadFallback && localRawUser?.role !== 'traveler') ||
+        !shouldFallbackToLocal(error)
+      ) {
+        throw error;
+      }
     }
   }
 
-  if (!canUseLegacyReadFallback) {
+  if (!canUseLegacyReadFallback && localRawUser?.role !== 'traveler') {
     return null;
   }
 
@@ -587,7 +587,12 @@ export async function authenticateAccount(email: string, password: string) {
   if (localRawUser && hasSupabaseServerAccess) {
     try {
       const provisioned = await provisionLegacyUser(localRawUser, password);
-      if (provisioned) return provisioned;
+      if (provisioned) {
+        if (localRawUser.role === 'traveler' && localRawUser.id !== provisioned.id) {
+          db.travelerTrips.reassignUserAccess(localRawUser.id, provisioned.id);
+        }
+        return provisioned;
+      }
       if (!canUseLegacyReadFallback) {
         throw new Error('Usuario legado autenticado, mas nao foi possivel promovelo ao Supabase');
       }
@@ -598,11 +603,28 @@ export async function authenticateAccount(email: string, password: string) {
     }
   }
 
-  if (!canUseLegacyReadFallback) {
+  if (!canUseLegacyReadFallback && localRawUser?.role !== 'traveler') {
     throw new Error('Autenticacao legada bloqueada em producao. Faça login com um usuario sincronizado ao Supabase.');
   }
 
   return legacyLogin.user;
+}
+
+export async function provisionTravelerAccount(localUser: any, password: string) {
+  if (!localUser || localUser.role !== 'traveler') return localUser;
+  if (!hasSupabaseServerAccess) return localUser;
+
+  try {
+    const provisioned = await provisionLegacyUser(localUser, password);
+    if (!provisioned) return localUser;
+    if (localUser.id !== provisioned.id) {
+      db.travelerTrips.reassignUserAccess(localUser.id, provisioned.id);
+    }
+    return provisioned;
+  } catch (error) {
+    console.warn('[auth] Viajante criado; sincronizacao com Supabase sera repetida no proximo login:', error);
+    return localUser;
+  }
 }
 
 export async function registerAgencyAccount(data: {
@@ -730,7 +752,7 @@ export async function createAgencyUser(
     email: string;
     phone?: string;
     role?: string;
-    password?: string;
+    password: string;
     accessStatus?: string;
     accessExpiresAt?: string;
   }
@@ -742,7 +764,7 @@ export async function createAgencyUser(
     return db.users.create({
       ...data,
       agencyId,
-      password: data.password || 'rumo123',
+      password: data.password,
     });
   }
 
@@ -750,7 +772,7 @@ export async function createAgencyUser(
     const admin = requireSupabaseAdmin();
     const createdAuth = await admin.auth.admin.createUser({
       email: data.email,
-      password: data.password || 'rumo123',
+      password: data.password,
       email_confirm: true,
       app_metadata: {
         role: data.role || 'agent',
@@ -784,18 +806,17 @@ export async function createAgencyUser(
       .select('*')
       .single();
 
-    if (userError) throw userError;
+    if (userError) {
+      // Avoid leaving an Auth identity without its application profile.
+      await admin.auth.admin.deleteUser(createdAuth.data.user.id);
+      throw userError;
+    }
     return normalizeUserRow(userData);
   } catch (error) {
-    if (canUsePersistentWriteFallback && shouldFallbackToLocal(error)) {
-      return db.users.create({
-        ...data,
-        agencyId,
-        password: data.password || 'rumo123',
-      });
-    }
-
-    throw persistenceUnavailableError();
+    // When Supabase is configured, never create a local-only collaborator after
+    // an Auth/profile failure. That account would appear in the UI but could not
+    // sign in on another environment.
+    throw error instanceof Error ? error : persistenceUnavailableError();
   }
 }
 

@@ -63,5 +63,18 @@
     "email": "pedrofalconi2205@gmail.com",
     "phone": "83982082640",
     "passwordHash": "be9f33533101e7c96506c4a79a8e3908:39cac8263bf028637b7dd4549a3eb7ad3ba358371affb20853f700d272788a6d"
+  },
+  {
+    "id": "user-1790189842065",
+    "role": "agency_admin",
+    "avatarUrl": "",
+    "createdAt": "2026-09-23T18:57:22.065Z",
+    "accessStatus": "active",
+    "accessExpiresAt": "2026-10-23T18:57:22.062Z",
+    "fullName": "Hub PB",
+    "agencyId": "agency-1790189842063",
+    "email": "hubpb@rumo.com",
+    "phone": "8331823743",
+    "passwordHash": "860745a128bf679020f72d9b43cdf2ca:fc59f69c85f61e5a91df8b6eedd5a679ad41438b9805ceea4de99202cd3ec617"
   }
 ]
