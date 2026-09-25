@@ -3,6 +3,7 @@ export interface AgencyBranding {
   name: string;
   logoUrl?: string;
   plan?: string;
+  themeId?: string;
 }
 
 export interface TripDocument {

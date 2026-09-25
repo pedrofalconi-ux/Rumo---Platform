@@ -14,7 +14,7 @@ import { useRouter } from "expo-router";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { BottomTabInset, Brand, MaxContentWidth, Spacing } from "@/constants/theme";
+import { BottomTabInset, Brand, MaxContentWidth, resolveAppTheme, Spacing } from "@/constants/theme";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
 import {
@@ -229,6 +229,10 @@ export default function HomeScreen() {
     }
   };
 
+  // The primary agency's chosen theme drives the welcome block's accent — same
+  // "trips[0]'s agency" precedent already used for the header logo/name above.
+  const agencyTheme = useMemo(() => resolveAppTheme(trips[0]?.agency?.themeId), [trips]);
+
   const { upcoming, past } = useMemo(() => {
     const nextUpcoming: MobileItinerary[] = [];
     const nextPast: MobileItinerary[] = [];
@@ -253,7 +257,7 @@ export default function HomeScreen() {
               <ThemedText style={styles.headerEyebrow}>{trips[0]?.agency ? "SUA AGÊNCIA" : "ESPAÇO DO VIAJANTE"}</ThemedText>
             </View>
           </ThemedView>
-          <Pressable onPress={() => setImportOpen(true)} style={styles.headerAction}>
+          <Pressable onPress={() => setImportOpen(true)} style={[styles.headerAction, { backgroundColor: agencyTheme.coral }]}>
             <ThemedText style={styles.headerActionText}>＋ Viagem</ThemedText>
           </Pressable>
           <Pressable onPress={() => router.push("/profile")} style={[styles.headerAction, styles.logoutAction]}>
@@ -264,9 +268,11 @@ export default function HomeScreen() {
           </Pressable>
         </ThemedView>
 
-        <View style={styles.welcomeBlock}>
-          <View style={styles.welcomeGlow} />
-          <ThemedText style={styles.welcomeLabel}>OLÁ, {(user?.fullName?.split(" ")[0] || "VIAJANTE").toUpperCase()}</ThemedText>
+        <View style={[styles.welcomeBlock, { backgroundColor: agencyTheme.navyDeep }]}>
+          <View style={[styles.welcomeGlow, { backgroundColor: agencyTheme.glow }]} />
+          <ThemedText style={[styles.welcomeLabel, { color: agencyTheme.glow }]}>
+            OLÁ, {(user?.fullName?.split(" ")[0] || "VIAJANTE").toUpperCase()}
+          </ThemedText>
           <ThemedText style={styles.welcomeTitle}>Sua jornada, sempre à mão.</ThemedText>
           <ThemedText style={styles.welcomeText}>Roteiro, documentos e suporte da sua agência em um só lugar.</ThemedText>
         </View>

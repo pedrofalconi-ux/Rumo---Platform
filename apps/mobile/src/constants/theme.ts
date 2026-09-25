@@ -89,5 +89,29 @@ export const Brand = {
   white: '#FFFFFF',
 } as const;
 
+/**
+ * Agency-selectable app themes (see apps/web's Settings > Branding & White-label).
+ * An agency's chosen theme id travels on `trip.agency.themeId` from the traveler
+ * trips API. This registry is color-only for now — swapping in a different
+ * display typeface per theme would need real font files bundled via expo-font,
+ * which is a separate, larger piece of work.
+ */
+export type AppTheme = {
+  navy: string;
+  navyDeep: string;
+  coral: string;
+  glow: string;
+};
+
+export const THEMES: Record<string, AppTheme> = {
+  rumo: { navy: '#073BCE', navyDeep: '#061D59', coral: '#FF6542', glow: '#8FB1FF' },
+  'quiet-luxury': { navy: '#93542F', navyDeep: '#6E3D21', coral: '#93542F', glow: '#E4C9A8' },
+  'fall-guys': { navy: '#3A1F5D', navyDeep: '#2A1544', coral: '#FF3E7F', glow: '#FFD23F' },
+};
+
+export function resolveAppTheme(themeId?: string | null): AppTheme {
+  return THEMES[themeId || 'rumo'] || THEMES.rumo;
+}
+
 export const BottomTabInset = Platform.select({ ios: 54, android: 76, web: 92 }) ?? 76;
 export const MaxContentWidth = 560;

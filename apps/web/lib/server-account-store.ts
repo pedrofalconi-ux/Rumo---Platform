@@ -45,6 +45,7 @@ export interface AgencySettings {
   pixabayKey: string;
   unsplashKey: string;
   notificationEmail: string;
+  appThemeId: string;
 }
 
 const DEFAULT_ACCESS_EXPIRY = '2099-12-31T23:59:59.000Z';
@@ -63,6 +64,7 @@ const AGENCY_SETTINGS_DEFAULTS: AgencySettings = {
   pixabayKey: '',
   unsplashKey: '',
   notificationEmail: '',
+  appThemeId: 'rumo',
 };
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -153,6 +155,7 @@ function normalizeAgencySettings(
     pixabayKey: String(settings.pixabayKey || AGENCY_SETTINGS_DEFAULTS.pixabayKey),
     unsplashKey: String(settings.unsplashKey || AGENCY_SETTINGS_DEFAULTS.unsplashKey),
     notificationEmail: String(settings.notificationEmail || AGENCY_SETTINGS_DEFAULTS.notificationEmail),
+    appThemeId: String(settings.appThemeId || AGENCY_SETTINGS_DEFAULTS.appThemeId),
   };
 }
 
@@ -960,6 +963,7 @@ export async function updateAgencySettings(
           notificationEmail: merged.notificationEmail,
           subscriptionStatus: merged.subscriptionStatus,
           accessExpiresAt: merged.accessExpiresAt,
+          appThemeId: merged.appThemeId,
         },
       })
       .eq('id', agencyId)

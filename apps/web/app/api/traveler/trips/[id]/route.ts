@@ -24,7 +24,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     const agency = await getAgencyById(access.agencyId);
     return NextResponse.json({
       ...trip,
-      agency: agency ? { id: agency.id, name: agency.name, logoUrl: agency.logoUrl, plan: agency.plan } : null,
+      agency: agency ? { id: agency.id, name: agency.name, logoUrl: agency.logoUrl, plan: agency.plan, themeId: (agency.settings as { appThemeId?: string } | undefined)?.appThemeId || 'rumo' } : null,
     });
   } catch {
     return NextResponse.json({ error: 'Erro ao buscar viagem do viajante' }, { status: 500 });

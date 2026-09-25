@@ -13,6 +13,7 @@ const agencyEditableFields = [
   'pixabayKey',
   'unsplashKey',
   'notificationEmail',
+  'appThemeId',
 ] as const;
 
 function sanitizeAgencySettings(settings: any) {

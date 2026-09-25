@@ -12,6 +12,7 @@ interface SettingsForm {
   pixabayKey: string;
   unsplashKey: string;
   notificationEmail: string;
+  appThemeId: string;
 }
 
 const emptySettings: SettingsForm = {
@@ -24,7 +25,29 @@ const emptySettings: SettingsForm = {
   pixabayKey: '',
   unsplashKey: '',
   notificationEmail: '',
+  appThemeId: 'rumo',
 };
+
+const APP_THEMES = [
+  {
+    id: 'rumo',
+    name: 'Identidade Rumo',
+    description: 'A mesma marca do seu painel web — navy, coral e Inter. É o padrão, nenhuma configuração extra é necessária.',
+    swatch: ['#073BCE', '#FF542D', '#061D59'],
+  },
+  {
+    id: 'quiet-luxury',
+    name: 'Quiet Luxury',
+    description: 'Editorial e atemporal — tons terrosos, tipografia serifada. Combina com agências de viagens de alto padrão.',
+    swatch: ['#93542F', '#F6F1E6', '#262218'],
+  },
+  {
+    id: 'fall-guys',
+    name: 'Fall Guys',
+    description: 'Colorido, arredondado e divertido — combina com agências de mochilão, intercâmbio e turma jovem.',
+    swatch: ['#FF3E7F', '#FFD23F', '#3A1F5D'],
+  },
+] as const;
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
@@ -274,7 +297,37 @@ export default function SettingsPage() {
                   <input id="branding-logo-upload" type="file" accept="image/*" className="hidden" onChange={handleLogoFileChange} disabled={uploading} />
                 </div>
               </div>
-              <div className="grid gap-4 md:grid-cols-2"><label className="space-y-1"><span className="text-xs font-semibold">Cor principal do app</span><div className="flex items-center gap-3 rounded-xl border border-outline-variant p-3"><span className="h-8 w-8 rounded-lg bg-primary" /><span className="text-xs font-mono text-on-surface/55">Identidade Rumo</span></div></label><label className="space-y-1"><span className="text-xs font-semibold">Domínio personalizado</span><input disabled placeholder="app.suaagencia.com" className="w-full rounded-xl border border-outline-variant bg-surface-container-low p-3 text-xs" /><span className="text-[9px] text-on-surface/45">Disponível em breve.</span></label></div>
+              <div className="rounded-2xl border border-outline-variant bg-surface-container-low p-5">
+                <label className="text-xs font-semibold">Identidade visual do app</label>
+                <p className="mt-1 text-[11px] text-on-surface/55">
+                  Por padrão, o app do viajante usa a mesma identidade do seu painel. Troque se quiser diferenciar a experiência dos seus viajantes.
+                </p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                  {APP_THEMES.map((theme) => {
+                    const selected = formData.appThemeId === theme.id;
+                    return (
+                      <button
+                        key={theme.id}
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, appThemeId: theme.id }))}
+                        className={`flex flex-col gap-2 rounded-xl border p-3 text-left transition ${selected ? 'border-primary ring-1 ring-primary bg-white' : 'border-outline-variant bg-white hover:border-primary/40'}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex gap-1">
+                            {theme.swatch.map((hex) => (
+                              <span key={hex} className="h-5 w-5 rounded-full border border-black/5" style={{ backgroundColor: hex }} />
+                            ))}
+                          </div>
+                          {selected && <span className="material-symbols-outlined text-[16px] text-primary">check_circle</span>}
+                        </div>
+                        <span className="text-xs font-bold">{theme.name}</span>
+                        <span className="text-[10px] leading-snug text-on-surface/55">{theme.description}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2"><label className="space-y-1"><span className="text-xs font-semibold">Domínio personalizado</span><input disabled placeholder="app.suaagencia.com" className="w-full rounded-xl border border-outline-variant bg-surface-container-low p-3 text-xs" /><span className="text-[9px] text-on-surface/45">Disponível em breve.</span></label></div>
             </div>}
 
             {activeTab === 'integrations' && <div className="space-y-4 pt-1">

@@ -19,7 +19,7 @@ export async function GET(request: Request) {
       const agency = await getAgencyById(access.agencyId);
       return {
         ...trip,
-        agency: agency ? { id: agency.id, name: agency.name, logoUrl: agency.logoUrl, plan: agency.plan } : null,
+        agency: agency ? { id: agency.id, name: agency.name, logoUrl: agency.logoUrl, plan: agency.plan, themeId: (agency.settings as { appThemeId?: string } | undefined)?.appThemeId || 'rumo' } : null,
       };
     }));
     return NextResponse.json(trips.filter(Boolean));
