@@ -341,7 +341,7 @@ export default function HomeScreen() {
                       key={trip.id}
                       item={trip}
                       theme={theme}
-                      onPress={() => router.push({ pathname: "/explore", params: { tripId: trip.id } })}
+                      onPress={() => router.push({ pathname: "/trip-memory", params: { tripId: trip.id } })}
                     />
                   ))}
                 </View>
