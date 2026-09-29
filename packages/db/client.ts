@@ -884,8 +884,14 @@ export const db = {
         });
     },
     importByInviteToken: (userId: string, token: string) => {
+      // Postgres-provisioned travelers (UUID ids) never appear in this legacy JSON
+      // store, so `user` is legitimately null for them here — the caller (the
+      // /api/traveler/import route, or registration importing the invite that
+      // created the account) has already authenticated and authorized them as a
+      // traveler before reaching this point. Only reject when a local record
+      // exists and actively disagrees with that.
       const user = db.users.findOne(userId);
-      if (!user || user.role !== 'traveler') {
+      if (user && user.role !== 'traveler') {
         throw new Error('Acesso permitido apenas para viajantes');
       }
 
@@ -896,7 +902,7 @@ export const db = {
         throw new Error('Convite invalido ou expirado');
       }
 
-      if (invite.email && user.email && invite.email.toLowerCase() !== user.email.toLowerCase()) {
+      if (invite.email && user?.email && invite.email.toLowerCase() !== user.email.toLowerCase()) {
         throw new Error('Este convite foi emitido para outro e-mail');
       }
 

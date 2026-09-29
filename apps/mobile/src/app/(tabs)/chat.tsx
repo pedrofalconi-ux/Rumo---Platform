@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
     padding: Spacing.two,
     borderTopWidth: 1,
     gap: Spacing.two,
-    paddingBottom: Platform.OS === 'ios' ? BottomTabInset : Spacing.two,
+    paddingBottom: BottomTabInset,
   },
   textInput: {
     flex: 1,
