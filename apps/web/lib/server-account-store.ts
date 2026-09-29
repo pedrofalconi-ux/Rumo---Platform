@@ -15,6 +15,7 @@ export interface AccountUser {
   deletedAt: string | null;
   accessStatus: string;
   accessExpiresAt: string;
+  handle?: string;
 }
 
 export interface AccountAgency {
@@ -192,6 +193,7 @@ function normalizeUserRow(row: any): AccountUser {
     deletedAt: row.deleted_at || null,
     accessStatus: String(metadata.accessStatus || 'active'),
     accessExpiresAt: String(metadata.accessExpiresAt || DEFAULT_ACCESS_EXPIRY),
+    handle: typeof metadata.handle === 'string' ? metadata.handle : undefined,
   };
 }
 
@@ -506,6 +508,36 @@ export async function getUserById(id: string) {
     if (!shouldFallbackToLocal(error)) throw error;
   }
   return db.users.findOne(id);
+}
+
+/** Persists a traveler's generated handle, whichever store (Supabase or legacy JSON) their account lives in. */
+export async function setUserHandle(id: string, handle: string) {
+  if (!looksLikeUuid(id)) {
+    db.users.update(id, { handle });
+    return;
+  }
+
+  try {
+    const current = await findSupabaseUserById(id);
+    if (!current) return;
+    const { error } = await requireSupabaseAdmin()
+      .from('users')
+      .update({
+        metadata: {
+          accessStatus: current.accessStatus,
+          accessExpiresAt: current.accessExpiresAt,
+          handle,
+        },
+      })
+      .eq('id', id);
+    if (error) throw error;
+  } catch (error) {
+    if (shouldFallbackToLocal(error)) {
+      db.users.update(id, { handle });
+      return;
+    }
+    throw error;
+  }
 }
 
 export async function getAgencyById(id: string) {

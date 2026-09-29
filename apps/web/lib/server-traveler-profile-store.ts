@@ -1,5 +1,6 @@
 import { db } from '@rumo/db';
 import { findTripById } from './server-trip-store';
+import { getUserById, setUserHandle } from './server-account-store';
 
 function slugify(value: string) {
   return value
@@ -16,8 +17,8 @@ function handleExists(handle: string, excludeUserId?: string) {
 }
 
 /** Every traveler needs a handle to be searchable; generate one on first profile access. */
-export function getOrCreateHandle(userId: string): string {
-  const user = db.users.findOne(userId) as { id: string; handle?: string; fullName?: string } | null;
+export async function getOrCreateHandle(userId: string): Promise<string> {
+  const user = await getUserById(userId);
   if (!user) throw new Error('Usuario nao encontrado');
   if (user.handle) return user.handle;
 
@@ -28,7 +29,7 @@ export function getOrCreateHandle(userId: string): string {
     suffix += 1;
     candidate = `${base}${suffix}`;
   }
-  db.users.update(userId, { handle: candidate });
+  await setUserHandle(userId, candidate);
   return candidate;
 }
 
@@ -37,8 +38,8 @@ async function summarizeTrip(tripId: string, agencyId: string) {
   if (!trip) return null;
   return {
     id: trip.id,
-    title: trip.title,
-    destination: trip.destination,
+    title: trip.name,
+    destination: trip.destinations?.join(', ') || '',
     startDate: trip.startDate,
     endDate: trip.endDate,
     coverImage: trip.coverImage,
@@ -47,9 +48,9 @@ async function summarizeTrip(tripId: string, agencyId: string) {
 }
 
 export async function getOwnProfile(userId: string) {
-  const user = db.users.findOne(userId) as { id: string; fullName: string; email: string } | null;
+  const user = await getUserById(userId);
   if (!user) throw new Error('Usuario nao encontrado');
-  const handle = getOrCreateHandle(userId);
+  const handle = await getOrCreateHandle(userId);
 
   const accessRows = db.travelerTrips.findAccessManyForUser(userId) as Array<{
     tripId: string;
@@ -97,7 +98,7 @@ export async function searchTravelers(query: string, excludeUserId: string) {
 
   const results = await Promise.all(
     matches.slice(0, 20).map(async (u) => {
-      const handle = getOrCreateHandle(u.id);
+      const handle = await getOrCreateHandle(u.id);
       const accessRows = db.travelerTrips.findAccessManyForUser(u.id) as Array<{ isPublic?: boolean }>;
       const publicCount = accessRows.filter((a) => a.isPublic).length;
       return publicCount > 0 ? { fullName: u.fullName, handle, publicTripCount: publicCount } : null;
