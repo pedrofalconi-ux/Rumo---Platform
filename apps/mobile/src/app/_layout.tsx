@@ -1,4 +1,7 @@
 import { DefaultTheme, ThemeProvider } from 'expo-router';
+import { useFonts } from 'expo-font';
+import { Baloo2_700Bold } from '@expo-google-fonts/baloo-2';
+import { PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { AuthScreen } from '@/components/auth-screen';
@@ -10,6 +13,7 @@ import { Brand, Colors } from '@/constants/theme';
 
 export default function TabLayout() {
   const palette = Colors.light;
+  const [agencyFontsLoaded] = useFonts({ Baloo2_700Bold, PlayfairDisplay_700Bold });
   const navigationTheme = {
     ...DefaultTheme,
     colors: {
@@ -26,16 +30,16 @@ export default function TabLayout() {
     <ThemeProvider value={navigationTheme}>
       <AuthProvider>
         <AnimatedSplashOverlay />
-        <RootContent />
+        <RootContent fontsReady={agencyFontsLoaded} />
       </AuthProvider>
     </ThemeProvider>
   );
 }
 
-function RootContent() {
+function RootContent({ fontsReady }: { fontsReady: boolean }) {
   const { user, loading } = useAuth();
 
-  if (loading) {
+  if (loading || !fontsReady) {
     return (
       <ThemedView style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={Brand.coral} />

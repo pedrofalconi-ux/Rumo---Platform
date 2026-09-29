@@ -203,7 +203,7 @@ export default function ExploreScreen() {
           <Pressable onPress={() => router.push("/")} style={styles.backButton}><ThemedText style={[styles.backText, { color: agencyTheme.navy }]}>← Viagens</ThemedText></Pressable>
           <ThemedText style={[styles.eyebrow, { color: agencyTheme.coral }]}>TRILHA DA VIAGEM</ThemedText>
         </View>
-        <ThemedText style={[styles.title, { color: agencyTheme.navy }]}>{trip.title}</ThemedText>
+        <ThemedText style={[styles.title, { color: agencyTheme.navy, fontFamily: agencyTheme.headlineFont }]}>{trip.title}</ThemedText>
         <ThemedText themeColor="textSecondary">{trip.destination || "Destino a confirmar"} · {trip.startDate} a {trip.endDate}</ThemedText>
 
         <ThemedView type="backgroundElement" style={styles.progressCard}>

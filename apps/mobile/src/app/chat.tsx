@@ -133,7 +133,7 @@ export default function ChatScreen() {
               <ThemedText style={styles.agentAvatarText}>{(activeTrip?.agency?.name || 'A').charAt(0).toUpperCase()}</ThemedText>
             </View>
             <View>
-              <ThemedText style={styles.agentName}>{activeTrip?.agency?.name || 'Sua agência'}</ThemedText>
+              <ThemedText style={[styles.agentName, { fontFamily: agencyTheme.headlineFont }]}>{activeTrip?.agency?.name || 'Sua agência'}</ThemedText>
               <ThemedText type="small" themeColor="textSecondary">
                 Seu consultor de viagem
               </ThemedText>

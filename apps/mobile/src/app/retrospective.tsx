@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Dimensions, Pressable, Share, StyleSheet, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Dimensions, Platform, Pressable, Share, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
+import * as Sharing from "expo-sharing";
+import { captureRef } from "react-native-view-shot";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -36,6 +38,7 @@ export default function RetrospectiveScreen() {
   const [loading, setLoading] = useState(true);
   const [trips, setTrips] = useState<MobileItinerary[]>([]);
   const [bestMoment, setBestMoment] = useState<{ entry: DiaryEntry; tripTitle: string } | null>(null);
+  const shareCardRef = useRef<View>(null);
 
   useEffect(() => {
     const task = setTimeout(() => {
@@ -74,6 +77,18 @@ export default function RetrospectiveScreen() {
   const agencies = [...new Set(trips.map((t) => t.agency?.name).filter(Boolean))] as string[];
 
   const handleShare = async () => {
+    if (Platform.OS !== "web" && shareCardRef.current) {
+      try {
+        const uri = await captureRef(shareCardRef, { format: "png", quality: 0.92 });
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(uri, { mimeType: "image/png", dialogTitle: "Compartilhar retrospectiva" });
+          return;
+        }
+      } catch {
+        // Fall through to the text share below.
+      }
+    }
+
     const name = user?.fullName?.split(" ")[0] || "Viajante";
     const message = `${name} já viajou ${trips.length} ${trips.length === 1 ? "vez" : "vezes"} com a Rumo: ${totalDays} dias, ${destinations.length} ${destinations.length === 1 ? "destino" : "destinos"} — ${destinations.join(", ")}.`;
     try {
@@ -178,7 +193,7 @@ export default function RetrospectiveScreen() {
           ) : null}
 
           {/* Card 4: shareable summary */}
-          <View style={[styles.card, { width: CARD_WIDTH }]}>
+          <View ref={shareCardRef} collapsable={false} style={[styles.card, { width: CARD_WIDTH }]}>
             {coverPhoto ? (
               <Image source={{ uri: coverPhoto }} style={styles.cardBg} contentFit="cover" />
             ) : (

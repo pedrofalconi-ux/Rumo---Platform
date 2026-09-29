@@ -90,7 +90,7 @@ export default function TripMemoryScreen() {
             </Pressable>
             <View style={styles.heroText}>
               <ThemedText style={styles.heroEyebrow}>MEMÓRIA · {(trip.agency?.name || "AGÊNCIA").toUpperCase()}</ThemedText>
-              <ThemedText style={styles.heroTitle}>{trip.title}</ThemedText>
+              <ThemedText style={[styles.heroTitle, { fontFamily: agencyTheme.headlineFont }]}>{trip.title}</ThemedText>
               <ThemedText style={styles.heroMeta}>
                 {trip.startDate} a {trip.endDate} · {trip.destination || "Destino"}
               </ThemedText>

@@ -274,7 +274,7 @@ export default function ExpensesScreen() {
         >
           <View>
             <ThemedText style={[styles.headerEyebrow, { color: agencyTheme.coral }]}>SUAS DESPESAS</ThemedText>
-            <ThemedText style={[styles.headerTitle, { color: agencyTheme.navyDeep }]}>Despesas</ThemedText>
+            <ThemedText style={[styles.headerTitle, { color: agencyTheme.navyDeep, fontFamily: agencyTheme.headlineFont }]}>Despesas</ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
               {expenses.length} {expenses.length === 1 ? 'item' : 'itens'}
             </ThemedText>

@@ -43,7 +43,8 @@
         {
           "photosPermission": "O Rumo usa suas fotos para ilustrar as entradas do seu diário de viagem."
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,

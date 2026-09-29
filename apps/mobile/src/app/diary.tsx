@@ -264,7 +264,7 @@ export default function DiaryScreen() {
         >
           <View>
             <ThemedText style={[styles.headerEyebrow, { color: agencyTheme.coral }]}>SEU DIÁRIO</ThemedText>
-            <ThemedText style={[styles.headerTitle, { color: agencyTheme.navyDeep }]}>Diário</ThemedText>
+            <ThemedText style={[styles.headerTitle, { color: agencyTheme.navyDeep, fontFamily: agencyTheme.headlineFont }]}>Diário</ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
               {entries.length} {entries.length === 1 ? 'entrada' : 'entradas'}
             </ThemedText>
