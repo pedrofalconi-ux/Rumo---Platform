@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { useAuth } from '@/hooks/use-auth';
+import { resolveAppTheme } from '@/constants/theme';
 import {
   addDiaryEntry as apiAddDiaryEntry,
   addExpense as apiAddExpense,
@@ -13,6 +14,8 @@ import {
   getChatMessages,
   getDiaryEntries,
   getExpenses,
+  getTravelerTrip,
+  getTravelerTrips,
   sendChatMessage,
   ChatMessage,
   DiaryEntry,
@@ -20,6 +23,33 @@ import {
 } from '@/lib/traveler-api';
 
 export type { ChatMessage, DiaryEntry, Expense };
+
+/**
+ * Resolves the agency-selected app theme (see apps/web's Settings > Branding)
+ * for the trip a screen is showing. Falls back to the traveler's first trip
+ * when no tripId is given, matching how chat/explore already pick a default.
+ */
+export function useTripAgencyTheme(tripId?: string) {
+  const { sessionId } = useAuth();
+  const [themeId, setThemeId] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const task = setTimeout(() => {
+      if (!sessionId) {
+        setThemeId(undefined);
+        return;
+      }
+      const request =
+        tripId && tripId !== 'unselected'
+          ? getTravelerTrip(sessionId, tripId)
+          : getTravelerTrips(sessionId).then((trips) => trips[0] ?? null);
+      request.then((trip) => setThemeId(trip?.agency?.themeId)).catch(() => setThemeId(undefined));
+    }, 0);
+    return () => clearTimeout(task);
+  }, [sessionId, tripId]);
+
+  return resolveAppTheme(themeId);
+}
 
 export function useChat(tripId: string) {
   const { sessionId } = useAuth();

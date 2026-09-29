@@ -16,9 +16,9 @@ import { useLocalSearchParams } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, Brand, MaxContentWidth, Spacing } from '@/constants/theme';
+import { AppTheme, BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { useDiary, DiaryEntry } from '@/hooks/use-traveler-store';
+import { useDiary, useTripAgencyTheme, DiaryEntry } from '@/hooks/use-traveler-store';
 
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleDateString('pt-BR', {
@@ -33,11 +33,13 @@ function AddEntryModal({
   onClose,
   onAdd,
   theme,
+  agencyTheme,
 }: {
   visible: boolean;
   onClose: () => void;
   onAdd: (data: { title: string; body: string; day: number; photoUri?: string | null }) => Promise<void>;
   theme: ReturnType<typeof useTheme>;
+  agencyTheme: AppTheme;
 }) {
   const [title, setTitle] = useState('');
   const [text, setText] = useState('');
@@ -93,9 +95,9 @@ function AddEntryModal({
         <ThemedView
           style={[styles.modalSheet, { backgroundColor: theme.background }]}
         >
-          <ThemedText style={styles.modalTitle}>Nova Entrada no Diário</ThemedText>
+          <ThemedText style={[styles.modalTitle, { color: agencyTheme.navyDeep }]}>Nova Entrada no Diário</ThemedText>
 
-          <ThemedText style={styles.label}>Dia da viagem</ThemedText>
+          <ThemedText style={[styles.label, { color: agencyTheme.navyDeep }]}>Dia da viagem</ThemedText>
           <TextInput
             style={[
               styles.input,
@@ -108,7 +110,7 @@ function AddEntryModal({
             keyboardType="number-pad"
           />
 
-          <ThemedText style={styles.label}>Título</ThemedText>
+          <ThemedText style={[styles.label, { color: agencyTheme.navyDeep }]}>Título</ThemedText>
           <TextInput
             style={[
               styles.input,
@@ -120,7 +122,7 @@ function AddEntryModal({
             onChangeText={setTitle}
           />
 
-          <ThemedText style={styles.label}>O que aconteceu?</ThemedText>
+          <ThemedText style={[styles.label, { color: agencyTheme.navyDeep }]}>O que aconteceu?</ThemedText>
           <TextInput
             style={[
               styles.textArea,
@@ -134,7 +136,7 @@ function AddEntryModal({
             numberOfLines={5}
           />
 
-          <ThemedText style={styles.label}>Foto</ThemedText>
+          <ThemedText style={[styles.label, { color: agencyTheme.navyDeep }]}>Foto</ThemedText>
           {photoUri ? (
             <View style={styles.photoAttached}>
               <Image source={{ uri: photoUri }} style={styles.photoAttachedImage} contentFit="cover" />
@@ -147,7 +149,7 @@ function AddEntryModal({
               onPress={pickPhoto}
               style={[styles.photoEmpty, { borderColor: theme.backgroundSelected }]}
             >
-              <ThemedText style={styles.photoEmptyText}>+ Adicionar foto</ThemedText>
+              <ThemedText style={[styles.photoEmptyText, { color: agencyTheme.coral }]}>+ Adicionar foto</ThemedText>
             </Pressable>
           )}
 
@@ -159,7 +161,11 @@ function AddEntryModal({
             >
               <ThemedText>Cancelar</ThemedText>
             </Pressable>
-            <Pressable onPress={handleSubmit} disabled={saving} style={[styles.addBtn, { opacity: saving ? 0.7 : 1 }]}>
+            <Pressable
+              onPress={handleSubmit}
+              disabled={saving}
+              style={[styles.addBtn, { backgroundColor: agencyTheme.coral, opacity: saving ? 0.7 : 1 }]}
+            >
               {saving ? <ActivityIndicator color="#fff" /> : <ThemedText style={styles.addBtnText}>Salvar</ThemedText>}
             </Pressable>
           </View>
@@ -173,10 +179,12 @@ function DiaryCard({
   entry,
   onDelete,
   theme,
+  agencyTheme,
 }: {
   entry: DiaryEntry;
   onDelete: () => void;
   theme: ReturnType<typeof useTheme>;
+  agencyTheme: AppTheme;
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -199,7 +207,7 @@ function DiaryCard({
     >
       {/* Day badge */}
       <View style={styles.cardHeader}>
-        <View style={styles.dayBadge}>
+        <View style={[styles.dayBadge, { backgroundColor: agencyTheme.navyDeep }]}>
           <ThemedText style={styles.dayBadgeText}>DIA {entry.day}</ThemedText>
         </View>
         <ThemedText type="small" themeColor="textSecondary" style={styles.cardDate}>
@@ -228,7 +236,7 @@ function DiaryCard({
 
       {entry.body.length > 120 && (
         <Pressable onPress={() => setExpanded((v) => !v)}>
-          <ThemedText style={styles.expandText}>
+          <ThemedText style={[styles.expandText, { color: agencyTheme.navyDeep }]}>
             {expanded ? 'Ver menos ↑' : 'Continuar lendo ↓'}
           </ThemedText>
         </Pressable>
@@ -241,6 +249,7 @@ export default function DiaryScreen() {
   const { tripId } = useLocalSearchParams<{ tripId?: string }>();
   const activeTripId = tripId ?? 'unselected';
   const theme = useTheme();
+  const agencyTheme = useTripAgencyTheme(activeTripId);
   const { entries, loading, error, addEntry, deleteEntry } = useDiary(activeTripId);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -254,8 +263,8 @@ export default function DiaryScreen() {
           style={[styles.header, { borderBottomColor: theme.backgroundSelected }]}
         >
           <View>
-            <ThemedText style={styles.headerEyebrow}>SEU DIÁRIO</ThemedText>
-            <ThemedText style={styles.headerTitle}>Diário</ThemedText>
+            <ThemedText style={[styles.headerEyebrow, { color: agencyTheme.coral }]}>SEU DIÁRIO</ThemedText>
+            <ThemedText style={[styles.headerTitle, { color: agencyTheme.navyDeep }]}>Diário</ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
               {entries.length} {entries.length === 1 ? 'entrada' : 'entradas'}
             </ThemedText>
@@ -264,7 +273,7 @@ export default function DiaryScreen() {
             onPress={() => setModalVisible(true)}
             style={({ pressed }) => [
               styles.addButton,
-              { opacity: pressed ? 0.8 : 1 },
+              { backgroundColor: agencyTheme.coral, opacity: pressed ? 0.8 : 1 },
             ]}
           >
             <ThemedText style={styles.addButtonText}>+ Escrever</ThemedText>
@@ -280,20 +289,20 @@ export default function DiaryScreen() {
         {/* List */}
         {loading ? (
           <View style={styles.empty}>
-            <ActivityIndicator size="large" color={Brand.coral} />
+            <ActivityIndicator size="large" color={agencyTheme.coral} />
           </View>
         ) : sorted.length === 0 ? (
           <View style={styles.empty}>
             <View style={[styles.emptyIconTile, { backgroundColor: theme.accentSoft }]}>
               <ThemedText style={styles.emptyEmoji}>📖</ThemedText>
             </View>
-            <ThemedText style={styles.emptyTitle}>Seu diário está vazio.</ThemedText>
+            <ThemedText style={[styles.emptyTitle, { color: agencyTheme.navyDeep }]}>Seu diário está vazio.</ThemedText>
             <ThemedText type="small" themeColor="textSecondary" style={styles.emptySubtitle}>
               Registre suas memórias, experiências e sentimentos desta viagem.
             </ThemedText>
             <Pressable
               onPress={() => setModalVisible(true)}
-              style={styles.emptyAddBtn}
+              style={[styles.emptyAddBtn, { backgroundColor: agencyTheme.coral }]}
             >
               <ThemedText style={styles.emptyAddText}>Começar a escrever</ThemedText>
             </Pressable>
@@ -309,6 +318,7 @@ export default function DiaryScreen() {
                 entry={entry}
                 onDelete={() => deleteEntry(entry.id)}
                 theme={theme}
+                agencyTheme={agencyTheme}
               />
             ))}
           </ScrollView>
@@ -320,6 +330,7 @@ export default function DiaryScreen() {
         onClose={() => setModalVisible(false)}
         onAdd={addEntry}
         theme={theme}
+        agencyTheme={agencyTheme}
       />
     </ThemedView>
   );
@@ -341,10 +352,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  headerEyebrow: { fontSize: 10, fontWeight: '900', letterSpacing: 1.4, color: Brand.coral, marginBottom: 4 },
-  headerTitle: { fontSize: 26, fontWeight: '900', color: Brand.navyDeep, letterSpacing: -0.6 },
+  headerEyebrow: { fontSize: 10, fontWeight: '900', letterSpacing: 1.4, marginBottom: 4 },
+  headerTitle: { fontSize: 26, fontWeight: '900', letterSpacing: -0.6 },
   addButton: {
-    backgroundColor: Brand.coral,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two + 2,
     borderRadius: 14,
@@ -373,7 +383,6 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   dayBadge: {
-    backgroundColor: Brand.navyDeep,
     paddingHorizontal: Spacing.two,
     paddingVertical: 2,
     borderRadius: 4,
@@ -392,7 +401,6 @@ const styles = StyleSheet.create({
   expandText: {
     fontSize: 12,
     fontWeight: '700',
-    color: Brand.navyDeep,
     marginTop: -4,
   },
   empty: {
@@ -411,10 +419,9 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   emptyEmoji: { fontSize: 26 },
-  emptyTitle: { fontSize: 17, fontWeight: '800', color: Brand.navyDeep },
+  emptyTitle: { fontSize: 17, fontWeight: '800' },
   emptySubtitle: { textAlign: 'center', lineHeight: 20 },
   emptyAddBtn: {
-    backgroundColor: Brand.coral,
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.two,
     borderRadius: 14,
@@ -433,13 +440,12 @@ const styles = StyleSheet.create({
     padding: Spacing.four,
     gap: Spacing.two,
   },
-  modalTitle: { fontSize: 18, fontWeight: '800', marginBottom: Spacing.two, color: Brand.navyDeep },
+  modalTitle: { fontSize: 18, fontWeight: '800', marginBottom: Spacing.two },
   label: {
     fontSize: 12,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    color: Brand.navyDeep,
   },
   input: {
     borderWidth: 1,
@@ -465,7 +471,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: Spacing.three,
   },
-  photoEmptyText: { color: Brand.coral, fontWeight: '700', fontSize: 13 },
+  photoEmptyText: { fontWeight: '700', fontSize: 13 },
   photoAttached: { width: 88, height: 88, marginBottom: Spacing.three },
   photoAttachedImage: { width: '100%', height: '100%', borderRadius: 12, backgroundColor: '#E9EDF2' },
   photoRemove: {
@@ -500,7 +506,6 @@ const styles = StyleSheet.create({
   },
   addBtn: {
     flex: 1,
-    backgroundColor: Brand.coral,
     borderRadius: 14,
     padding: Spacing.two,
     alignItems: 'center',

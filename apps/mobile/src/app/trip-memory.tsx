@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
@@ -6,7 +6,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { BottomTabInset, Brand, MaxContentWidth, Spacing } from "@/constants/theme";
+import { BottomTabInset, MaxContentWidth, resolveAppTheme, Spacing } from "@/constants/theme";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
 import { useDiary } from "@/hooks/use-traveler-store";
@@ -32,6 +32,7 @@ export default function TripMemoryScreen() {
   const [loading, setLoading] = useState(true);
   const activeTripId = tripId || "unselected";
   const { entries, loading: diaryLoading } = useDiary(activeTripId);
+  const agencyTheme = useMemo(() => resolveAppTheme(trip?.agency?.themeId), [trip]);
 
   useEffect(() => {
     const task = setTimeout(() => {
@@ -55,7 +56,7 @@ export default function TripMemoryScreen() {
   if (loading) {
     return (
       <ThemedView style={[styles.center, { backgroundColor: theme.background }]}>
-        <ActivityIndicator size="large" color={Brand.coral} />
+        <ActivityIndicator size="large" color={agencyTheme.coral} />
       </ThemedView>
     );
   }
@@ -65,7 +66,7 @@ export default function TripMemoryScreen() {
       <ThemedView style={[styles.center, { backgroundColor: theme.background }]}>
         <ThemedText style={styles.emptyTitle}>Viagem não encontrada</ThemedText>
         <Pressable onPress={() => router.back()} style={styles.backButtonAlt}>
-          <ThemedText style={styles.backButtonAltText}>← Voltar</ThemedText>
+          <ThemedText style={[styles.backButtonAltText, { color: agencyTheme.navy }]}>← Voltar</ThemedText>
         </Pressable>
       </ThemedView>
     );
@@ -79,13 +80,13 @@ export default function TripMemoryScreen() {
             {trip.coverImage ? (
               <Image source={{ uri: trip.coverImage }} style={styles.heroImage} contentFit="cover" />
             ) : (
-              <View style={[styles.heroImage, styles.heroFallback]}>
+              <View style={[styles.heroImage, styles.heroFallback, { backgroundColor: agencyTheme.navyDeep }]}>
                 <ThemedText style={styles.heroFallbackIcon}>🧭</ThemedText>
               </View>
             )}
             <View style={styles.heroScrim} />
             <Pressable onPress={() => router.back()} style={styles.backButton}>
-              <ThemedText style={styles.backButtonText}>←</ThemedText>
+              <ThemedText style={[styles.backButtonText, { color: agencyTheme.navyDeep }]}>←</ThemedText>
             </Pressable>
             <View style={styles.heroText}>
               <ThemedText style={styles.heroEyebrow}>MEMÓRIA · {(trip.agency?.name || "AGÊNCIA").toUpperCase()}</ThemedText>
@@ -98,25 +99,25 @@ export default function TripMemoryScreen() {
 
           <View style={styles.statsRow}>
             <View style={styles.stat}>
-              <ThemedText style={styles.statNum}>{days ?? "—"}</ThemedText>
+              <ThemedText style={[styles.statNum, { color: agencyTheme.navyDeep }]}>{days ?? "—"}</ThemedText>
               <ThemedText type="small" themeColor="textSecondary" style={styles.statLabel}>Dias</ThemedText>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.stat}>
-              <ThemedText style={styles.statNum}>{trip.itinerary.length}</ThemedText>
+              <ThemedText style={[styles.statNum, { color: agencyTheme.navyDeep }]}>{trip.itinerary.length}</ThemedText>
               <ThemedText type="small" themeColor="textSecondary" style={styles.statLabel}>Blocos</ThemedText>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.stat}>
-              <ThemedText style={styles.statNum} numberOfLines={1}>{trip.destination || "—"}</ThemedText>
+              <ThemedText style={[styles.statNum, { color: agencyTheme.navyDeep }]} numberOfLines={1}>{trip.destination || "—"}</ThemedText>
               <ThemedText type="small" themeColor="textSecondary" style={styles.statLabel}>Destino</ThemedText>
             </View>
           </View>
 
-          <ThemedText style={styles.sectionLabel}>DIÁRIO DA VIAGEM</ThemedText>
+          <ThemedText style={[styles.sectionLabel, { color: agencyTheme.coral }]}>DIÁRIO DA VIAGEM</ThemedText>
 
           {diaryLoading ? (
-            <ActivityIndicator color={Brand.coral} style={{ marginTop: Spacing.four }} />
+            <ActivityIndicator color={agencyTheme.coral} style={{ marginTop: Spacing.four }} />
           ) : sortedEntries.length === 0 ? (
             <ThemedView type="backgroundElement" style={styles.emptyDiaryCard}>
               <ThemedText themeColor="textSecondary" style={styles.emptyDiaryText}>
@@ -128,7 +129,7 @@ export default function TripMemoryScreen() {
               {sortedEntries.map((entry, index) => (
                 <View key={entry.id} style={styles.entryRow}>
                   <View style={styles.entryRail}>
-                    <View style={styles.entryDot} />
+                    <View style={[styles.entryDot, { backgroundColor: agencyTheme.coral }]} />
                     {index < sortedEntries.length - 1 ? <View style={styles.entryLine} /> : null}
                   </View>
                   <View style={styles.entryBody}>
@@ -150,8 +151,8 @@ export default function TripMemoryScreen() {
             onPress={() => router.push({ pathname: "/diary", params: { tripId: activeTripId } })}
             style={styles.addPhotosRow}
           >
-            <ThemedText style={styles.addPhotosIcon}>+</ThemedText>
-            <ThemedText style={styles.addPhotosText}>Adicionar mais fotos a esta memória</ThemedText>
+            <ThemedText style={[styles.addPhotosIcon, { color: agencyTheme.coral }]}>+</ThemedText>
+            <ThemedText style={[styles.addPhotosText, { color: agencyTheme.navy }]}>Adicionar mais fotos a esta memória</ThemedText>
           </Pressable>
         </ScrollView>
       </SafeAreaView>
@@ -165,11 +166,11 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center", gap: Spacing.three, padding: Spacing.four },
   emptyTitle: { fontSize: 16, fontWeight: "800" },
   backButtonAlt: { marginTop: Spacing.two },
-  backButtonAltText: { color: Brand.navy, fontWeight: "800" },
+  backButtonAltText: { fontWeight: "800" },
   content: { paddingBottom: BottomTabInset + Spacing.five },
   hero: { height: 280, position: "relative" },
   heroImage: { width: "100%", height: "100%" },
-  heroFallback: { backgroundColor: Brand.navyDeep, alignItems: "center", justifyContent: "center" },
+  heroFallback: { alignItems: "center", justifyContent: "center" },
   heroFallbackIcon: { fontSize: 44, opacity: 0.4 },
   heroScrim: {
     position: "absolute",
@@ -190,7 +191,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  backButtonText: { color: Brand.navyDeep, fontSize: 16, fontWeight: "900" },
+  backButtonText: { fontSize: 16, fontWeight: "900" },
   heroText: { position: "absolute", left: Spacing.four, right: Spacing.four, bottom: Spacing.three },
   heroEyebrow: { color: "rgba(255,255,255,0.8)", fontSize: 10, fontWeight: "900", letterSpacing: 1.2, marginBottom: 6 },
   heroTitle: { color: "#fff", fontSize: 24, fontWeight: "900", lineHeight: 29, marginBottom: 4 },
@@ -206,7 +207,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#E5EAF0",
   },
   stat: { flex: 1, alignItems: "center", gap: 4 },
-  statNum: { fontSize: 18, fontWeight: "900", color: Brand.navyDeep },
+  statNum: { fontSize: 18, fontWeight: "900" },
   statLabel: { textTransform: "uppercase", letterSpacing: 0.6, fontSize: 9, fontWeight: "800" },
   statDivider: { width: 1, height: 28, backgroundColor: "#E5EAF0" },
   sectionLabel: {
@@ -216,14 +217,13 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "900",
     letterSpacing: 1.2,
-    color: Brand.coral,
   },
   emptyDiaryCard: { marginHorizontal: Spacing.four, padding: Spacing.four, borderRadius: 16, alignItems: "center" },
   emptyDiaryText: { textAlign: "center" },
   timeline: { paddingHorizontal: Spacing.four },
   entryRow: { flexDirection: "row", gap: Spacing.two },
   entryRail: { width: 12, alignItems: "center" },
-  entryDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Brand.coral, marginTop: 5 },
+  entryDot: { width: 8, height: 8, borderRadius: 4, marginTop: 5 },
   entryLine: { flex: 1, width: 1, backgroundColor: "#DCE4F2", marginTop: 4 },
   entryBody: { flex: 1, paddingBottom: Spacing.four },
   entryDate: { textTransform: "uppercase", fontWeight: "800", letterSpacing: 0.5, fontSize: 10, marginBottom: 3 },
@@ -240,6 +240,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#E5EAF0",
   },
-  addPhotosIcon: { color: Brand.coral, fontSize: 16, fontWeight: "900" },
-  addPhotosText: { color: Brand.navy, fontWeight: "700", fontSize: 13 },
+  addPhotosIcon: { fontSize: 16, fontWeight: "900" },
+  addPhotosText: { fontWeight: "700", fontSize: 13 },
 });

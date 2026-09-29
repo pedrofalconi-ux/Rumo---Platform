@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -14,7 +14,7 @@ import { useLocalSearchParams } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, Brand, MaxContentWidth, Spacing } from '@/constants/theme';
+import { AppTheme, BottomTabInset, MaxContentWidth, resolveAppTheme, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useChat, ChatMessage } from '@/hooks/use-traveler-store';
 import { useAuth } from '@/hooks/use-auth';
@@ -33,16 +33,18 @@ function formatDate(isoString: string) {
 function MessageBubble({
   message,
   theme,
+  agencyTheme,
 }: {
   message: ChatMessage;
   theme: ReturnType<typeof useTheme>;
+  agencyTheme: AppTheme;
 }) {
   const isMe = message.senderRole === 'traveler';
 
   return (
     <View style={[styles.bubbleWrapper, isMe ? styles.bubbleRight : styles.bubbleLeft]}>
       {!isMe && (
-        <View style={styles.avatarCircle}>
+        <View style={[styles.avatarCircle, { backgroundColor: agencyTheme.navyDeep }]}>
           <ThemedText style={styles.avatarText}>
             {message.senderName.charAt(0).toUpperCase()}
           </ThemedText>
@@ -59,7 +61,7 @@ function MessageBubble({
           style={[
             styles.bubble,
             isMe
-              ? { backgroundColor: Brand.navyDeep }
+              ? { backgroundColor: agencyTheme.navyDeep }
               : { backgroundColor: theme.backgroundElement, borderColor: theme.backgroundSelected, borderWidth: 1 },
           ]}
         >
@@ -84,6 +86,7 @@ export default function ChatScreen() {
   const [activeTrip, setActiveTrip] = useState<MobileItinerary | null>(null);
   const activeTripId = tripId ?? activeTrip?.id ?? 'unselected';
   const theme = useTheme();
+  const agencyTheme = useMemo(() => resolveAppTheme(activeTrip?.agency?.themeId), [activeTrip]);
   const { messages, loading, error, sendMessage } = useChat(activeTripId);
   const [inputText, setInputText] = useState('');
   const scrollRef = useRef<ScrollView>(null);
@@ -126,7 +129,7 @@ export default function ChatScreen() {
           style={[styles.header, { borderBottomColor: theme.backgroundSelected }]}
         >
           <View style={styles.agentInfo}>
-            <View style={[styles.agentAvatar, { backgroundColor: Brand.navyDeep }]}>
+            <View style={[styles.agentAvatar, { backgroundColor: agencyTheme.navyDeep }]}>
               <ThemedText style={styles.agentAvatarText}>{(activeTrip?.agency?.name || 'A').charAt(0).toUpperCase()}</ThemedText>
             </View>
             <View>
@@ -162,14 +165,14 @@ export default function ChatScreen() {
                 </View>
 
                 {group.messages.map((msg) => (
-                  <MessageBubble key={msg.id} message={msg} theme={theme} />
+                  <MessageBubble key={msg.id} message={msg} theme={theme} agencyTheme={agencyTheme} />
                 ))}
               </View>
             ))}
 
             {loading ? (
               <View style={styles.emptyChat}>
-                <ActivityIndicator size="large" color={Brand.coral} />
+                <ActivityIndicator size="large" color={agencyTheme.coral} />
               </View>
             ) : error ? (
               <View style={styles.emptyChat}>
@@ -180,7 +183,7 @@ export default function ChatScreen() {
                 <View style={[styles.emptyChatIconTile, { backgroundColor: theme.accentSoft }]}>
                   <ThemedText style={styles.emptyChatEmoji}>💬</ThemedText>
                 </View>
-                <ThemedText style={styles.emptyChatTitle}>Nenhuma mensagem ainda</ThemedText>
+                <ThemedText style={[styles.emptyChatTitle, { color: agencyTheme.navyDeep }]}>Nenhuma mensagem ainda</ThemedText>
                 <ThemedText style={styles.emptyChatText} themeColor="textSecondary">
                   {activeTrip ? 'Comece uma conversa com sua agência.' : 'Adicione uma viagem para acessar o suporte da agência.'}
                 </ThemedText>
@@ -225,7 +228,7 @@ export default function ChatScreen() {
                   backgroundColor: inputText.trim()
                     ? pressed
                       ? '#D95638'
-                      : Brand.coral
+                      : agencyTheme.coral
                     : theme.backgroundSelected,
                 },
               ]}
@@ -298,7 +301,6 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: Brand.navyDeep,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -331,7 +333,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   emptyChatEmoji: { fontSize: 26 },
-  emptyChatTitle: { fontSize: 16, fontWeight: '800', color: Brand.navyDeep },
+  emptyChatTitle: { fontSize: 16, fontWeight: '800' },
   emptyChatText: { fontSize: 14, fontWeight: '500', textAlign: 'center', maxWidth: 260 },
   inputBar: {
     flexDirection: 'row',

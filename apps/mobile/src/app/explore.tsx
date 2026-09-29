@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { BottomTabInset, Brand, MaxContentWidth, Spacing } from "@/constants/theme";
+import { BottomTabInset, MaxContentWidth, resolveAppTheme, Spacing } from "@/constants/theme";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
 import { getTravelerTrip, getTravelerTrips, MobileItinerary } from "@/lib/traveler-api";
@@ -128,6 +128,8 @@ export default function ExploreScreen() {
     if (saveScrollTimerRef.current) clearTimeout(saveScrollTimerRef.current);
   }, []);
 
+  const agencyTheme = useMemo(() => resolveAppTheme(trip?.agency?.themeId), [trip]);
+
   const days = useMemo(() => {
     if (!trip) return [];
     const grouped = new Map<number, MobileItinerary["itinerary"]>();
@@ -174,16 +176,16 @@ export default function ExploreScreen() {
 
   if (loading) {
     return <ThemedView style={[styles.center, { backgroundColor: theme.background }]}>
-      <ActivityIndicator size="large" color={Brand.coral} />
+      <ActivityIndicator size="large" color={agencyTheme.coral} />
       <ThemedText themeColor="textSecondary">Carregando toda a trilha...</ThemedText>
     </ThemedView>;
   }
 
   if (!trip) {
     return <ThemedView style={[styles.center, { backgroundColor: theme.background }]}>
-      <ThemedText style={styles.emptyTitle}>Nenhum roteiro disponível</ThemedText>
+      <ThemedText style={[styles.emptyTitle, { color: agencyTheme.navy }]}>Nenhum roteiro disponível</ThemedText>
       <ThemedText themeColor="textSecondary" style={styles.centerText}>{error || "Adicione uma viagem para visualizar sua trilha."}</ThemedText>
-      <Pressable onPress={() => router.push("/")} style={styles.primaryButton}><ThemedText style={styles.primaryButtonText}>Ver minhas viagens</ThemedText></Pressable>
+      <Pressable onPress={() => router.push("/")} style={[styles.primaryButton, { backgroundColor: agencyTheme.navy }]}><ThemedText style={styles.primaryButtonText}>Ver minhas viagens</ThemedText></Pressable>
     </ThemedView>;
   }
 
@@ -198,24 +200,24 @@ export default function ExploreScreen() {
         onContentSizeChange={restoreScrollPosition}
       >
         <View style={styles.headerRow}>
-          <Pressable onPress={() => router.push("/")} style={styles.backButton}><ThemedText style={styles.backText}>← Viagens</ThemedText></Pressable>
-          <ThemedText style={styles.eyebrow}>TRILHA DA VIAGEM</ThemedText>
+          <Pressable onPress={() => router.push("/")} style={styles.backButton}><ThemedText style={[styles.backText, { color: agencyTheme.navy }]}>← Viagens</ThemedText></Pressable>
+          <ThemedText style={[styles.eyebrow, { color: agencyTheme.coral }]}>TRILHA DA VIAGEM</ThemedText>
         </View>
-        <ThemedText style={styles.title}>{trip.title}</ThemedText>
+        <ThemedText style={[styles.title, { color: agencyTheme.navy }]}>{trip.title}</ThemedText>
         <ThemedText themeColor="textSecondary">{trip.destination || "Destino a confirmar"} · {trip.startDate} a {trip.endDate}</ThemedText>
 
         <ThemedView type="backgroundElement" style={styles.progressCard}>
           <View style={styles.progressHeader}>
-            <View><ThemedText style={styles.progressTitle}>Seu progresso</ThemedText><ThemedText type="small" themeColor="textSecondary">{completedCount} de {totalItems} itens concluídos</ThemedText></View>
-            <ThemedText style={styles.percentage}>{percentage}%</ThemedText>
+            <View><ThemedText style={[styles.progressTitle, { color: agencyTheme.navy }]}>Seu progresso</ThemedText><ThemedText type="small" themeColor="textSecondary">{completedCount} de {totalItems} itens concluídos</ThemedText></View>
+            <ThemedText style={[styles.percentage, { color: agencyTheme.coral }]}>{percentage}%</ThemedText>
           </View>
           <View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${percentage}%` }]} /></View>
         </ThemedView>
 
         {error ? <View style={styles.errorBanner}><ThemedText style={styles.errorText}>{error}</ThemedText></View> : null}
-        {days.length === 0 ? <ThemedView type="backgroundElement" style={styles.emptyCard}><ThemedText style={styles.emptyTitle}>A trilha ainda está vazia</ThemedText><ThemedText themeColor="textSecondary">Sua agência ainda não adicionou atividades a este roteiro.</ThemedText></ThemedView> : days.map(([day, items]) =>
+        {days.length === 0 ? <ThemedView type="backgroundElement" style={styles.emptyCard}><ThemedText style={[styles.emptyTitle, { color: agencyTheme.navy }]}>A trilha ainda está vazia</ThemedText><ThemedText themeColor="textSecondary">Sua agência ainda não adicionou atividades a este roteiro.</ThemedText></ThemedView> : days.map(([day, items]) =>
           <View key={day} style={styles.daySection}>
-            <View style={styles.dayHeading}><View style={styles.dayBadge}><ThemedText style={styles.dayBadgeText}>{day}</ThemedText></View><ThemedText style={styles.dayTitle}>Dia {day}</ThemedText></View>
+            <View style={styles.dayHeading}><View style={[styles.dayBadge, { backgroundColor: agencyTheme.coral }]}><ThemedText style={styles.dayBadgeText}>{day}</ThemedText></View><ThemedText style={[styles.dayTitle, { color: agencyTheme.navy }]}>Dia {day}</ThemedText></View>
             <View style={styles.timelineLine} />
             {items.map((item) => {
               const done = completedIds.includes(item.id);
@@ -224,11 +226,11 @@ export default function ExploreScreen() {
                 <View style={[styles.checkbox, done && styles.checkboxDone]}><ThemedText style={styles.checkmark}>{done ? "✓" : ""}</ThemedText></View>
                 <View style={styles.itemBody}>
                   <ItineraryImage key={item.image || "no-image"} uri={item.image} />
-                  <View style={styles.typeRow}><ThemedText>{emoji}</ThemedText><ThemedText style={styles.typeLabel}>{TYPE_LABELS[item.type] || "Etapa"}</ThemedText></View>
+                  <View style={styles.typeRow}><ThemedText>{emoji}</ThemedText><ThemedText style={[styles.typeLabel, { color: agencyTheme.coral }]}>{TYPE_LABELS[item.type] || "Etapa"}</ThemedText></View>
                   <ThemedText style={[styles.itemTitle, done && styles.doneText]}>{item.title}</ThemedText>
                   {item.subTitle ? <ThemedText type="small" themeColor="textSecondary" style={done ? styles.doneText : undefined}>{item.subTitle}</ThemedText> : null}
                   {item.details ? <ThemedText type="small" themeColor="textSecondary" style={[styles.details, done && styles.doneText]}>{item.details}</ThemedText> : null}
-                  <ThemedText style={[styles.markHint, done && styles.markHintDone]}>{done ? "Concluído · toque para desfazer" : "Toque para marcar como concluído"}</ThemedText>
+                  <ThemedText style={[styles.markHint, { color: agencyTheme.navy }, done && styles.markHintDone]}>{done ? "Concluído · toque para desfazer" : "Toque para marcar como concluído"}</ThemedText>
                 </View>
               </Pressable>;
             })}
@@ -241,13 +243,13 @@ export default function ExploreScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1 }, safe: { flex: 1, width: "100%", maxWidth: MaxContentWidth, alignSelf: "center" }, content: { padding: Spacing.four, paddingBottom: BottomTabInset + 110 },
   center: { flex: 1, alignItems: "center", justifyContent: "center", gap: Spacing.three, padding: Spacing.four }, centerText: { textAlign: "center" },
-  headerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: Spacing.two }, backButton: { paddingVertical: 8, paddingRight: 12 }, backText: { color: Brand.navy, fontWeight: "800", fontSize: 12 },
-  eyebrow: { color: Brand.coral, fontSize: 10, fontWeight: "900", letterSpacing: 1.4 }, title: { color: Brand.navy, fontSize: 28, lineHeight: 34, fontWeight: "900" },
+  headerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: Spacing.two }, backButton: { paddingVertical: 8, paddingRight: 12 }, backText: { fontWeight: "800", fontSize: 12 },
+  eyebrow: { fontSize: 10, fontWeight: "900", letterSpacing: 1.4 }, title: { fontSize: 28, lineHeight: 34, fontWeight: "900" },
   progressCard: { marginTop: Spacing.four, padding: Spacing.three, borderRadius: 18, borderWidth: 1, borderColor: "#DCE4F3" }, progressHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  progressTitle: { color: Brand.navy, fontWeight: "900", marginBottom: 2 }, percentage: { color: Brand.coral, fontSize: 22, fontWeight: "900" }, progressTrack: { height: 9, borderRadius: 9, backgroundColor: "#E5EAF0", overflow: "hidden", marginTop: Spacing.three }, progressFill: { height: "100%", borderRadius: 9, backgroundColor: "#65B889" },
+  progressTitle: { fontWeight: "900", marginBottom: 2 }, percentage: { fontSize: 22, fontWeight: "900" }, progressTrack: { height: 9, borderRadius: 9, backgroundColor: "#E5EAF0", overflow: "hidden", marginTop: Spacing.three }, progressFill: { height: "100%", borderRadius: 9, backgroundColor: "#65B889" },
   errorBanner: { marginTop: Spacing.three, padding: Spacing.three, borderRadius: 12, backgroundColor: "#FFF0ED" }, errorText: { color: "#9D321F", fontSize: 12, fontWeight: "700" },
-  daySection: { position: "relative", marginTop: Spacing.five, gap: Spacing.three }, dayHeading: { flexDirection: "row", alignItems: "center", gap: Spacing.two, zIndex: 2 }, dayBadge: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center", backgroundColor: Brand.coral }, dayBadgeText: { color: "#FFF", fontWeight: "900" }, dayTitle: { color: Brand.navy, fontSize: 19, fontWeight: "900" }, timelineLine: { position: "absolute", left: 16, top: 34, bottom: -20, width: 2, backgroundColor: "#D9E0E8" },
+  daySection: { position: "relative", marginTop: Spacing.five, gap: Spacing.three }, dayHeading: { flexDirection: "row", alignItems: "center", gap: Spacing.two, zIndex: 2 }, dayBadge: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center" }, dayBadgeText: { color: "#FFF", fontWeight: "900" }, dayTitle: { fontSize: 19, fontWeight: "900" }, timelineLine: { position: "absolute", left: 16, top: 34, bottom: -20, width: 2, backgroundColor: "#D9E0E8" },
   itemCard: { marginLeft: 17, flexDirection: "row", gap: Spacing.three, padding: Spacing.three, borderWidth: 1, borderRadius: 18 }, checkbox: { width: 25, height: 25, borderRadius: 13, borderWidth: 2, borderColor: "#AAB4C2", backgroundColor: "#FFF", alignItems: "center", justifyContent: "center" }, checkboxDone: { borderColor: "#2E8B61", backgroundColor: "#2E8B61" }, checkmark: { color: "#FFF", fontWeight: "900" },
-  itemBody: { flex: 1 }, itemImage: { width: "100%", height: 130, borderRadius: 12, marginBottom: Spacing.two, backgroundColor: "#E9EDF2" }, typeRow: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 }, typeLabel: { color: Brand.coral, fontSize: 9, fontWeight: "900", textTransform: "uppercase", letterSpacing: 0.7 }, itemTitle: { fontSize: 15, lineHeight: 20, fontWeight: "800" }, details: { marginTop: 6, lineHeight: 18 }, doneText: { textDecorationLine: "line-through", opacity: 0.58 }, markHint: { color: Brand.navy, fontSize: 10, fontWeight: "800", marginTop: Spacing.two }, markHintDone: { color: "#2E8B61" },
-  emptyCard: { marginTop: Spacing.four, padding: Spacing.four, borderRadius: 18, alignItems: "center" }, emptyTitle: { color: Brand.navy, fontSize: 18, fontWeight: "900", textAlign: "center" }, primaryButton: { backgroundColor: Brand.navy, borderRadius: 12, paddingHorizontal: 18, paddingVertical: 12 }, primaryButtonText: { color: "#FFF", fontWeight: "800" },
+  itemBody: { flex: 1 }, itemImage: { width: "100%", height: 130, borderRadius: 12, marginBottom: Spacing.two, backgroundColor: "#E9EDF2" }, typeRow: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 }, typeLabel: { fontSize: 9, fontWeight: "900", textTransform: "uppercase", letterSpacing: 0.7 }, itemTitle: { fontSize: 15, lineHeight: 20, fontWeight: "800" }, details: { marginTop: 6, lineHeight: 18 }, doneText: { textDecorationLine: "line-through", opacity: 0.58 }, markHint: { fontSize: 10, fontWeight: "800", marginTop: Spacing.two }, markHintDone: { color: "#2E8B61" },
+  emptyCard: { marginTop: Spacing.four, padding: Spacing.four, borderRadius: 18, alignItems: "center" }, emptyTitle: { fontSize: 18, fontWeight: "900", textAlign: "center" }, primaryButton: { borderRadius: 12, paddingHorizontal: 18, paddingVertical: 12 }, primaryButtonText: { color: "#FFF", fontWeight: "800" },
 });

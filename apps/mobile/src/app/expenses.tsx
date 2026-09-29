@@ -14,9 +14,9 @@ import { useLocalSearchParams } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, Brand, MaxContentWidth, Spacing } from '@/constants/theme';
+import { AppTheme, BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { useExpenses, Expense } from '@/hooks/use-traveler-store';
+import { useExpenses, useTripAgencyTheme, Expense } from '@/hooks/use-traveler-store';
 
 const CATEGORIES: { value: Expense['category']; label: string; emoji: string }[] = [
   { value: 'alimentação', label: 'Alimentação', emoji: '🍽️' },
@@ -32,11 +32,13 @@ function AddExpenseModal({
   onClose,
   onAdd,
   theme,
+  agencyTheme,
 }: {
   visible: boolean;
   onClose: () => void;
   onAdd: (data: Omit<Expense, 'id' | 'tripId' | 'createdAt'>) => Promise<void>;
   theme: ReturnType<typeof useTheme>;
+  agencyTheme: AppTheme;
 }) {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
@@ -80,10 +82,10 @@ function AddExpenseModal({
         <ThemedView
           style={[styles.modalSheet, { backgroundColor: theme.background }]}
         >
-          <ThemedText style={styles.modalTitle}>Nova Despesa</ThemedText>
+          <ThemedText style={[styles.modalTitle, { color: agencyTheme.navyDeep }]}>Nova Despesa</ThemedText>
 
           {/* Category picker */}
-          <ThemedText style={styles.label}>Categoria</ThemedText>
+          <ThemedText style={[styles.label, { color: agencyTheme.navyDeep }]}>Categoria</ThemedText>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryRow}>
             {CATEGORIES.map((cat) => (
               <Pressable
@@ -93,9 +95,9 @@ function AddExpenseModal({
                   styles.categoryChip,
                   {
                     backgroundColor:
-                      category === cat.value ? Brand.navyDeep : theme.backgroundElement,
+                      category === cat.value ? agencyTheme.navyDeep : theme.backgroundElement,
                     borderColor:
-                      category === cat.value ? Brand.navyDeep : theme.backgroundSelected,
+                      category === cat.value ? agencyTheme.navyDeep : theme.backgroundSelected,
                   },
                 ]}
               >
@@ -113,7 +115,7 @@ function AddExpenseModal({
           </ScrollView>
 
           {/* Description */}
-          <ThemedText style={styles.label}>Descrição</ThemedText>
+          <ThemedText style={[styles.label, { color: agencyTheme.navyDeep }]}>Descrição</ThemedText>
           <TextInput
             style={[
               styles.input,
@@ -130,7 +132,7 @@ function AddExpenseModal({
           />
 
           {/* Amount + currency row */}
-          <ThemedText style={styles.label}>Valor</ThemedText>
+          <ThemedText style={[styles.label, { color: agencyTheme.navyDeep }]}>Valor</ThemedText>
           <View style={styles.amountRow}>
             {['EUR', 'USD', 'BRL', 'GBP'].map((cur) => (
               <Pressable
@@ -140,9 +142,9 @@ function AddExpenseModal({
                   styles.currencyChip,
                   {
                     backgroundColor:
-                      currency === cur ? Brand.navyDeep : theme.backgroundElement,
+                      currency === cur ? agencyTheme.navyDeep : theme.backgroundElement,
                     borderColor:
-                      currency === cur ? Brand.navyDeep : theme.backgroundSelected,
+                      currency === cur ? agencyTheme.navyDeep : theme.backgroundSelected,
                   },
                 ]}
               >
@@ -184,7 +186,7 @@ function AddExpenseModal({
             <Pressable
               onPress={handleSubmit}
               disabled={saving}
-              style={[styles.addBtn, { opacity: saving ? 0.7 : 1 }]}
+              style={[styles.addBtn, { backgroundColor: agencyTheme.coral, opacity: saving ? 0.7 : 1 }]}
             >
               {saving ? <ActivityIndicator color="#fff" /> : <ThemedText style={styles.addBtnText}>Adicionar</ThemedText>}
             </Pressable>
@@ -199,10 +201,12 @@ function ExpenseItem({
   expense,
   onDelete,
   theme,
+  agencyTheme,
 }: {
   expense: Expense;
   onDelete: () => void;
   theme: ReturnType<typeof useTheme>;
+  agencyTheme: AppTheme;
 }) {
   const confirmDelete = () => {
     Alert.alert('Excluir despesa?', expense.description, [
@@ -235,7 +239,7 @@ function ExpenseItem({
         </View>
       </View>
       <View style={styles.expenseRight}>
-        <ThemedText style={styles.expenseAmount}>
+        <ThemedText style={[styles.expenseAmount, { color: agencyTheme.navyDeep }]}>
           {expense.currency} {expense.amount.toFixed(2)}
         </ThemedText>
         <Pressable onPress={confirmDelete} hitSlop={8}>
@@ -250,6 +254,7 @@ export default function ExpensesScreen() {
   const { tripId } = useLocalSearchParams<{ tripId?: string }>();
   const activeTripId = tripId ?? 'unselected';
   const theme = useTheme();
+  const agencyTheme = useTripAgencyTheme(activeTripId);
   const { expenses, loading, error, addExpense, deleteExpense, total } = useExpenses(activeTripId);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -268,8 +273,8 @@ export default function ExpensesScreen() {
           style={[styles.header, { borderBottomColor: theme.backgroundSelected }]}
         >
           <View>
-            <ThemedText style={styles.headerEyebrow}>SUAS DESPESAS</ThemedText>
-            <ThemedText style={styles.headerTitle}>Despesas</ThemedText>
+            <ThemedText style={[styles.headerEyebrow, { color: agencyTheme.coral }]}>SUAS DESPESAS</ThemedText>
+            <ThemedText style={[styles.headerTitle, { color: agencyTheme.navyDeep }]}>Despesas</ThemedText>
             <ThemedText type="small" themeColor="textSecondary">
               {expenses.length} {expenses.length === 1 ? 'item' : 'itens'}
             </ThemedText>
@@ -278,7 +283,7 @@ export default function ExpensesScreen() {
             onPress={() => setModalVisible(true)}
             style={({ pressed }) => [
               styles.addButton,
-              { opacity: pressed ? 0.8 : 1 },
+              { backgroundColor: agencyTheme.coral, opacity: pressed ? 0.8 : 1 },
             ]}
           >
             <ThemedText style={styles.addButtonText}>+ Adicionar</ThemedText>
@@ -286,7 +291,7 @@ export default function ExpensesScreen() {
         </ThemedView>
 
         {/* Total card */}
-        <View style={styles.totalCard}>
+        <View style={[styles.totalCard, { backgroundColor: agencyTheme.navyDeep }]}>
           <ThemedText style={styles.totalLabel} themeColor="textSecondary">
             Total gasto
           </ThemedText>
@@ -304,17 +309,17 @@ export default function ExpensesScreen() {
         {/* List */}
         {loading ? (
           <View style={styles.empty}>
-            <ActivityIndicator size="large" color={Brand.coral} />
+            <ActivityIndicator size="large" color={agencyTheme.coral} />
           </View>
         ) : expenses.length === 0 ? (
           <View style={styles.empty}>
             <View style={[styles.emptyIconTile, { backgroundColor: theme.accentSoft }]}>
               <ThemedText style={styles.emptyEmoji}>💸</ThemedText>
             </View>
-            <ThemedText style={styles.emptyText}>Nenhuma despesa registrada.</ThemedText>
+            <ThemedText style={[styles.emptyText, { color: agencyTheme.navyDeep }]}>Nenhuma despesa registrada.</ThemedText>
             <Pressable
               onPress={() => setModalVisible(true)}
-              style={styles.emptyAddBtn}
+              style={[styles.emptyAddBtn, { backgroundColor: agencyTheme.coral }]}
             >
               <ThemedText style={styles.emptyAddText}>Adicionar primeira despesa</ThemedText>
             </Pressable>
@@ -330,7 +335,7 @@ export default function ExpensesScreen() {
               return (
                 <View key={cat} style={styles.section}>
                   <View style={styles.sectionHeader}>
-                    <ThemedText style={styles.sectionTitle}>
+                    <ThemedText style={[styles.sectionTitle, { color: agencyTheme.navyDeep }]}>
                       {catInfo?.emoji} {catInfo?.label ?? cat}
                     </ThemedText>
                     <ThemedText style={styles.sectionTotal} themeColor="textSecondary">
@@ -343,6 +348,7 @@ export default function ExpensesScreen() {
                       expense={exp}
                       onDelete={() => deleteExpense(exp.id)}
                       theme={theme}
+                      agencyTheme={agencyTheme}
                     />
                   ))}
                 </View>
@@ -357,6 +363,7 @@ export default function ExpensesScreen() {
         onClose={() => setModalVisible(false)}
         onAdd={addExpense}
         theme={theme}
+        agencyTheme={agencyTheme}
       />
     </ThemedView>
   );
@@ -378,17 +385,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  headerEyebrow: { fontSize: 10, fontWeight: '900', letterSpacing: 1.4, color: Brand.coral, marginBottom: 4 },
-  headerTitle: { fontSize: 26, fontWeight: '900', color: Brand.navyDeep, letterSpacing: -0.6 },
+  headerEyebrow: { fontSize: 10, fontWeight: '900', letterSpacing: 1.4, marginBottom: 4 },
+  headerTitle: { fontSize: 26, fontWeight: '900', letterSpacing: -0.6 },
   addButton: {
-    backgroundColor: Brand.coral,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two + 2,
     borderRadius: 14,
   },
   addButtonText: { color: '#fff', fontWeight: '700', fontSize: 13 },
   totalCard: {
-    backgroundColor: Brand.navyDeep,
     marginHorizontal: Spacing.four,
     marginVertical: Spacing.three,
     borderRadius: 18,
@@ -407,7 +412,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  sectionTitle: { fontSize: 13, fontWeight: '800', color: Brand.navyDeep },
+  sectionTitle: { fontSize: 13, fontWeight: '800' },
   sectionTotal: { fontSize: 12, fontWeight: '600' },
   expenseCard: {
     flexDirection: 'row',
@@ -422,7 +427,7 @@ const styles = StyleSheet.create({
   expenseInfo: { flex: 1 },
   expenseDesc: { fontSize: 13, fontWeight: '600' },
   expenseRight: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-  expenseAmount: { fontSize: 13, fontWeight: '800', color: Brand.navyDeep },
+  expenseAmount: { fontSize: 13, fontWeight: '800' },
   deleteIcon: { fontSize: 14 },
   empty: {
     flex: 1,
@@ -440,9 +445,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   emptyEmoji: { fontSize: 26 },
-  emptyText: { fontSize: 17, fontWeight: '800', color: Brand.navyDeep },
+  emptyText: { fontSize: 17, fontWeight: '800' },
   emptyAddBtn: {
-    backgroundColor: Brand.coral,
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.two,
     borderRadius: 14,
@@ -469,8 +473,8 @@ const styles = StyleSheet.create({
     padding: Spacing.four,
     gap: Spacing.two,
   },
-  modalTitle: { fontSize: 18, fontWeight: '800', marginBottom: Spacing.two, color: Brand.navyDeep },
-  label: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, color: Brand.navyDeep },
+  modalTitle: { fontSize: 18, fontWeight: '800', marginBottom: Spacing.two },
+  label: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
   categoryRow: { flexDirection: 'row', marginBottom: Spacing.two },
   categoryChip: {
     flexDirection: 'row',
@@ -516,7 +520,6 @@ const styles = StyleSheet.create({
   },
   addBtn: {
     flex: 1,
-    backgroundColor: Brand.coral,
     borderRadius: 14,
     padding: Spacing.two,
     alignItems: 'center',
