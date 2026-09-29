@@ -3,3 +3,9 @@
 **/node_modules
 **/.turbo
 **/*.log
+artifacts
+.local-tools
+apps/mobile/android
+apps/mobile/ios
+apps/mobile/dist
+stitch_screens

@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "web", "--workspace=apps/mobile"],
       "port": 8081
+    },
+    {
+      "name": "web-dashboard",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--workspace=apps/web"],
+      "port": 3000
     }
   ]
 }
