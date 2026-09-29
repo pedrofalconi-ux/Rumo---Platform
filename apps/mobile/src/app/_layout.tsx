@@ -1,11 +1,10 @@
-import { DefaultTheme, ThemeProvider } from 'expo-router';
+import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { Baloo2_700Bold } from '@expo-google-fonts/baloo-2';
 import { PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { AuthScreen } from '@/components/auth-screen';
-import AppTabs from '@/components/app-tabs';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { ThemedView } from '@/components/themed-view';
 import { ActivityIndicator, StyleSheet } from 'react-native';
@@ -51,7 +50,7 @@ function RootContent({ fontsReady }: { fontsReady: boolean }) {
     return <AuthScreen />;
   }
 
-  return <AppTabs />;
+  return <Stack screenOptions={{ headerShown: false }} />;
 }
 
 const styles = StyleSheet.create({
