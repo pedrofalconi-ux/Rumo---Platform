@@ -1,15 +1,17 @@
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { Colors } from '@/constants/theme';
+import { useSharedAgencyTheme } from '@/hooks/use-shared-agency-theme';
 
 export default function AppTabs() {
   const colors = Colors.light;
+  const { theme } = useSharedAgencyTheme();
 
   return (
     <NativeTabs
       backgroundColor={colors.backgroundElement}
-      tintColor={colors.textSecondary}
+      tintColor={theme.coral}
       indicatorColor={colors.accentSoft}
-      labelStyle={{ selected: { color: colors.primary, fontWeight: '700' } }}>
+      labelStyle={{ selected: { color: theme.coral, fontWeight: '700' } }}>
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Label>Viagens</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon

@@ -10,6 +10,7 @@ import { BottomTabInset, MaxContentWidth, resolveAppTheme, Spacing } from "@/con
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
 import { useDiary } from "@/hooks/use-traveler-store";
+import { useBroadcastAgencyTheme } from "@/hooks/use-shared-agency-theme";
 import { getTravelerTrip, MobileItinerary } from "@/lib/traveler-api";
 
 function daysBetween(start: string, end: string) {
@@ -33,6 +34,7 @@ export default function TripMemoryScreen() {
   const activeTripId = tripId || "unselected";
   const { entries, loading: diaryLoading } = useDiary(activeTripId);
   const agencyTheme = useMemo(() => resolveAppTheme(trip?.agency?.themeId), [trip]);
+  useBroadcastAgencyTheme(agencyTheme);
 
   useEffect(() => {
     const task = setTimeout(() => {
@@ -99,22 +101,22 @@ export default function TripMemoryScreen() {
 
           <View style={styles.statsRow}>
             <View style={styles.stat}>
-              <ThemedText style={[styles.statNum, { color: agencyTheme.navyDeep }]}>{days ?? "—"}</ThemedText>
+              <ThemedText style={[styles.statNum, { color: agencyTheme.navyDeep, fontFamily: agencyTheme.headlineFont }]}>{days ?? "—"}</ThemedText>
               <ThemedText type="small" themeColor="textSecondary" style={styles.statLabel}>Dias</ThemedText>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.stat}>
-              <ThemedText style={[styles.statNum, { color: agencyTheme.navyDeep }]}>{trip.itinerary.length}</ThemedText>
+              <ThemedText style={[styles.statNum, { color: agencyTheme.navyDeep, fontFamily: agencyTheme.headlineFont }]}>{trip.itinerary.length}</ThemedText>
               <ThemedText type="small" themeColor="textSecondary" style={styles.statLabel}>Blocos</ThemedText>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.stat}>
-              <ThemedText style={[styles.statNum, { color: agencyTheme.navyDeep }]} numberOfLines={1}>{trip.destination || "—"}</ThemedText>
+              <ThemedText style={[styles.statNum, { color: agencyTheme.navyDeep, fontFamily: agencyTheme.headlineFont }]} numberOfLines={1}>{trip.destination || "—"}</ThemedText>
               <ThemedText type="small" themeColor="textSecondary" style={styles.statLabel}>Destino</ThemedText>
             </View>
           </View>
 
-          <ThemedText style={[styles.sectionLabel, { color: agencyTheme.coral }]}>DIÁRIO DA VIAGEM</ThemedText>
+          <ThemedText style={[styles.sectionLabel, { color: agencyTheme.coral, fontFamily: agencyTheme.headlineFont }]}>DIÁRIO DA VIAGEM</ThemedText>
 
           {diaryLoading ? (
             <ActivityIndicator color={agencyTheme.coral} style={{ marginTop: Spacing.four }} />

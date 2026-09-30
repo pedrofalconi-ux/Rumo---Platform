@@ -4,7 +4,8 @@ import { Animated, Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, Brand, MaxContentWidth, Spacing } from '@/constants/theme';
+import { BottomTabInset, Brand, MaxContentWidth, resolveAppTheme, Spacing } from '@/constants/theme';
+import { useBroadcastAgencyTheme } from '@/hooks/use-shared-agency-theme';
 
 const tools = [
   { href: '/expenses' as const, icon: 'R$', title: 'Despesas', text: 'Controle os gastos da viagem.' },
@@ -12,6 +13,7 @@ const tools = [
 ];
 
 export default function UtilitiesScreen() {
+  useBroadcastAgencyTheme(resolveAppTheme());
   const [entrance] = useState(() => new Animated.Value(0));
   useEffect(() => { Animated.timing(entrance, { toValue: 1, duration: 420, useNativeDriver: true }).start(); }, [entrance]);
   return <SafeAreaView style={styles.safe}><ScrollView contentContainerStyle={styles.content}><Animated.View style={[styles.container, { opacity: entrance, transform: [{ translateY: entrance.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) }] }]}>

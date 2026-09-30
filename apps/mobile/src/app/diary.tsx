@@ -19,6 +19,7 @@ import { ThemedView } from '@/components/themed-view';
 import { AppTheme, BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useDiary, useTripAgencyTheme, DiaryEntry } from '@/hooks/use-traveler-store';
+import { useBroadcastAgencyTheme } from '@/hooks/use-shared-agency-theme';
 
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleDateString('pt-BR', {
@@ -95,7 +96,7 @@ function AddEntryModal({
         <ThemedView
           style={[styles.modalSheet, { backgroundColor: theme.background }]}
         >
-          <ThemedText style={[styles.modalTitle, { color: agencyTheme.navyDeep }]}>Nova Entrada no Diário</ThemedText>
+          <ThemedText style={[styles.modalTitle, { color: agencyTheme.navyDeep, fontFamily: agencyTheme.headlineFont }]}>Nova Entrada no Diário</ThemedText>
 
           <ThemedText style={[styles.label, { color: agencyTheme.navyDeep }]}>Dia da viagem</ThemedText>
           <TextInput
@@ -250,6 +251,7 @@ export default function DiaryScreen() {
   const activeTripId = tripId ?? 'unselected';
   const theme = useTheme();
   const agencyTheme = useTripAgencyTheme(activeTripId);
+  useBroadcastAgencyTheme(agencyTheme);
   const { entries, loading, error, addEntry, deleteEntry } = useDiary(activeTripId);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -296,7 +298,7 @@ export default function DiaryScreen() {
             <View style={[styles.emptyIconTile, { backgroundColor: theme.accentSoft }]}>
               <ThemedText style={styles.emptyEmoji}>📖</ThemedText>
             </View>
-            <ThemedText style={[styles.emptyTitle, { color: agencyTheme.navyDeep }]}>Seu diário está vazio.</ThemedText>
+            <ThemedText style={[styles.emptyTitle, { color: agencyTheme.navyDeep, fontFamily: agencyTheme.headlineFont }]}>Seu diário está vazio.</ThemedText>
             <ThemedText type="small" themeColor="textSecondary" style={styles.emptySubtitle}>
               Registre suas memórias, experiências e sentimentos desta viagem.
             </ThemedText>

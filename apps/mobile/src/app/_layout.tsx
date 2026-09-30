@@ -6,6 +6,7 @@ import { PlayfairDisplay_700Bold } from '@expo-google-fonts/playfair-display';
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { AuthScreen } from '@/components/auth-screen';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
+import { SharedAgencyThemeProvider } from '@/hooks/use-shared-agency-theme';
 import { ThemedView } from '@/components/themed-view';
 import { ActivityIndicator, StyleSheet } from 'react-native';
 import { Brand, Colors } from '@/constants/theme';
@@ -28,8 +29,10 @@ export default function TabLayout() {
   return (
     <ThemeProvider value={navigationTheme}>
       <AuthProvider>
-        <AnimatedSplashOverlay />
-        <RootContent fontsReady={agencyFontsLoaded} />
+        <SharedAgencyThemeProvider>
+          <AnimatedSplashOverlay />
+          <RootContent fontsReady={agencyFontsLoaded} />
+        </SharedAgencyThemeProvider>
       </AuthProvider>
     </ThemeProvider>
   );

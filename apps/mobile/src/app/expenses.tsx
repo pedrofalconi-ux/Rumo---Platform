@@ -17,6 +17,7 @@ import { ThemedView } from '@/components/themed-view';
 import { AppTheme, BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useExpenses, useTripAgencyTheme, Expense } from '@/hooks/use-traveler-store';
+import { useBroadcastAgencyTheme } from '@/hooks/use-shared-agency-theme';
 
 const CATEGORIES: { value: Expense['category']; label: string; emoji: string }[] = [
   { value: 'alimentação', label: 'Alimentação', emoji: '🍽️' },
@@ -82,7 +83,7 @@ function AddExpenseModal({
         <ThemedView
           style={[styles.modalSheet, { backgroundColor: theme.background }]}
         >
-          <ThemedText style={[styles.modalTitle, { color: agencyTheme.navyDeep }]}>Nova Despesa</ThemedText>
+          <ThemedText style={[styles.modalTitle, { color: agencyTheme.navyDeep, fontFamily: agencyTheme.headlineFont }]}>Nova Despesa</ThemedText>
 
           {/* Category picker */}
           <ThemedText style={[styles.label, { color: agencyTheme.navyDeep }]}>Categoria</ThemedText>
@@ -255,6 +256,7 @@ export default function ExpensesScreen() {
   const activeTripId = tripId ?? 'unselected';
   const theme = useTheme();
   const agencyTheme = useTripAgencyTheme(activeTripId);
+  useBroadcastAgencyTheme(agencyTheme);
   const { expenses, loading, error, addExpense, deleteExpense, total } = useExpenses(activeTripId);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -295,7 +297,7 @@ export default function ExpensesScreen() {
           <ThemedText style={styles.totalLabel} themeColor="textSecondary">
             Total gasto
           </ThemedText>
-          <ThemedText style={styles.totalAmount}>
+          <ThemedText style={[styles.totalAmount, { fontFamily: agencyTheme.headlineFont }]}>
             EUR {total.toFixed(2)}
           </ThemedText>
         </View>
@@ -316,7 +318,7 @@ export default function ExpensesScreen() {
             <View style={[styles.emptyIconTile, { backgroundColor: theme.accentSoft }]}>
               <ThemedText style={styles.emptyEmoji}>💸</ThemedText>
             </View>
-            <ThemedText style={[styles.emptyText, { color: agencyTheme.navyDeep }]}>Nenhuma despesa registrada.</ThemedText>
+            <ThemedText style={[styles.emptyText, { color: agencyTheme.navyDeep, fontFamily: agencyTheme.headlineFont }]}>Nenhuma despesa registrada.</ThemedText>
             <Pressable
               onPress={() => setModalVisible(true)}
               style={[styles.emptyAddBtn, { backgroundColor: agencyTheme.coral }]}

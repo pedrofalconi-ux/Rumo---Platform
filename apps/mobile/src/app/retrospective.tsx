@@ -8,9 +8,10 @@ import { captureRef } from "react-native-view-shot";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Brand, MaxContentWidth, Spacing } from "@/constants/theme";
+import { Brand, MaxContentWidth, resolveAppTheme, Spacing } from "@/constants/theme";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
+import { useBroadcastAgencyTheme } from "@/hooks/use-shared-agency-theme";
 import { DiaryEntry, getDiaryEntries, getTravelerTrips, MobileItinerary } from "@/lib/traveler-api";
 
 const CARD_WIDTH = Math.min(340, Dimensions.get("window").width - Spacing.four * 2);
@@ -35,6 +36,7 @@ export default function RetrospectiveScreen() {
   const router = useRouter();
   const { sessionId, user } = useAuth();
   const theme = useTheme();
+  useBroadcastAgencyTheme(resolveAppTheme());
   const [loading, setLoading] = useState(true);
   const [trips, setTrips] = useState<MobileItinerary[]>([]);
   const [bestMoment, setBestMoment] = useState<{ entry: DiaryEntry; tripTitle: string } | null>(null);

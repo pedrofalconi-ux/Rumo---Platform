@@ -6,7 +6,8 @@ import { useRouter } from "expo-router";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Brand, MaxContentWidth, Spacing } from "@/constants/theme";
+import { Brand, MaxContentWidth, resolveAppTheme, Spacing } from "@/constants/theme";
+import { useBroadcastAgencyTheme } from "@/hooks/use-shared-agency-theme";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
 import { getOwnProfile, OwnProfile, setTripVisibility } from "@/lib/traveler-api";
@@ -15,6 +16,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { sessionId } = useAuth();
   const theme = useTheme();
+  useBroadcastAgencyTheme(resolveAppTheme());
   const [profile, setProfile] = useState<OwnProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

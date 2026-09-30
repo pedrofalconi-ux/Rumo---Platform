@@ -6,9 +6,10 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Brand, MaxContentWidth, Spacing } from "@/constants/theme";
+import { Brand, MaxContentWidth, resolveAppTheme, Spacing } from "@/constants/theme";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
+import { useBroadcastAgencyTheme } from "@/hooks/use-shared-agency-theme";
 import { getPublicProfile, PublicProfile } from "@/lib/traveler-api";
 
 export default function PublicProfileScreen() {
@@ -16,6 +17,7 @@ export default function PublicProfileScreen() {
   const { handle } = useLocalSearchParams<{ handle: string }>();
   const { sessionId } = useAuth();
   const theme = useTheme();
+  useBroadcastAgencyTheme(resolveAppTheme());
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

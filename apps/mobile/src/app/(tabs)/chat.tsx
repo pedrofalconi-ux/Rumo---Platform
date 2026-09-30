@@ -18,6 +18,7 @@ import { AppTheme, BottomTabInset, MaxContentWidth, resolveAppTheme, Spacing } f
 import { useTheme } from '@/hooks/use-theme';
 import { useChat, ChatMessage } from '@/hooks/use-traveler-store';
 import { useAuth } from '@/hooks/use-auth';
+import { useBroadcastAgencyTheme } from '@/hooks/use-shared-agency-theme';
 import { getTravelerTrips, MobileItinerary } from '@/lib/traveler-api';
 
 function formatTime(isoString: string) {
@@ -87,6 +88,7 @@ export default function ChatScreen() {
   const activeTripId = tripId ?? activeTrip?.id ?? 'unselected';
   const theme = useTheme();
   const agencyTheme = useMemo(() => resolveAppTheme(activeTrip?.agency?.themeId), [activeTrip]);
+  useBroadcastAgencyTheme(agencyTheme);
   const { messages, loading, error, sendMessage } = useChat(activeTripId);
   const [inputText, setInputText] = useState('');
   const scrollRef = useRef<ScrollView>(null);
@@ -183,7 +185,7 @@ export default function ChatScreen() {
                 <View style={[styles.emptyChatIconTile, { backgroundColor: theme.accentSoft }]}>
                   <ThemedText style={styles.emptyChatEmoji}>💬</ThemedText>
                 </View>
-                <ThemedText style={[styles.emptyChatTitle, { color: agencyTheme.navyDeep }]}>Nenhuma mensagem ainda</ThemedText>
+                <ThemedText style={[styles.emptyChatTitle, { color: agencyTheme.navyDeep, fontFamily: agencyTheme.headlineFont }]}>Nenhuma mensagem ainda</ThemedText>
                 <ThemedText style={styles.emptyChatText} themeColor="textSecondary">
                   {activeTrip ? 'Comece uma conversa com sua agência.' : 'Adicione uma viagem para acessar o suporte da agência.'}
                 </ThemedText>

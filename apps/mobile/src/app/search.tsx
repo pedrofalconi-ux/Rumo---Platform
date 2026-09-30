@@ -5,15 +5,17 @@ import { useRouter } from "expo-router";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Brand, MaxContentWidth, Spacing } from "@/constants/theme";
+import { Brand, MaxContentWidth, resolveAppTheme, Spacing } from "@/constants/theme";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
+import { useBroadcastAgencyTheme } from "@/hooks/use-shared-agency-theme";
 import { searchTravelers, TravelerSearchResult } from "@/lib/traveler-api";
 
 export default function SearchScreen() {
   const router = useRouter();
   const { sessionId } = useAuth();
   const theme = useTheme();
+  useBroadcastAgencyTheme(resolveAppTheme());
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<TravelerSearchResult[]>([]);
   const [loading, setLoading] = useState(false);

@@ -13,9 +13,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { BottomTabInset, Brand, MaxContentWidth, Spacing } from "@/constants/theme";
+import { BottomTabInset, Brand, MaxContentWidth, resolveAppTheme, Spacing } from "@/constants/theme";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
+import { useBroadcastAgencyTheme } from "@/hooks/use-shared-agency-theme";
 import { getTravelerTrips, TripDocument } from "@/lib/traveler-api";
 
 const TYPE_COLORS = {
@@ -118,6 +119,7 @@ function DocumentCard({
 
 export default function DocumentsScreen() {
   const theme = useTheme();
+  useBroadcastAgencyTheme(resolveAppTheme());
   const { sessionId } = useAuth();
   const [documents, setDocuments] = React.useState<TripDocumentWithTrip[]>([]);
   const [loading, setLoading] = React.useState(true);

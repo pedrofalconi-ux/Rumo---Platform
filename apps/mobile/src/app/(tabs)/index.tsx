@@ -17,6 +17,7 @@ import { ThemedView } from "@/components/themed-view";
 import { BottomTabInset, Brand, MaxContentWidth, resolveAppTheme, Spacing } from "@/constants/theme";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
+import { useBroadcastAgencyTheme } from "@/hooks/use-shared-agency-theme";
 import {
   getInvitePreview,
   getTravelerTrips,
@@ -232,6 +233,7 @@ export default function HomeScreen() {
   // The primary agency's chosen theme drives the welcome block's accent — same
   // "trips[0]'s agency" precedent already used for the header logo/name above.
   const agencyTheme = useMemo(() => resolveAppTheme(trips[0]?.agency?.themeId), [trips]);
+  useBroadcastAgencyTheme(agencyTheme);
 
   const { upcoming, past } = useMemo(() => {
     const nextUpcoming: MobileItinerary[] = [];

@@ -10,6 +10,7 @@ import { ThemedView } from "@/components/themed-view";
 import { BottomTabInset, MaxContentWidth, resolveAppTheme, Spacing } from "@/constants/theme";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
+import { useBroadcastAgencyTheme } from "@/hooks/use-shared-agency-theme";
 import { getTravelerTrip, getTravelerTrips, MobileItinerary } from "@/lib/traveler-api";
 
 const SYMBOLS: Record<string, string> = {
@@ -129,6 +130,7 @@ export default function ExploreScreen() {
   }, []);
 
   const agencyTheme = useMemo(() => resolveAppTheme(trip?.agency?.themeId), [trip]);
+  useBroadcastAgencyTheme(agencyTheme);
 
   const days = useMemo(() => {
     if (!trip) return [];
@@ -201,14 +203,14 @@ export default function ExploreScreen() {
       >
         <View style={styles.headerRow}>
           <Pressable onPress={() => router.push("/")} style={styles.backButton}><ThemedText style={[styles.backText, { color: agencyTheme.navy }]}>← Viagens</ThemedText></Pressable>
-          <ThemedText style={[styles.eyebrow, { color: agencyTheme.coral }]}>TRILHA DA VIAGEM</ThemedText>
+          <ThemedText style={[styles.eyebrow, { color: agencyTheme.coral, fontFamily: agencyTheme.headlineFont }]}>TRILHA DA VIAGEM</ThemedText>
         </View>
         <ThemedText style={[styles.title, { color: agencyTheme.navy, fontFamily: agencyTheme.headlineFont }]}>{trip.title}</ThemedText>
         <ThemedText themeColor="textSecondary">{trip.destination || "Destino a confirmar"} · {trip.startDate} a {trip.endDate}</ThemedText>
 
         <ThemedView type="backgroundElement" style={styles.progressCard}>
           <View style={styles.progressHeader}>
-            <View><ThemedText style={[styles.progressTitle, { color: agencyTheme.navy }]}>Seu progresso</ThemedText><ThemedText type="small" themeColor="textSecondary">{completedCount} de {totalItems} itens concluídos</ThemedText></View>
+            <View><ThemedText style={[styles.progressTitle, { color: agencyTheme.navy, fontFamily: agencyTheme.headlineFont }]}>Seu progresso</ThemedText><ThemedText type="small" themeColor="textSecondary">{completedCount} de {totalItems} itens concluídos</ThemedText></View>
             <ThemedText style={[styles.percentage, { color: agencyTheme.coral }]}>{percentage}%</ThemedText>
           </View>
           <View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${percentage}%` }]} /></View>
@@ -217,7 +219,7 @@ export default function ExploreScreen() {
         {error ? <View style={styles.errorBanner}><ThemedText style={styles.errorText}>{error}</ThemedText></View> : null}
         {days.length === 0 ? <ThemedView type="backgroundElement" style={styles.emptyCard}><ThemedText style={[styles.emptyTitle, { color: agencyTheme.navy }]}>A trilha ainda está vazia</ThemedText><ThemedText themeColor="textSecondary">Sua agência ainda não adicionou atividades a este roteiro.</ThemedText></ThemedView> : days.map(([day, items]) =>
           <View key={day} style={styles.daySection}>
-            <View style={styles.dayHeading}><View style={[styles.dayBadge, { backgroundColor: agencyTheme.coral }]}><ThemedText style={styles.dayBadgeText}>{day}</ThemedText></View><ThemedText style={[styles.dayTitle, { color: agencyTheme.navy }]}>Dia {day}</ThemedText></View>
+            <View style={styles.dayHeading}><View style={[styles.dayBadge, { backgroundColor: agencyTheme.coral }]}><ThemedText style={styles.dayBadgeText}>{day}</ThemedText></View><ThemedText style={[styles.dayTitle, { color: agencyTheme.navy, fontFamily: agencyTheme.headlineFont }]}>Dia {day}</ThemedText></View>
             <View style={styles.timelineLine} />
             {items.map((item) => {
               const done = completedIds.includes(item.id);
