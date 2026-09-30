@@ -60,6 +60,7 @@ interface Trip {
   aiGenerationId?: string;
   aiGeneratedAt?: string;
   aiResponse?: {
+    provider?: string;
     progress?: {
       daysGenerated?: number;
       failedDays?: Array<{ day: number; error: string }>;
@@ -831,7 +832,9 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
 
       setTrip(data.trip);
       setItems(data.itinerary || []);
-      if (data.meta?.failedDays?.length) {
+      if (data.trip?.aiResponse?.provider === 'mock') {
+        alert('Nenhuma chave de IA configurada: o roteiro gerado e um modelo de teste generico, nao uma sugestao real de IA. Nao envie para o viajante.');
+      } else if (data.meta?.failedDays?.length) {
         alert(`Roteiro parcial gerado. Dias com falha: ${data.meta.failedDays.map((d: { day: number }) => d.day).join(', ')}.`);
       } else {
         alert('Roteiro gerado com sucesso. Revise o conteudo antes de publicar.');
@@ -1622,23 +1625,43 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
 
       {/* AI draft banner */}
       {trip?.aiStatus === 'AI_DRAFT' && !isPreviewMode && (
-        <div className="bg-amber-50 border border-amber-200 text-amber-900 px-5 py-3.5 flex flex-wrap justify-between items-center gap-3 rounded-xl mb-6 print:hidden">
-          <div className="flex items-start gap-2">
-            <span className="material-symbols-outlined text-sm mt-0.5">auto_awesome</span>
-            <div>
-              <p className="text-xs font-bold">Rascunho gerado por IA</p>
-              <p className="text-[11px] opacity-80">
-                Revise o conteudo antes de publicar. Voos e hoteis reservados devem ser adicionados manualmente.
-              </p>
+        trip?.aiResponse?.provider === 'mock' ? (
+          <div className="bg-rose-50 border border-rose-300 text-rose-900 px-5 py-3.5 flex flex-wrap justify-between items-center gap-3 rounded-xl mb-6 print:hidden">
+            <div className="flex items-start gap-2">
+              <span className="material-symbols-outlined text-sm mt-0.5">warning</span>
+              <div>
+                <p className="text-xs font-bold">Roteiro de teste — sem IA real</p>
+                <p className="text-[11px] opacity-90">
+                  Nenhuma chave de IA configurada; este conteúdo é um modelo genérico de teste, não uma sugestão real gerada por IA. Não envie para o viajante — configure a IA em Configurações e gere de novo.
+                </p>
+              </div>
             </div>
+            <button
+              onClick={handleGenerateWithAi}
+              className="px-3.5 py-1.5 bg-rose-600 text-white text-xs font-bold rounded-lg hover:bg-rose-700 transition-all"
+            >
+              Tentar gerar de novo
+            </button>
           </div>
-          <button
-            onClick={handleApproveAiDraft}
-            className="px-3.5 py-1.5 bg-amber-600 text-white text-xs font-bold rounded-lg hover:bg-amber-700 transition-all"
-          >
-            Aprovar conteudo IA
-          </button>
-        </div>
+        ) : (
+          <div className="bg-amber-50 border border-amber-200 text-amber-900 px-5 py-3.5 flex flex-wrap justify-between items-center gap-3 rounded-xl mb-6 print:hidden">
+            <div className="flex items-start gap-2">
+              <span className="material-symbols-outlined text-sm mt-0.5">auto_awesome</span>
+              <div>
+                <p className="text-xs font-bold">Rascunho gerado por IA</p>
+                <p className="text-[11px] opacity-80">
+                  Revise o conteudo antes de publicar. Voos e hoteis reservados devem ser adicionados manualmente.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleApproveAiDraft}
+              className="px-3.5 py-1.5 bg-amber-600 text-white text-xs font-bold rounded-lg hover:bg-amber-700 transition-all"
+            >
+              Aprovar conteudo IA
+            </button>
+          </div>
+        )
       )}
 
       {trip?.templateMatch && !isPreviewMode && (

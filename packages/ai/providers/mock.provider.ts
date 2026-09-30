@@ -162,17 +162,19 @@ export class MockProvider implements LLMProvider {
     const tripMatch = userPayload.match(/T[ií]tulo: (.+)/);
     const periodMatch = userPayload.match(/Per[ií]odo: (\d{4}-\d{2}-\d{2}) a (\d{4}-\d{2}-\d{2})/);
     const travelersMatch = userPayload.match(/Viajantes: (\d+)/);
+    const destinationsMatch = userPayload.match(/Destinos?: (.+)/);
+    const clientMatch = userPayload.match(/Cliente: (.+)/);
 
     const mockInput: TripInput = {
       tripId: 'mock',
       agencyId: 'mock',
       title: tripMatch?.[1] || 'Viagem Rumo',
       origin: 'São Paulo (BR)',
-      destinations: ['Destino'],
+      destinations: destinationsMatch?.[1]?.split(',').map((d) => d.trim()).filter(Boolean) || ['Destino'],
       startDate: periodMatch?.[1] || '2024-07-01',
       endDate: periodMatch?.[2] || '2024-07-07',
       travelersCount: Number(travelersMatch?.[1] || 2),
-      clientName: 'Cliente',
+      clientName: clientMatch?.[1]?.trim() || 'Cliente',
       budget: 10000,
       currency: 'BRL',
       profile: 'lazer',
