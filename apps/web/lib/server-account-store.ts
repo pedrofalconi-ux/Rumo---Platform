@@ -780,6 +780,30 @@ export async function listUsersForAgency(agencyId?: string) {
   }
 }
 
+/**
+ * Travelers can hold trips across many agencies, so unlike listUsersForAgency
+ * there's no single agencyId to scope by — this always spans both stores.
+ * Used by search and public-profile lookups, which otherwise only ever saw
+ * legacy-JSON travelers and silently missed every Supabase-provisioned one.
+ */
+export async function listAllTravelers(): Promise<AccountUser[]> {
+  const legacyTravelers = (db.users.findMany() as AccountUser[]).filter((u) => u.role === 'traveler');
+  if (!hasSupabaseServerAccess) return legacyTravelers;
+
+  try {
+    const { data, error } = await requireSupabaseAdmin()
+      .from('users')
+      .select('*')
+      .eq('role', 'traveler')
+      .is('deleted_at', null);
+    if (error) throw error;
+    return [...(data || []).map(normalizeUserRow), ...legacyTravelers];
+  } catch (error) {
+    if (!shouldFallbackToLocal(error)) throw error;
+    return legacyTravelers;
+  }
+}
+
 export async function createAgencyUser(
   agencyId: string,
   data: {

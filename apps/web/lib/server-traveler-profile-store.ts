@@ -1,6 +1,6 @@
 import { db } from '@rumo/db';
 import { findTripById } from './server-trip-store';
-import { getUserById, setUserHandle } from './server-account-store';
+import { getUserById, listAllTravelers, setUserHandle } from './server-account-store';
 
 function slugify(value: string) {
   return value
@@ -11,9 +11,9 @@ function slugify(value: string) {
     .slice(0, 20);
 }
 
-function handleExists(handle: string, excludeUserId?: string) {
-  const users = db.users.findMany() as Array<{ id: string; handle?: string }>;
-  return users.some((u) => u.handle === handle && u.id !== excludeUserId);
+async function handleExists(handle: string, excludeUserId?: string) {
+  const travelers = await listAllTravelers();
+  return travelers.some((u) => u.handle === handle && u.id !== excludeUserId);
 }
 
 /** Every traveler needs a handle to be searchable; generate one on first profile access. */
@@ -25,7 +25,7 @@ export async function getOrCreateHandle(userId: string): Promise<string> {
   const base = slugify(user.fullName || 'viajante') || 'viajante';
   let candidate = base;
   let suffix = 0;
-  while (handleExists(candidate, userId)) {
+  while (await handleExists(candidate, userId)) {
     suffix += 1;
     candidate = `${base}${suffix}`;
   }
@@ -88,10 +88,9 @@ export async function searchTravelers(query: string, excludeUserId: string) {
   const normalized = query.trim().toLowerCase().replace(/^@/, '');
   if (normalized.length < 2) return [];
 
-  const users = db.users.findMany() as Array<{ id: string; role: string; fullName: string; handle?: string }>;
-  const matches = users.filter(
+  const travelers = await listAllTravelers();
+  const matches = travelers.filter(
     (u) =>
-      u.role === 'traveler' &&
       u.id !== excludeUserId &&
       (u.handle?.includes(normalized) || u.fullName.toLowerCase().includes(normalized))
   );
@@ -110,8 +109,8 @@ export async function searchTravelers(query: string, excludeUserId: string) {
 
 export async function getPublicProfile(handle: string) {
   const normalized = handle.trim().toLowerCase().replace(/^@/, '');
-  const users = db.users.findMany() as Array<{ id: string; role: string; fullName: string; handle?: string }>;
-  const user = users.find((u) => u.role === 'traveler' && u.handle === normalized);
+  const travelers = await listAllTravelers();
+  const user = travelers.find((u) => u.handle === normalized);
   if (!user) return null;
 
   const accessRows = db.travelerTrips.findAccessManyForUser(user.id) as Array<{

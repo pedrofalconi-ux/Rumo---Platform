@@ -32,7 +32,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     }
 
     const body = await request.json();
-    const client = body.clientId
+    let client = body.clientId
       ? db.clients.findMany(user.agencyId).find((entry: any) => entry.id === body.clientId)
       : null;
     const travelerName = String(client?.fullName || body.travelerName || '').trim();
@@ -45,17 +45,32 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: 'Informe nome e e-mail ou telefone do viajante' }, { status: 400 });
     }
 
+    // Invites are usually raised straight from "Liberar no app" with just a
+    // name/e-mail, with no client picked first — without this, the traveler
+    // never shows up in Clientes even after they accept and start using the app.
+    if (!client) {
+      const existingByEmail = email
+        ? db.clients.findMany(user.agencyId).find((entry: any) => entry.email?.toLowerCase() === email.toLowerCase())
+        : null;
+      client = existingByEmail || db.clients.create({
+        agencyId: user.agencyId,
+        fullName: travelerName,
+        email,
+        phone,
+      });
+    }
+
     const invite = db.travelerInvites.create({
       agencyId: user.agencyId,
       tripId: resolvedParams.id,
-      clientId: client?.id || body.clientId || null,
+      clientId: client.id,
       travelerName,
       email,
       phone,
       channel: body.channel || 'email',
       createdBy: user.id,
     });
-    if (client) db.clients.update(client.id, { appAccessStatus: 'invited' }, user.agencyId);
+    db.clients.update(client.id, { appAccessStatus: 'invited' }, user.agencyId);
 
     const url = `${new URL(request.url).origin}/mobile/invite/${invite.token}`;
     return NextResponse.json({ ...invite, url });
