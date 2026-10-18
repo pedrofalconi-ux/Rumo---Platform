@@ -18,3 +18,13 @@ export { POI_TYPES, uncoveredPoiResult } from './rag/poi-retriever';
 export { buildPoiPromptContext } from './rag/poi-prompt-context';
 export type { ItineraryTemplateContext, TemplateContextBlock, TemplateContextRule, TemplateDocumentMatch, TemplateDocumentRetriever } from './rag/template-document-retriever';
 export { calculateTemplateMatch, formatTemplatePromptContext } from './rag/template-document-retriever';
+export type {
+  ItineraryReference,
+  ItineraryRetriever,
+  ItineraryRetrievalRequest,
+  ItineraryRetrievalResult,
+} from './rag/itinerary-retriever';
+export {
+  emptyItineraryRetrievalResult,
+  formatItineraryPromptContext,
+} from './rag/itinerary-retriever';

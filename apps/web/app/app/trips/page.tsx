@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { Suspense, useEffect, useState } from 'react';
@@ -94,9 +95,9 @@ function TravelerTripsContent() {
       <header className="sticky top-0 z-30 bg-surface/95 backdrop-blur border-b border-outline-variant">
         <div className="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between gap-4">
           <Link href="/app/trips" className="flex items-center gap-3">
-            <img src="/rumo-mark.svg" alt="Rumo" className="h-10 w-10 rounded-full shadow-sm" />
+            <Image src="/rumo-mark.svg" alt="" width={36} height={36} />
             <div>
-              <p className="text-sm font-black text-primary leading-tight">Rumo</p>
+              <Image src="/rumo-logo.svg" alt="Rumo" width={78} height={20} />
               <p className="text-[10px] uppercase tracking-[0.16em] text-on-surface opacity-60">Minhas viagens</p>
             </div>
           </Link>
@@ -104,14 +105,14 @@ function TravelerTripsContent() {
             <button
               type="button"
               onClick={() => setImportOpen(true)}
-              className="btn-interactive inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-on-primary hover:opacity-95"
+              className="ui-btn ui-btn-primary ui-btn-sm"
             >
               <span className="material-symbols-outlined text-[16px]">add_link</span>
               Importar viagem
             </button>
             <Link
               href="/logout"
-              className="btn-interactive inline-flex items-center gap-2 rounded-lg border border-outline-variant px-3 py-2 text-xs font-bold text-on-surface hover:bg-surface-container-low"
+              className="ui-btn ui-btn-secondary ui-btn-sm"
             >
               <span className="material-symbols-outlined text-[16px]">logout</span>
               Sair
@@ -200,7 +201,7 @@ function TravelerTripsContent() {
             <button
               type="button"
               onClick={() => setImportOpen(true)}
-              className="btn-interactive mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-bold text-on-primary hover:opacity-95"
+              className="ui-btn ui-btn-primary mt-5"
             >
               <span className="material-symbols-outlined text-[16px]">add_link</span>
               Importar viagem via link
@@ -240,18 +241,18 @@ function TravelerTripsContent() {
                 />
               </div>
               {error && <p className="text-xs font-semibold text-error bg-error/10 rounded-lg p-3">{error}</p>}
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="ui-action-bar justify-end pt-2">
                 <button
                   type="button"
                   onClick={() => setImportOpen(false)}
-                  className="btn-interactive px-4 py-2.5 border border-outline rounded-lg text-xs font-semibold hover:bg-surface-container"
+                  className="ui-btn ui-btn-secondary"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={importing}
-                  className="btn-interactive px-5 py-2.5 bg-primary text-on-primary font-bold rounded-lg text-xs hover:opacity-90 disabled:opacity-60"
+                  className="ui-btn ui-btn-primary"
                 >
                   {importing ? 'Importando...' : 'Importar'}
                 </button>

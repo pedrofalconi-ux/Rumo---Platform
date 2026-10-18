@@ -195,6 +195,10 @@ export interface AiGenerationMeta {
   latencyMs: number;
   daysGenerated: number;
   failedDays?: Array<{ day: number; error: string }>;
+  rag?: {
+    referenceItineraryCount: number;
+    referenceTripIds: string[];
+  };
   templateMatch?: {
     templatePercent: number;
     customizationPercent: number;

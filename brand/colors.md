@@ -2,15 +2,15 @@
 
 Fonte: [`apps/mobile/src/constants/theme.ts`](../apps/mobile/src/constants/theme.ts) e [`apps/web/app/globals.css`](../apps/web/app/globals.css)
 
-## Cores de marca (base, usadas em ambos os apps)
+## Cores de marca
 
 | Nome | Hex | Uso |
 |---|---|---|
-| Navy | `#073BCE` | Cor primária da marca |
-| Navy Deep | `#061D59` | Fundo do símbolo/logo, contraste alto |
-| Coral | `#FF6542` / `#FF542D` | Cor de destaque/ação (varia levemente entre mobile e web) |
-| Sand | `#F5F7FB` | Fundo claro |
-| Mineral | `#6F98F5` | Azul secundário/acento |
+| Azul Rumo | `#2E8BFF` | Ações principais e foco |
+| Azul profundo | `#0B1E3A` | Texto e contraste alto |
+| Ciano | `#00B8D9` | Acento secundário e orientação |
+| Névoa | `#F8FAFC` | Fundo claro |
+| Gelo | `#F1F7FF` | Superfícies de apoio |
 | Branco | `#FFFFFF` | — |
 
 ## App mobile — modo claro
@@ -22,10 +22,10 @@ Fonte: [`apps/mobile/src/constants/theme.ts`](../apps/mobile/src/constants/theme
 | backgroundElement | `#FFFFFF` |
 | backgroundSelected | `#E1E8F5` |
 | textSecondary | `#68728A` |
-| primary | `#073BCE` |
+| primary | `#2E8BFF` |
 | primarySoft | `#EAF0FF` |
-| accent | `#FF6542` |
-| accentSoft | `#FFF0EC` |
+| accent | `#00B8D9` |
+| accentSoft | `#E6F9FC` |
 | success | `#12805C` |
 | border | `#DCE4F2` |
 
@@ -40,8 +40,8 @@ Fonte: [`apps/mobile/src/constants/theme.ts`](../apps/mobile/src/constants/theme
 | textSecondary | `#AFC1C5` |
 | primary | `#F7F6F1` |
 | primarySoft | `#294C5E` |
-| accent | `#FF7A47` |
-| accentSoft | `#553526` |
+| accent | `#34D6EE` |
+| accentSoft | `#164A55` |
 | success | `#70C6A8` |
 | border | `#315568` |
 
@@ -49,17 +49,17 @@ Fonte: [`apps/mobile/src/constants/theme.ts`](../apps/mobile/src/constants/theme
 
 | Token | Hex |
 |---|---|
-| primary | `#073BCE` |
+| primary | `#2E8BFF` |
 | on-primary | `#FFFFFF` |
-| primary-container | `#062D9A` |
-| surface-tint | `#075BFF` |
-| coral (acento) | `#FF542D` |
-| sky-compass | `#75A9FF` |
-| ice-blue | `#EEF4FF` |
-| surface | `#F5F7FC` |
-| on-surface / on-background | `#101C3A` |
-| outline | `#727782` |
-| outline-variant | `#DCE4F3` |
+| primary-container | `#1F73DF` |
+| surface-tint | `#2E8BFF` |
+| ciano (acento) | `#00B8D9` |
+| sky-compass | `#00D4FF` |
+| ice-blue | `#F1F7FF` |
+| surface | `#F8FAFC` |
+| on-surface / on-background | `#0B1E3A` |
+| outline | `#AAB7C6` |
+| outline-variant | `#E9EEF4` |
 | success | `#0F6E56` |
 
 ### Status (badges de viagem, no dashboard)
@@ -68,8 +68,8 @@ Fonte: [`apps/mobile/src/constants/theme.ts`](../apps/mobile/src/constants/theme
 |---|---|
 | confirmed | `#EAF3DE` |
 | active | `#E1F5EE` |
-| quoted | `#FBEAF0` |
-| cancelled | `#FAECE7` |
+| quoted | `#F1ECFA` |
+| cancelled | `#FEF3F2` |
 | draft | `#E6F1FB` |
 
-> Nota: existe uma pequena divergência de "coral" entre mobile (`#FF6542`) e web (`#FF542D`). Vale confirmar com quem for padronizar a marca qual é o tom oficial.
+> A identidade atual evita laranja em navegação e destaque. Vermelho fica reservado a erro ou ação destrutiva.

@@ -22,15 +22,18 @@ export function getSessionIdFromRequest(request?: Request) {
   ).trim();
 }
 
-export async function getCurrentUser(request?: Request) {
+export async function getCurrentSession(request?: Request) {
   const requestSessionId = getSessionIdFromRequest(request);
   if (requestSessionId) {
-    const session = db.sessions.findOne(requestSessionId);
-    return session ? getUserById(session.userId) : null;
+    return db.sessions.findOne(requestSessionId);
   }
 
   const cookieStore = await cookies();
   const sessionId = cookieStore.get('rumo_session')?.value;
-  const session = sessionId ? db.sessions.findOne(sessionId) : null;
+  return sessionId ? db.sessions.findOne(sessionId) : null;
+}
+
+export async function getCurrentUser(request?: Request) {
+  const session = await getCurrentSession(request);
   return session ? getUserById(session.userId) : null;
 }

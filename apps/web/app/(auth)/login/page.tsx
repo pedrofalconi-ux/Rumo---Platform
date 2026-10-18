@@ -1,5 +1,6 @@
 'use client';
 
+import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail, type LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
@@ -7,35 +8,36 @@ import AuthShell from '../../../components/auth-shell';
 
 function AuthInput({
   label,
-  icon,
+  Icon,
   type = 'text',
   value,
   onChange,
   placeholder,
+  autoComplete,
   trailing,
 }: {
   label: string;
-  icon: string;
+  Icon: LucideIcon;
   type?: string;
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  autoComplete?: string;
   trailing?: React.ReactNode;
 }) {
   return (
     <label className="block space-y-2">
-      <span className="text-[11px] font-bold text-on-surface/70">{label}</span>
+      <span className="text-xs font-bold text-[#33445C]">{label}</span>
       <div className="relative">
-        <span className="material-symbols-outlined pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[20px] text-primary/45">
-          {icon}
-        </span>
+        <Icon aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#8190A3]" />
         <input
           required
           type={type}
           value={value}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
-          className="input-interactive h-14 w-full rounded-2xl border border-primary/15 bg-white pl-12 pr-14 text-sm font-medium text-on-surface shadow-sm placeholder:text-on-surface/35 focus:border-primary focus:bg-white"
+          autoComplete={autoComplete}
+          className="input-interactive h-13 w-full rounded-xl border border-[#E9EEF4] bg-white pl-12 pr-14 text-sm font-medium text-[#0B1E3A] placeholder:text-[#A2ADBB] hover:border-[#C9D5E2] focus:border-[#2E8BFF] focus:bg-white"
         />
         {trailing ? <div className="absolute right-3 top-1/2 -translate-y-1/2">{trailing}</div> : null}
       </div>
@@ -67,14 +69,14 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Nao foi possivel entrar.');
+        setError(data.error || 'Não foi possível entrar.');
         return;
       }
 
       router.push(data.user?.role === 'traveler' ? '/app/trips' : '/dashboard');
       router.refresh();
     } catch {
-      setError('Erro de conexao ao tentar entrar.');
+      setError('Erro de conexão ao tentar entrar.');
     } finally {
       setLoading(false);
     }
@@ -90,13 +92,13 @@ export default function LoginPage() {
         <>
           <p>
             Ainda não usa a Rumo?{' '}
-            <Link href="/register" className="font-bold text-primary transition hover:text-coral">
+            <Link href="/register" className="font-bold text-[#2E8BFF] transition-colors hover:text-[#0B1E3A]">
               Criar conta
             </Link>
           </p>
           <p className="mt-1">
             É viajante?{' '}
-            <Link href="/traveler/register" className="font-semibold text-primary transition hover:text-coral">
+            <Link href="/traveler/register" className="font-semibold text-[#2E8BFF] transition-colors hover:text-[#0B1E3A]">
               Acessar convite de viagem
             </Link>
           </p>
@@ -105,37 +107,38 @@ export default function LoginPage() {
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <AuthInput
-          label="Email ou usuario"
-          icon="mail"
+          label="E-mail"
+          Icon={Mail}
           type="email"
           value={formData.email}
           onChange={(value) => setFormData((prev) => ({ ...prev, email: value }))}
-          placeholder="consultor@rumo.com"
+          placeholder="voce@suaagencia.com"
+          autoComplete="username"
         />
 
         <AuthInput
           label="Senha"
-          icon="lock"
+          Icon={LockKeyhole}
           type={showPassword ? 'text' : 'password'}
           value={formData.password}
           onChange={(value) => setFormData((prev) => ({ ...prev, password: value }))}
           placeholder="Digite sua senha"
+          autoComplete="current-password"
           trailing={
             <button
               type="button"
               onClick={() => setShowPassword((value) => !value)}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-primary/55 transition hover:bg-primary/5 hover:text-primary"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-[#8190A3] transition-colors hover:bg-[#F1F7FF] hover:text-[#2E8BFF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2E8BFF]"
               title={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+              aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
             >
-              <span className="material-symbols-outlined text-[19px]">
-                {showPassword ? 'visibility_off' : 'visibility'}
-              </span>
+              {showPassword ? <EyeOff aria-hidden="true" className="h-[18px] w-[18px]" /> : <Eye aria-hidden="true" className="h-[18px] w-[18px]" />}
             </button>
           }
         />
 
         {error ? (
-          <p className="rounded-2xl border border-coral/25 bg-coral/10 px-4 py-3 text-sm font-semibold text-[#9A3D20]">
+          <p role="alert" className="rounded-xl border border-[#FECDCA] bg-[#FEF3F2] px-4 py-3 text-sm font-semibold text-[#B42318]">
             {error}
           </p>
         ) : null}
@@ -143,10 +146,11 @@ export default function LoginPage() {
         <button
           disabled={loading}
           type="submit"
-          className="btn-interactive mt-2 flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-primary px-6 text-sm font-black text-white shadow-[0_12px_28px_rgba(24,59,78,0.2)] transition hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-65"
+          aria-busy={loading}
+          className="btn-interactive mt-2 flex h-13 w-full items-center justify-center gap-3 rounded-xl bg-[#2E8BFF] px-6 text-sm font-extrabold text-white hover:bg-[#1F73DF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2E8BFF] disabled:cursor-not-allowed disabled:opacity-60"
         >
           <span>{loading ? 'Entrando...' : 'Entrar'}</span>
-          <span className="material-symbols-outlined text-[22px]">arrow_forward</span>
+          <ArrowRight aria-hidden="true" className="h-5 w-5" />
         </button>
       </form>
     </AuthShell>

@@ -19,7 +19,7 @@ export default function SecurityPage() {
                 <div key={item} className="mb-3 rounded-xl border border-outline-variant bg-white p-4">
                   <div className="flex items-center justify-between">
                     <div className="h-3 w-28 rounded bg-primary/25" />
-                    <div className="h-5 w-14 rounded-full bg-coral/25" />
+                    <div className="h-5 w-14 rounded-full bg-sky-compass/25" />
                   </div>
                   <div className="mt-4 h-3 w-44 rounded bg-sky-compass/25" />
                 </div>
@@ -39,7 +39,7 @@ export default function SecurityPage() {
                 </svg>
               </div>
               <div className="absolute left-[28%] top-[36%] h-8 w-8 rounded-full bg-primary shadow-lg" />
-              <div className="absolute left-[58%] top-[52%] h-8 w-8 rounded-full bg-coral shadow-lg" />
+              <div className="absolute left-[58%] top-[52%] h-8 w-8 rounded-full bg-sky-compass shadow-lg" />
               <div className="absolute left-[72%] top-[31%] h-8 w-8 rounded-full bg-primary shadow-lg" />
             </div>
           </div>
@@ -52,7 +52,7 @@ export default function SecurityPage() {
             <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-primary text-on-primary shadow-xl shadow-primary/20">
               <span className="material-symbols-outlined text-[42px]">construction</span>
             </div>
-            <p className="text-xs font-bold uppercase tracking-[0.22em] text-coral">Em breve...</p>
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-primary">Em breve...</p>
             <h3 className="mt-3 text-2xl font-bold text-primary">Central de segurança em construção</h3>
             <p className="mt-3 text-sm leading-relaxed text-on-surface opacity-75">
               Em breve, sua agência poderá acompanhar viajantes em rota com contexto da viagem, último sinal e informações operacionais para um suporte mais seguro.

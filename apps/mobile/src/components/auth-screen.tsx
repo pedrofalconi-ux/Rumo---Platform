@@ -20,9 +20,9 @@ import { ApiError } from "@/lib/traveler-api";
 type Mode = "login" | "invite";
 const ONBOARDING_KEY = "rumo.traveler.onboarding.v1";
 
-const BLUE = "#073BCE";
-const BLUE_DEEP = "#061D59";
-const CORAL = "#FF6542";
+const BLUE = "#2E8BFF";
+const BLUE_DEEP = "#0B1E3A";
+const CORAL = "#00B8D9";
 const INK = "#14213D";
 const MUTED = "#68728A";
 
@@ -380,18 +380,18 @@ const styles = StyleSheet.create({
   routeLabel: { position: "absolute", left: 24, right: 24, bottom: 18, borderRadius: 15, backgroundColor: "white", padding: 13, shadowColor: "#183B8C", shadowOpacity: 0.12, shadowRadius: 12 },
   routeLabelSmall: { color: CORAL, fontSize: 8, fontWeight: "900", letterSpacing: 1 }, routeLabelTitle: { color: INK, fontSize: 12, fontWeight: "900", marginTop: 3 },
   documentCard: { position: "absolute", left: 18, right: 18, top: 68, height: 76, borderRadius: 16, backgroundColor: "white", flexDirection: "row", alignItems: "center", padding: 14, gap: 12, shadowColor: "#183B8C", shadowOpacity: 0.1, shadowRadius: 12 },
-  documentCardSecond: { top: 164 }, documentIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: "#FFF0EB", alignItems: "center", justifyContent: "center" }, documentIconText: { color: CORAL, fontSize: 16, fontWeight: "900" },
+  documentCardSecond: { top: 164 }, documentIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: "#E6F9FC", alignItems: "center", justifyContent: "center" }, documentIconText: { color: CORAL, fontSize: 16, fontWeight: "900" },
   documentLines: { flex: 1, gap: 8 }, documentLineLong: { height: 8, borderRadius: 5, backgroundColor: "#DDE5F3", width: "90%" }, documentLineShort: { height: 7, borderRadius: 5, backgroundColor: "#EEF2F8", width: "58%" },
   chatBubbleAgency: { position: "absolute", left: 18, right: 42, top: 70, borderRadius: 17, borderBottomLeftRadius: 5, backgroundColor: "white", padding: 14, shadowColor: "#183B8C", shadowOpacity: 0.1, shadowRadius: 12 },
   chatAgencyLabel: { color: BLUE, fontSize: 8, fontWeight: "900", letterSpacing: 1 }, chatText: { color: INK, fontSize: 11, lineHeight: 16, fontWeight: "700", marginTop: 5 },
   chatBubbleTraveler: { position: "absolute", right: 18, top: 166, borderRadius: 17, borderBottomRightRadius: 5, backgroundColor: BLUE, paddingHorizontal: 15, paddingVertical: 12 }, chatTravelerText: { color: "white", fontSize: 11, fontWeight: "800" },
-  supportPulse: { position: "absolute", alignSelf: "center", bottom: 27, width: 66, height: 66, borderRadius: 33, backgroundColor: CORAL, alignItems: "center", justifyContent: "center", borderWidth: 8, borderColor: "#FFE4DC" }, supportPulseText: { color: "white", fontSize: 14, fontWeight: "900" },
+  supportPulse: { position: "absolute", alignSelf: "center", bottom: 27, width: 66, height: 66, borderRadius: 33, backgroundColor: CORAL, alignItems: "center", justifyContent: "center", borderWidth: 8, borderColor: "#DDF8FF" }, supportPulseText: { color: "white", fontSize: 14, fontWeight: "900" },
   onboardingContent: { paddingBottom: 12, gap: 10 }, onboardingEyebrow: { color: "#89ADFF", fontSize: 9, fontWeight: "900", letterSpacing: 1.45 },
   onboardingTitle: { color: "white", fontSize: 30, lineHeight: 35, fontWeight: "900", letterSpacing: -1 }, onboardingDescription: { color: "rgba(255,255,255,.62)", fontSize: 13, lineHeight: 20, maxWidth: 440 },
   dotsRow: { flexDirection: "row", gap: 6, marginTop: 7, marginBottom: 5 }, dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: "rgba(255,255,255,.22)" }, dotActive: { width: 24, backgroundColor: CORAL },
   onboardingButton: { minHeight: 54, borderRadius: 15, backgroundColor: "white", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 14 }, onboardingButtonText: { color: BLUE_DEEP, fontSize: 13, fontWeight: "900" }, onboardingButtonArrow: { color: CORAL, fontSize: 21 },
   orbTop: { position: "absolute", width: 380, height: 380, borderRadius: 190, backgroundColor: "#DCE8FF", right: -170, top: -190, opacity: 0.7 },
-  orbBottom: { position: "absolute", width: 280, height: 280, borderRadius: 140, backgroundColor: "#FFE8E1", left: -160, bottom: -160, opacity: 0.65 },
+  orbBottom: { position: "absolute", width: 280, height: 280, borderRadius: 140, backgroundColor: "#DDF8FF", left: -160, bottom: -160, opacity: 0.65 },
   authScrollContent: { flexGrow: 1, padding: 16, justifyContent: "center" },
   authScrollContentWide: { paddingVertical: 36 },
   scrollContent: { flexGrow: 1, padding: 16, justifyContent: "center", gap: 16 },

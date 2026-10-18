@@ -1416,26 +1416,26 @@ export default function NewTripPage() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl py-4 sm:py-8">
+    <div className="trip-wizard mx-auto max-w-5xl py-4 sm:py-8">
       {/* Breadcrumbs */}
-      <div className="scroll-reveal flex items-center gap-2 mb-2 text-xs font-semibold uppercase tracking-wider text-on-surface opacity-75">
+      <div className="scroll-reveal mb-3 flex items-center gap-2 text-xs font-medium text-on-surface/50">
         <Link href="/trips" className="hover:text-primary transition-colors">
-          Viagens
+          Itinerários
         </Link>
-        <span>/</span>
-        <span className="text-primary">Novo Roteiro</span>
+        <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+        <span className="text-on-surface">Novo itinerário</span>
       </div>
 
-      <div className="scroll-reveal scroll-reveal-delay-100 overflow-hidden rounded-[26px] border border-primary/10 bg-white shadow-[0_14px_40px_rgba(16,28,58,.07)]">
-        <div className="flex flex-col gap-4 border-b border-primary/10 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-7">
+      <div className="scroll-reveal scroll-reveal-delay-100 overflow-hidden rounded-3xl border border-outline-variant bg-white shadow-[0_12px_32px_rgba(11,30,58,.045)]">
+        <div className="flex flex-col gap-4 border-b border-outline-variant p-5 sm:flex-row sm:items-center sm:justify-between sm:p-7">
           <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-white shadow-[0_8px_20px_rgba(7,59,206,.2)]">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-ice-blue text-primary">
             <span className="material-symbols-outlined">route</span>
           </div>
           <div>
-        <h2 className="font-headline-lg text-2xl font-black tracking-[-.03em] text-primary mb-1">Criar novo roteiro</h2>
-        <p className="text-sm text-on-surface opacity-70">
-          Preencha no seu ritmo. Ao pausar, o roteiro fica salvo em Viagens como rascunho.
+        <h2 className="font-headline-lg mb-1 text-2xl font-semibold tracking-[-.03em] text-on-surface">Criar novo itinerário</h2>
+        <p className="text-sm text-on-surface/58">
+          Reúna o essencial agora e refine os detalhes quando quiser.
         </p>
           </div>
           </div>
@@ -1444,32 +1444,32 @@ export default function NewTripPage() {
               <span className="material-symbols-outlined text-[15px]">cloud_done</span>
               {draftSavedAt ? `Rascunho salvo às ${draftSavedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : 'Ainda não salvo'}
             </span>
-            <button type="button" onClick={saveAndExit} disabled={savingDraft} className="rounded-xl border border-outline-variant px-4 py-2.5 text-xs font-bold text-primary transition hover:bg-surface-container-low disabled:opacity-60">
+            <button type="button" onClick={saveAndExit} disabled={savingDraft} className="ui-btn ui-btn-secondary">
               {savingDraft ? 'Salvando...' : 'Salvar e sair'}
             </button>
           </div>
         </div>
 
         {draftResumed && <div className="mx-5 mt-5 flex items-center justify-between rounded-xl border border-primary/15 bg-ice-blue/60 px-4 py-3 text-xs text-primary sm:mx-7"><span><strong>Rascunho retomado.</strong> Você voltou exatamente à etapa onde parou.</span><button type="button" onClick={() => setDraftResumed(false)} className="material-symbols-outlined text-[18px]">close</button></div>}
-        {selectedTemplateId && <div className="mx-5 mt-5 flex items-center gap-3 rounded-xl border border-coral/20 bg-coral/5 px-4 py-3 text-xs text-primary sm:mx-7"><span className="material-symbols-outlined text-coral">account_tree</span><span><strong>Modelo inteligente ativo{selectedTemplateName ? `: ${selectedTemplateName}` : ''}.</strong> A IA preservará itens obrigatórios, regras e referências do modelo.</span></div>}
+        {selectedTemplateId && <div className="mx-5 mt-5 flex items-center gap-3 rounded-xl border border-sky-compass/25 bg-ice-blue px-4 py-3 text-xs text-on-surface sm:mx-7"><span className="material-symbols-outlined text-primary">account_tree</span><span><strong>Modelo ativo{selectedTemplateName ? `: ${selectedTemplateName}` : ''}.</strong> A IA manterá as referências e regras definidas nesse modelo.</span></div>}
 
         <div className="grid lg:grid-cols-[230px_minmax(0,1fr)]">
-          <aside className="border-b border-primary/10 bg-surface-container-low/70 p-4 lg:border-b-0 lg:border-r lg:p-5">
-            <p className="mb-3 px-2 text-[9px] font-black uppercase tracking-[.18em] text-on-surface/40">Progresso da viagem</p>
+          <aside className="border-b border-outline-variant bg-surface-container-low/65 p-4 lg:border-b-0 lg:border-r lg:p-5">
+            <p className="mb-3 px-2 text-[10px] font-semibold text-on-surface/48">Etapas</p>
             <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
               {WIZARD_STEPS.map((step, index) => {
                 const active = wizardStep === step.id;
                 const completed = completedSteps.includes(step.id) && (step.id !== 'general' || generalStepComplete);
-                return <button key={step.id} type="button" onClick={() => goToStep(step.id)} className={`flex items-center gap-3 rounded-xl p-3 text-left transition ${active ? 'bg-primary text-white shadow-sm' : 'text-on-surface hover:bg-white'}`}>
-                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${active ? 'bg-white/15' : completed ? 'bg-emerald-100 text-emerald-700' : 'bg-white text-primary'}`}><span className={`material-symbols-outlined text-[17px] ${completed ? 'motion-check-in' : ''}`}>{completed ? 'check' : step.icon}</span></span>
-                  <span className="min-w-0"><span className="block text-[11px] font-black">{index + 1}. {step.label}</span><span className={`mt-0.5 hidden text-[9px] lg:block ${active ? 'text-white/65' : completed ? 'font-bold text-emerald-700' : 'text-on-surface/45'}`}>{completed ? 'Concluído · clique para editar' : step.description}</span></span>
+                return <button key={step.id} type="button" onClick={() => goToStep(step.id)} className={`flex items-center gap-3 rounded-xl border p-3 text-left transition ${active ? 'border-primary/20 bg-white text-on-surface shadow-[0_2px_8px_rgba(11,30,58,.04)]' : 'border-transparent text-on-surface hover:border-outline-variant hover:bg-white'}`}>
+                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${active ? 'bg-ice-blue text-primary' : completed ? 'bg-emerald-50 text-emerald-700' : 'bg-white text-on-surface/48'}`}><span className={`material-symbols-outlined text-[17px] ${completed ? 'motion-check-in' : ''}`}>{completed ? 'check' : step.icon}</span></span>
+                  <span className="min-w-0"><span className="block text-[11px] font-semibold">{index + 1}. {step.label}</span><span className={`mt-0.5 hidden text-[9px] lg:block ${completed ? 'font-medium text-emerald-700' : 'text-on-surface/45'}`}>{completed ? 'Concluído · clique para editar' : step.description}</span></span>
                 </button>;
               })}
             </div>
-            <div className="mt-5 hidden rounded-xl border border-primary/10 bg-white p-3 lg:block"><p className="text-[10px] font-bold text-primary">Pode continuar depois</p><p className="mt-1 text-[9px] leading-relaxed text-on-surface/50">Use “Salvar e sair”. O roteiro aparecerá em Viagens com o estado “Rascunho”.</p></div>
+            <div className="mt-5 hidden rounded-xl border border-outline-variant bg-white p-3 lg:block"><p className="text-[10px] font-semibold text-on-surface">Continue quando quiser</p><p className="mt-1 text-[9px] leading-relaxed text-on-surface/50">Ao salvar e sair, o itinerário fica disponível como rascunho.</p></div>
           </aside>
 
-        <form onSubmit={handleSubmit} className="space-y-6 p-5 sm:p-7">
+        <form onSubmit={handleSubmit} className="wizard-form space-y-6 p-5 sm:p-7">
 
           {wizardStep === 'general' && <div className="motion-panel-in space-y-6">
           {/* Title and Origin */}
@@ -1503,7 +1503,7 @@ export default function NewTripPage() {
               ) : (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
                   <span className="material-symbols-outlined text-4xl text-primary opacity-70">add_photo_alternate</span>
-                  <p className="text-sm font-black text-on-surface mt-2">Foto de capa da viagem</p>
+                  <p className="mt-2 text-sm font-semibold text-on-surface">Foto de capa da viagem</p>
                   <p className="text-[11px] text-on-surface opacity-60 mt-1">
                     Essa imagem aparece grande no feed do cliente final.
                   </p>
@@ -1532,7 +1532,7 @@ export default function NewTripPage() {
                       coverPickerTab === tab ? 'border-primary text-primary' : 'border-transparent opacity-60'
                     }`}
                   >
-                    {tab === 'browse' ? 'Biblioteca' : tab === 'upload' ? 'Upload' : 'Pixabay'}
+                    {tab === 'browse' ? 'Biblioteca' : tab === 'upload' ? 'Do computador' : 'Buscar na web'}
                   </button>
                 ))}
               </div>
@@ -1624,7 +1624,7 @@ export default function NewTripPage() {
                         onClick={() => setFormData((prev) => ({ ...prev, coverImage: url }))}
                         className="relative aspect-[16/9] rounded-lg overflow-hidden border border-outline-variant bg-surface-container-low"
                       >
-                        <img src={url} alt="Resultado Pixabay" className="h-full w-full object-cover" />
+                        <img src={url} alt="Resultado da busca" className="h-full w-full object-cover" />
                       </button>
                     ))}
                   </div>
@@ -1665,7 +1665,7 @@ export default function NewTripPage() {
           <div className="bg-surface-container-low border border-outline-variant rounded-xl p-6 space-y-4">
             <div className="flex justify-between items-center border-b border-outline-variant pb-3">
               <div>
-                <h3 className="text-xs font-bold text-primary uppercase tracking-wider">Destinos e Paradas</h3>
+                <h3 className="text-sm font-semibold text-on-surface">Destinos e paradas</h3>
                 <p className="text-[10px] text-on-surface opacity-75">
                   Adicione as cidades de destino e o período de estadia do viajante em cada uma.
                 </p>
@@ -1856,13 +1856,13 @@ export default function NewTripPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between border-t border-outline-variant pt-4"><span className="text-[10px] text-on-surface/45">Campos com * são necessários para avançar.</span><button type="button" onClick={() => goToStep('logistics')} className="rounded-xl bg-primary px-5 py-3 text-xs font-bold text-white">Continuar para logística <span className="material-symbols-outlined ml-1 text-[15px]">arrow_forward</span></button></div>
+          <div className="flex flex-col gap-3 border-t border-outline-variant pt-4 sm:flex-row sm:items-center sm:justify-between"><span className="text-[10px] text-on-surface/45">Campos com * são necessários para avançar.</span><button type="button" onClick={() => goToStep('logistics')} className="ui-btn ui-btn-primary">Continuar para logística <span className="material-symbols-outlined text-[15px]">arrow_forward</span></button></div>
           </div>}
 
           {wizardStep === 'logistics' && <div className="motion-panel-in space-y-6">
           <div className="rounded-xl border border-outline-variant bg-white overflow-hidden">
             <div className="px-5 py-4 border-b border-outline-variant bg-surface-container-low">
-              <h3 className="text-xs font-bold text-primary uppercase tracking-wider">
+              <h3 className="text-sm font-semibold text-on-surface">
                 Logística da Viagem
               </h3>
               <p className="text-[11px] text-on-surface opacity-70 mt-1">
@@ -1872,7 +1872,7 @@ export default function NewTripPage() {
 
             {logisticsTimeline.length > 0 && (
               <div className="border-b border-outline-variant bg-ice-blue/35 px-5 py-4">
-                <p className="mb-3 text-[10px] font-black uppercase tracking-wider text-primary">Linha do tempo da viagem</p>
+                <p className="mb-3 text-xs font-semibold text-on-surface">Linha do tempo da viagem</p>
                 <div className="space-y-2">
                   {logisticsTimeline.map((event) => (
                     <div key={event.id} className="flex items-center gap-3 rounded-xl border border-primary/10 bg-white px-3 py-2.5">
@@ -2325,24 +2325,24 @@ export default function NewTripPage() {
             </div>
           </div>
 
-          <div className="flex justify-between"><button type="button" onClick={() => goToStep('general')} className="rounded-xl border border-outline-variant px-4 py-3 text-xs font-bold">Voltar</button><button type="button" onClick={() => goToStep('ai')} className="rounded-xl bg-primary px-5 py-3 text-xs font-bold text-white">Configurar IA <span className="material-symbols-outlined ml-1 text-[15px]">arrow_forward</span></button></div>
+          <div className="ui-action-bar justify-between"><button type="button" onClick={() => goToStep('general')} className="ui-btn ui-btn-secondary">Voltar</button><button type="button" onClick={() => goToStep('ai')} className="ui-btn ui-btn-primary">Configurar IA <span className="material-symbols-outlined text-[15px]">arrow_forward</span></button></div>
           </div>}
 
-          {wizardStep === 'ai' && <section className="motion-panel-in space-y-5 rounded-2xl border border-primary/10 bg-ice-blue/55 p-5 sm:p-6">
-            <div><p className="text-[10px] font-black uppercase tracking-wider text-coral">Personalização</p><h3 className="mt-1 text-lg font-black text-primary">Como a IA deve construir esta viagem?</h3><p className="mt-1 text-xs text-on-surface/55">Estas escolhas orientam ritmo, linguagem e prioridades do roteiro.</p></div>
+          {wizardStep === 'ai' && <section className="motion-panel-in space-y-5 rounded-2xl border border-outline-variant bg-surface-container-low/60 p-5 sm:p-6">
+            <div><p className="text-[10px] font-semibold text-primary">Personalização</p><h3 className="mt-1 text-lg font-semibold text-on-surface">Como a IA deve construir esta viagem?</h3><p className="mt-1 text-xs text-on-surface/55">A IA combina estas escolhas com logística, destinos e referências da sua agência.</p></div>
             <div className="grid gap-4 sm:grid-cols-2"><label className="space-y-1"><span className="text-xs font-semibold">Perfil da viagem</span><select value={formData.profile} onChange={(event) => setFormData((current) => ({ ...current, profile: event.target.value }))} className="w-full rounded-xl border border-outline-variant bg-white p-3 text-xs"><option value="lazer">Lazer e descanso</option><option value="aventura">Aventura</option><option value="cultural">Cultural</option><option value="negocios">Negócios</option></select></label><label className="space-y-1"><span className="text-xs font-semibold">Ritmo desejado</span><select onChange={(event) => setFormData((current) => ({ ...current, preferences: `${current.preferences}\nRitmo: ${event.target.value}`.trim() }))} className="w-full rounded-xl border border-outline-variant bg-white p-3 text-xs"><option value="equilibrado">Equilibrado</option><option value="tranquilo">Tranquilo</option><option value="intenso">Intenso</option></select></label></div>
-            <div className="space-y-2"><div className="flex items-center justify-between gap-3"><label htmlFor="trip-preferences" className="text-xs font-semibold">Instruções especiais e tom da escrita</label><button type="button" onClick={handleEnrichPreferences} disabled={enrichingPreferences} className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-coral/20 bg-coral/10 px-3 py-2 text-[10px] font-black text-coral transition hover:border-coral/35 hover:bg-coral/15 disabled:opacity-60"><span className={`material-symbols-outlined text-[15px] ${enrichingPreferences ? 'animate-spin' : ''}`}>{enrichingPreferences ? 'progress_activity' : 'auto_fix_high'}</span>{enrichingPreferences ? 'Enriquecendo...' : 'Enriquecer com IA'}</button></div><textarea id="trip-preferences" value={formData.preferences} onChange={(event) => { setFormData((current) => ({ ...current, preferences: event.target.value })); setEnrichedSuggestion(''); }} rows={5} placeholder="Ex.: tom acolhedor, priorizar gastronomia local, evitar escadas..." className="w-full rounded-xl border border-outline-variant bg-white p-3 text-xs" /></div>
+            <div className="space-y-2"><div className="flex flex-wrap items-center justify-between gap-3"><label htmlFor="trip-preferences" className="text-xs font-semibold">Instruções especiais e tom da escrita</label><button type="button" onClick={handleEnrichPreferences} disabled={enrichingPreferences} className="ui-btn ui-btn-soft ui-btn-sm"><span className={`material-symbols-outlined text-[15px] ${enrichingPreferences ? 'animate-spin' : ''}`}>{enrichingPreferences ? 'progress_activity' : 'auto_fix_high'}</span>{enrichingPreferences ? 'Enriquecendo...' : 'Enriquecer com IA'}</button></div><textarea id="trip-preferences" value={formData.preferences} onChange={(event) => { setFormData((current) => ({ ...current, preferences: event.target.value })); setEnrichedSuggestion(''); }} rows={5} placeholder="Ex.: tom acolhedor, priorizar gastronomia local, evitar escadas..." className="w-full rounded-xl border border-outline-variant bg-white p-3 text-xs" /></div>
             {enrichmentError && <p className="rounded-xl border border-error/20 bg-error/5 px-4 py-3 text-xs font-semibold text-error">{enrichmentError}</p>}
             {enrichedSuggestion && <div className="space-y-3 rounded-xl border border-primary/15 bg-white p-4"><div className="flex items-center justify-between"><p className="text-[10px] font-black uppercase tracking-wider text-primary">Sugestão enriquecida</p><span className="rounded-full bg-emerald-50 px-2 py-1 text-[9px] font-bold text-emerald-700">Pronta para revisão</span></div><p className="whitespace-pre-wrap text-xs leading-relaxed text-on-surface/75">{enrichedSuggestion}</p><div className="flex justify-end gap-2"><button type="button" onClick={() => setEnrichedSuggestion('')} className="rounded-lg border border-outline-variant px-3 py-2 text-[10px] font-bold">Descartar</button><button type="button" onClick={() => { setFormData((current) => ({ ...current, preferences: enrichedSuggestion })); setEnrichedSuggestion(''); }} className="rounded-lg bg-primary px-3 py-2 text-[10px] font-bold text-white">Usar este texto</button></div></div>}
-            <div className="flex justify-between"><button type="button" onClick={() => goToStep('logistics')} className="rounded-xl border border-outline-variant bg-white px-4 py-3 text-xs font-bold">Voltar</button><button type="button" onClick={() => goToStep('review')} className="rounded-xl bg-primary px-5 py-3 text-xs font-bold text-white">Revisar viagem <span className="material-symbols-outlined ml-1 text-[15px]">arrow_forward</span></button></div>
+            <div className="ui-action-bar justify-between"><button type="button" onClick={() => goToStep('logistics')} className="ui-btn ui-btn-secondary">Voltar</button><button type="button" onClick={() => goToStep('review')} className="ui-btn ui-btn-primary">Revisar viagem <span className="material-symbols-outlined text-[15px]">arrow_forward</span></button></div>
           </section>}
 
           {wizardStep === 'review' && <div className="motion-panel-in space-y-6">
           <div className="rounded-xl border border-outline-variant bg-surface-container-low p-6 space-y-4">
             <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <h3 className="text-xs font-bold text-primary uppercase tracking-wider">
-                  Documentos da Viagem
+                <h3 className="text-sm font-semibold text-on-surface">
+                  Documentos da viagem
                 </h3>
                 <p className="text-[11px] text-on-surface opacity-70 mt-1">
                   Anexe vouchers, passagens e PDFs para o viajante visualizar no aplicativo.
@@ -2408,29 +2408,29 @@ export default function NewTripPage() {
           <div className="grid gap-3 rounded-2xl border border-primary/10 bg-white p-5 sm:grid-cols-3"><div><p className="text-[9px] font-black uppercase text-on-surface/40">Período</p><p className="mt-1 text-xs font-bold">{formData.startDate || '—'} a {formData.endDate || '—'}</p></div><div><p className="text-[9px] font-black uppercase text-on-surface/40">Destinos</p><p className="mt-1 text-xs font-bold">{destinations.map((destination) => destination.city.split(' (')[0]).filter(Boolean).join(', ') || '—'}</p></div><div><p className="text-[9px] font-black uppercase text-on-surface/40">Logística</p><p className="mt-1 text-xs font-bold">{transportation.length} transportes · {accommodations.length} hotéis</p></div></div>
 
           {/* Submit and Cancel */}
-          <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant">
+          <div className="ui-action-bar justify-end border-t border-outline-variant pt-4">
             <button
               type="button"
               onClick={saveAndExit}
               disabled={savingDraft}
-              className="btn-interactive px-6 py-2.5 border border-outline rounded-lg text-xs font-semibold hover:bg-surface-container transition-colors disabled:opacity-60"
+              className="ui-btn ui-btn-secondary"
             >
               {savingDraft ? 'Salvando rascunho...' : 'Salvar e continuar depois'}
             </button>
             <button
               disabled={loading}
               type="submit"
-              className="btn-interactive px-6 py-2.5 bg-primary text-on-primary font-semibold text-xs rounded-lg hover:opacity-95 active:scale-[0.98] transition-all flex items-center gap-2 disabled:opacity-50"
+              className="ui-btn ui-btn-primary"
             >
               {loading ? (
                 <>
                   <span className="material-symbols-outlined animate-spin text-[16px]">sync</span>
-                  {uploadingDocuments ? 'ENVIANDO DOCUMENTOS...' : 'SALVANDO NO BANCO...'}
+                  {uploadingDocuments ? 'Enviando documentos...' : 'Salvando...'}
                 </>
               ) : (
                 <>
                   <span className="material-symbols-outlined text-[16px]">save</span>
-                  {draftTripId ? 'CONCLUIR RASCUNHO' : 'CRIAR VIAGEM'}
+                  {draftTripId ? 'Concluir rascunho' : 'Criar itinerário'}
                 </>
               )}
             </button>

@@ -55,10 +55,10 @@ export default async function MobileInvitePage({ params }: { params: Promise<{ t
           </p>
         </div>
         <div className="mt-6 grid grid-cols-1 gap-2">
-          <Link href={`/traveler/register?invite=${encodeURIComponent(token)}`} className="rounded-lg bg-primary text-on-primary px-4 py-3 text-xs font-bold hover:opacity-95">
+          <Link href={`/traveler/register?invite=${encodeURIComponent(token)}`} className="ui-btn ui-btn-primary w-full">
             Criar conta de viajante
           </Link>
-          <Link href={`/app/trips?invite=${encodeURIComponent(token)}`} className="rounded-lg border border-outline-variant px-4 py-3 text-xs font-bold text-primary hover:bg-surface-container-low">
+          <Link href={`/app/trips?invite=${encodeURIComponent(token)}`} className="ui-btn ui-btn-secondary w-full">
             Ja tenho conta, importar no portal
           </Link>
         </div>

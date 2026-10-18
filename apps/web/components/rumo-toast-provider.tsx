@@ -69,14 +69,14 @@ export default function RumoToastProvider({ children }: { children: React.ReactN
             key={toast.id}
             className={`pointer-events-auto w-[360px] max-w-[calc(100vw-2.5rem)] overflow-hidden rounded-xl border ${toneClass} bg-white shadow-2xl shadow-primary/15 animate-[rumoToastIn_220ms_ease-out]`}
           >
-            <div className="h-1 bg-[linear-gradient(90deg,#075BFF,#FF542D)]" />
+            <div className="h-0.5 bg-[linear-gradient(90deg,#2E8BFF,#00B8D9)]" />
             <div className="flex gap-3 p-4">
               <div className="h-11 w-11 shrink-0 rounded-full bg-primary flex items-center justify-center shadow-inner">
                 <img src="/rumo-mark.svg" alt="" className="h-9 w-9" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-3">
-                  <p className="text-sm font-bold text-primary">{toast.title}</p>
+                  <p className="text-sm font-semibold text-on-surface">{toast.title}</p>
                   <button
                     type="button"
                     onClick={() => setToast(null)}
@@ -87,9 +87,9 @@ export default function RumoToastProvider({ children }: { children: React.ReactN
                   </button>
                 </div>
                 <p className="mt-1 text-xs leading-relaxed text-on-surface/80">{toast.message}</p>
-                <div className="mt-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-on-surface/45">
-                  <span className="h-0.5 w-8 bg-coral" />
-                  Rumo, a sua bussola
+                <div className="mt-3 flex items-center gap-2 text-[10px] font-semibold text-on-surface/42">
+                  <span className="h-0.5 w-8 bg-sky-compass" />
+                  Rumo, a sua bússola
                 </div>
               </div>
             </div>

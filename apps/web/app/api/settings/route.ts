@@ -7,28 +7,25 @@ const agencyEditableFields = [
   'agencyName',
   'logoUrl',
   'defaultCurrency',
-  'amadeusKey',
-  'tboKey',
-  'claudeKey',
-  'pixabayKey',
-  'unsplashKey',
   'notificationEmail',
   'appThemeId',
 ] as const;
 
-function sanitizeAgencySettings(settings: any) {
+type AgencySettingsView = Partial<Record<(typeof agencyEditableFields)[number], unknown>>;
+
+function sanitizeAgencySettings(settings: AgencySettingsView) {
   const sanitized: Record<string, unknown> = {};
   for (const field of agencyEditableFields) {
     sanitized[field] = settings[field] ?? '';
   }
   sanitized.defaultCurrency = settings.defaultCurrency || 'BRL';
-  sanitized.logoUrl = extractAgencyLogoPath(settings.logoUrl)
+  sanitized.logoUrl = extractAgencyLogoPath(String(settings.logoUrl || ''))
     ? agencyLogoProxyUrl()
     : settings.logoUrl || '';
   return sanitized;
 }
 
-function pickAgencyEditableSettings(body: any) {
+function pickAgencyEditableSettings(body: Record<string, unknown>) {
   const picked: Record<string, unknown> = {};
   for (const field of agencyEditableFields) {
     if (field === 'logoUrl' && String(body[field] || '').startsWith('/api/settings/logo')) {
@@ -50,9 +47,8 @@ export async function GET() {
         agencyName: 'Rumo Admin',
         logoUrl: '',
         defaultCurrency: 'BRL',
-        pixabayKey: '',
-        unsplashKey: '',
         notificationEmail: '',
+        appThemeId: 'rumo',
       });
     }
     return NextResponse.json(sanitizeAgencySettings(await getAgencySettings(user.agencyId)));

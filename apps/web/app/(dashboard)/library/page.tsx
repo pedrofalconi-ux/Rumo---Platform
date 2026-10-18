@@ -263,7 +263,7 @@ const isProductionPersistenceError = (message: string) => {
 };
 
 export default function LibraryPage() {
-  const [resourceTab, setResourceTab] = useState<'media' | 'templates' | 'pois'>('media');
+  const [resourceTab, setResourceTab] = useState<'media' | 'templates'>('media');
   const [templates, setTemplates] = useState<TemplateSummary[]>([]);
   const [templatesLoading, setTemplatesLoading] = useState(false);
   const [templateError, setTemplateError] = useState('');
@@ -1540,15 +1540,15 @@ export default function LibraryPage() {
       {/* Header bar */}
       <div className="page-heading scroll-reveal flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-end">
         <div>
-          <h2 className="font-headline-lg text-3xl font-black text-primary tracking-[-.035em]">Biblioteca</h2>
+          <h2 className="font-headline-lg text-3xl font-semibold tracking-[-.03em] text-on-surface">Biblioteca</h2>
           <p className="text-on-surface opacity-75 text-sm mt-1">
             Organize fotos de destinos e pontos de interesse para ilustrar seus roteiros de viagens.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="ui-action-bar">
           <button
             onClick={() => openFolderModal()}
-            className="btn-interactive flex items-center gap-1.5 px-4 py-2 border border-outline rounded-lg text-xs font-bold hover:bg-surface-container transition-colors"
+            className="ui-btn ui-btn-secondary"
           >
             <span className="material-symbols-outlined text-sm">create_new_folder</span>
             <span>Nova Pasta</span>
@@ -1560,20 +1560,17 @@ export default function LibraryPage() {
         {[
           ['media', 'photo_library', 'Galeria de mídia'],
           ['templates', 'content_copy', 'Modelos de roteiro'],
-          ['pois', 'location_on', 'POIs customizados'],
-        ].map(([id, icon, label]) => <button key={id} onClick={() => setResourceTab(id as typeof resourceTab)} className={`flex min-w-fit flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold ${resourceTab === id ? 'bg-primary text-white' : 'text-on-surface/55 hover:bg-surface-container-low'}`}><span className="material-symbols-outlined text-[17px]">{icon}</span>{label}</button>)}
+        ].map(([id, icon, label]) => <button key={id} onClick={() => setResourceTab(id as typeof resourceTab)} className={`flex min-w-fit flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium ${resourceTab === id ? 'bg-primary text-white shadow-sm' : 'text-on-surface/60 hover:bg-surface-container-low'}`}><span className="material-symbols-outlined text-[17px]">{icon}</span>{label}</button>)}
       </div>
 
       {resourceTab === 'templates' && <section className="space-y-5">
-        <div className="overflow-hidden rounded-3xl border border-primary/10 bg-white shadow-sm"><div className="grid gap-6 bg-gradient-to-r from-[#061d49] via-[#0b3da9] to-[#155de4] p-7 text-white lg:grid-cols-[1fr_auto] lg:items-center"><div><p className="text-[10px] font-black uppercase tracking-[.18em] text-[#ff805d]">Blueprints inteligentes</p><h3 className="mt-2 text-2xl font-black">Modelos de roteiro</h3><p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/65">Estruturas reutilizáveis com atividades, regras obrigatórias, alternativas de chuva, documentos RAG e adaptação controlada pela IA.</p></div><button onClick={() => { setEditingTemplateId(null); setShowTemplateCreator(true); }} className="rounded-xl bg-[#ff6f47] px-6 py-3 text-xs font-black text-white shadow-lg shadow-black/15 hover:bg-[#ff7d5a]">+ Criar novo modelo</button></div>
+        <div className="overflow-hidden rounded-3xl border border-primary/10 bg-white shadow-sm"><div className="grid gap-6 bg-gradient-to-r from-[#061d49] via-[#0b3da9] to-[#155de4] p-7 text-white lg:grid-cols-[1fr_auto] lg:items-center"><div><p className="text-[11px] font-medium uppercase tracking-[.16em] text-sky-compass">Modelos reutilizáveis</p><h3 className="mt-2 text-2xl font-semibold tracking-[-.02em]">Modelos de roteiro</h3><p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/70">Estruturas com atividades, regras da agência, alternativas de chuva e referências que orientam a IA.</p></div><button onClick={() => { setEditingTemplateId(null); setShowTemplateCreator(true); }} className="ui-btn border-white/20 bg-white text-on-surface shadow-lg shadow-black/10 hover:bg-ice-blue">+ Criar novo modelo</button></div>
           <div className="grid gap-2 p-5 sm:grid-cols-2 lg:grid-cols-6"><div className="relative sm:col-span-2"><span className="material-symbols-outlined absolute left-3 top-2.5 text-[18px] text-primary/50">search</span><input value={templateSearch} onChange={(event) => setTemplateSearch(event.target.value)} placeholder="Buscar modelos" className="w-full rounded-xl border border-outline-variant py-2.5 pl-10 pr-3 text-xs"/></div><input value={templateDestination} onChange={(event) => setTemplateDestination(event.target.value)} placeholder="Destino" className="rounded-xl border border-outline-variant p-2.5 text-xs"/><select value={templateProfile} onChange={(event) => setTemplateProfile(event.target.value)} className="rounded-xl border border-outline-variant p-2.5 text-xs"><option value="">Todos os perfis</option><option value="leisure">Lazer</option><option value="family">Família</option><option value="couple">Casal</option><option value="business">Negócios</option></select><select value={templateBudget} onChange={(event) => setTemplateBudget(event.target.value)} className="rounded-xl border border-outline-variant p-2.5 text-xs"><option value="">Todos os orçamentos</option><option value="budget">Econômico</option><option value="moderate">Moderado</option><option value="luxury">Luxo</option></select><select value={templateStatus} onChange={(event) => setTemplateStatus(event.target.value)} className="rounded-xl border border-outline-variant p-2.5 text-xs"><option value="">Todos os status</option><option value="draft">Rascunhos</option><option value="published">Publicados</option></select></div>
         </div>
         {templateError && <div className="rounded-2xl border border-error/20 bg-error/5 p-4 text-xs font-semibold text-error">{templateError}</div>}
-        {templatesLoading ? <div className="flex min-h-56 items-center justify-center gap-2 rounded-2xl border bg-white"><span className="material-symbols-outlined animate-spin text-primary">progress_activity</span><span className="text-xs font-bold">Carregando modelos...</span></div> : templates.length ? <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{templates.map((template) => <TemplateCard key={template.id} template={template} onEdit={(item) => { setEditingTemplateId(item.id); setShowTemplateCreator(true); }} onDuplicate={duplicateTemplate} onArchive={archiveTemplate}/>)}</div> : <div className="flex min-h-64 flex-col items-center justify-center rounded-3xl border border-dashed border-primary/20 bg-white p-8 text-center"><span className="material-symbols-outlined text-4xl text-primary/30">route</span><h4 className="mt-3 text-sm font-black text-primary">Sua biblioteca de modelos começa aqui</h4><p className="mt-2 max-w-md text-xs text-on-surface/50">Importe um roteiro, transforme uma viagem existente ou crie uma estrutura orientada por cidade.</p><button onClick={() => { setEditingTemplateId(null); setShowTemplateCreator(true); }} className="mt-5 rounded-xl bg-primary px-5 py-3 text-xs font-black text-white">Criar primeiro modelo</button></div>}
+        {templatesLoading ? <div className="flex min-h-56 items-center justify-center gap-2 rounded-2xl border bg-white"><span className="material-symbols-outlined animate-spin text-primary">progress_activity</span><span className="text-sm font-medium text-on-surface/65">Carregando modelos...</span></div> : templates.length ? <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{templates.map((template) => <TemplateCard key={template.id} template={template} onEdit={(item) => { setEditingTemplateId(item.id); setShowTemplateCreator(true); }} onDuplicate={duplicateTemplate} onArchive={archiveTemplate}/>)}</div> : <div className="flex min-h-64 flex-col items-center justify-center rounded-3xl border border-dashed border-primary/15 bg-white p-8 text-center"><span className="material-symbols-outlined text-4xl text-primary/25">route</span><h4 className="mt-4 text-base font-semibold tracking-[-.01em] text-on-surface">Sua biblioteca de modelos começa aqui</h4><p className="mt-2 max-w-md text-sm leading-6 text-on-surface/55">Importe um roteiro, transforme uma viagem existente ou crie uma estrutura orientada por cidade.</p><button onClick={() => { setEditingTemplateId(null); setShowTemplateCreator(true); }} className="mt-5 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-container">Criar primeiro modelo</button></div>}
         <TemplateCreatorModal open={showTemplateCreator} templateId={editingTemplateId} onClose={() => setShowTemplateCreator(false)} onSaved={() => { void fetchTemplates(); }}/>
       </section>}
-
-      {resourceTab === 'pois' && <section className="rounded-2xl border border-primary/10 bg-white p-7 shadow-sm"><div className="grid gap-6 lg:grid-cols-[1fr_320px]"><div><p className="text-[10px] font-black uppercase tracking-wider text-coral">Curadoria da agência</p><h3 className="mt-1 text-xl font-black text-primary">Pontos de interesse customizados</h3><p className="mt-2 max-w-xl text-sm text-on-surface/55">A base curada de restaurantes, atrações e parceiros já alimenta o gerador de roteiros. O cadastro editorial por agência será liberado após a migração de isolamento dos POIs.</p><div className="mt-5 rounded-xl border border-primary/10 bg-ice-blue p-4 text-xs text-primary"><b>Base RAG conectada:</b> os POIs validados em <code>destination_pois</code> já são priorizados pela IA.</div></div><div className="rounded-2xl border border-dashed border-outline-variant p-5"><p className="text-xs font-bold">Próxima etapa segura</p><p className="mt-2 text-[11px] leading-relaxed text-on-surface/50">Adicionar <code>agency_id</code>, índices e isolamento server-side antes de permitir cadastros privados por agência.</p></div></div></section>}
 
       {resourceTab === 'media' && (loading ? (
         <div className="text-center py-12 flex items-center justify-center gap-2">
@@ -1727,7 +1724,7 @@ export default function LibraryPage() {
               <div className="pointer-events-none absolute inset-3 z-40 flex items-center justify-center rounded-xl border-2 border-dashed border-primary bg-white/95 text-center shadow-lg">
                 <div>
                   <span className="material-symbols-outlined text-4xl text-primary">file_upload</span>
-                  <p className="mt-2 text-sm font-black text-primary">Solte as fotos aqui</p>
+                  <p className="mt-2 text-sm font-semibold text-primary">Solte as fotos aqui</p>
                   <p className="mt-1 text-xs text-on-surface/60">Elas serão adicionadas em {activeFolder || 'Biblioteca Principal'}</p>
                 </div>
               </div>
@@ -1739,7 +1736,7 @@ export default function LibraryPage() {
                 <div className="flex items-center gap-1 text-[11px] font-bold tracking-wide uppercase text-primary mb-1">
                   <button
                     onClick={() => setActiveFolder('')}
-                    className="hover:text-coral transition-colors flex items-center gap-1"
+                    className="flex items-center gap-1 transition-colors hover:text-primary"
                   >
                     <span className="material-symbols-outlined text-[16px]">folder_special</span>
                     <span>Biblioteca</span>
@@ -1752,11 +1749,11 @@ export default function LibraryPage() {
                         <React.Fragment key={path}>
                           <span className="opacity-50 mx-1 text-on-surface">/</span>
                           {isLast ? (
-                            <span className="text-coral font-extrabold">{part}</span>
+                            <span className="font-semibold text-primary">{part}</span>
                           ) : (
                             <button
                               onClick={() => setActiveFolder(path)}
-                              className="hover:text-coral transition-colors"
+                              className="transition-colors hover:text-primary"
                             >
                               {part}
                             </button>

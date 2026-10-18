@@ -1,18 +1,8 @@
-<svg width="360" height="104" viewBox="0 0 360 104" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <g transform="translate(4 8) scale(.92)">
-    <circle cx="48" cy="48" r="42" fill="#061D59"/>
-    <circle cx="48" cy="48" r="37" stroke="#075BFF" stroke-width="1.4" opacity=".75"/>
-    <path d="M49 15v8M49 73v8M15 48h8M73 48h8" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
-    <path d="M46 51 26 78l31-21 20-39-31 33Z" fill="#A9C9FF"/>
-    <path d="m46 51-20 27 24-31 7 10-31 21 31-21-11-6Z" fill="#75A9FF"/>
-    <path d="M50 47 77 18 57 57 50 47Z" fill="#FF542D"/>
-    <path d="M57 57 77 18 62 60 57 57Z" fill="#FF7A58"/>
-    <path d="M48 61c8.837 0 16-7.163 16-16s-7.163-16-16-16-16 7.163-16 16 7.163 16 16 16Z" fill="#fff"/>
-    <path d="M48 55c5.523 0 10-4.477 10-10s-4.477-10-10-10-10 4.477-10 10 4.477 10 10 10Z" fill="#061D59"/>
-    <path d="M48 39c-4.418 0-8 3.445-8 7.693 0 5.956 8 13.307 8 13.307s8-7.351 8-13.307C56 42.445 52.418 39 48 39Z" fill="#FF542D"/>
-    <circle cx="48" cy="46" r="4" fill="#fff"/>
+<svg width="388" height="100" viewBox="0 0 388 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g fill="#0B1E3A">
+    <path d="M7 91V44C7 21 23 9 47 9h15l-5 21H46c-12 0-17 5-17 17v44H7Z"/>
+    <path d="M67 9h23v48c0 13 7 20 20 20s20-7 20-20V9h23v49c0 23-17 35-43 35S67 81 67 58V9Z"/>
+    <path d="M159 91V43c0-21 14-35 35-35 13 0 24 6 31 16 7-10 18-16 31-16 21 0 36 15 36 37v46h-23V46c0-12-6-19-15-19-11 0-19 8-19 21v43h-23V46c0-12-6-19-16-19-9 0-14 6-14 18v46h-23Z"/>
+    <circle cx="344" cy="50" r="32" fill="none" stroke="#0B1E3A" stroke-width="20"/>
   </g>
-  <text x="112" y="57" fill="#061D59" font-family="Inter, Arial, sans-serif" font-size="52" font-weight="700">Rumo</text>
-  <path d="M114 72h126" stroke="#FF542D" stroke-width="4"/>
-  <text x="114" y="94" fill="#54565A" font-family="Inter, Arial, sans-serif" font-size="14" letter-spacing="8">RUMO, A SUA BUSSOLA</text>
 </svg>

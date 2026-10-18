@@ -178,7 +178,7 @@ export default function AdminAgenciesPage() {
                         type="button"
                         onClick={() => saveAgency(agency)}
                         disabled={savingId === agency.id}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-[11px] font-black text-on-primary hover:opacity-95 disabled:opacity-55"
+                        className="ui-btn ui-btn-primary ui-btn-sm"
                       >
                         <span className="material-symbols-outlined text-[14px]">save</span>
                         {savingId === agency.id ? 'Salvando...' : 'Salvar'}

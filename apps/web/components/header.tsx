@@ -1,21 +1,15 @@
 'use client';
 
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
-import { usePathname } from 'next/navigation';
-import { useUIStore } from '../lib/ui-store';
+import { useAppShell } from './app-shell-context';
 import { useNotificationStore } from '../lib/notification-store';
-
-interface SessionUser {
-  fullName: string;
-  role: 'platform_admin' | 'agency_admin' | 'agent' | 'traveler';
-  avatarUrl?: string;
-}
+import { useUIStore } from '../lib/ui-store';
 
 function formatRelativeTime(dateString: string) {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
+  const diffMs = Date.now() - new Date(dateString).getTime();
+  const diffMins = Math.floor(diffMs / 60_000);
   const diffHours = Math.floor(diffMins / 60);
   const diffDays = Math.floor(diffHours / 24);
 
@@ -27,234 +21,224 @@ function formatRelativeTime(dateString: string) {
 
 export default function Header() {
   const pathname = usePathname();
-  const [user, setUser] = useState<SessionUser | null>(null);
-  const { toggleSidebar } = useUIStore();
-
-  const { notifications, markAsRead, markAllAsRead, removeNotification, clearAll } = useNotificationStore();
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const router = useRouter();
+  const searchRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const { user } = useAppShell();
+  const { toggleSidebar } = useUIStore();
+  const { notifications, markAsRead, markAllAsRead, removeNotification, clearAll } = useNotificationStore();
 
   useEffect(() => {
-    setMounted(true);
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setShowDropdown(false);
+    const handlePointerDown = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
       }
     };
-    document.addEventListener('mousedown', handleOutsideClick);
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, []);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const response = await fetch('/api/auth/me');
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data.user);
+    const handleShortcut = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        searchRef.current?.focus();
       }
     };
 
-    fetchUser();
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleShortcut);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleShortcut);
+    };
   }, []);
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
-
-  const displayName = user?.fullName || 'Usuario';
-  const displayRole =
-    user?.role === 'platform_admin'
-      ? 'Admin SaaS'
-      : user?.role === 'agency_admin'
-        ? 'Agente Admin'
-        : user?.role === 'traveler'
-          ? 'Viajante'
-          : 'Consultor';
+  const unreadCount = notifications.filter((notification) => !notification.read).length;
+  const displayName = user?.fullName || 'Usuário';
   const initials = displayName
     .split(' ')
     .filter(Boolean)
-    .map((part) => part[0])
     .slice(0, 2)
+    .map((part) => part[0])
     .join('')
     .toUpperCase();
 
   const sectionName = pathname.startsWith('/trips')
-    ? 'Viagens'
+    ? 'Itinerários'
     : pathname.startsWith('/library')
       ? 'Biblioteca'
       : pathname.startsWith('/clients')
         ? 'Clientes'
-      : pathname.startsWith('/users')
-        ? 'Equipe'
-        : pathname.startsWith('/settings')
-          ? 'Configurações'
-          : pathname.startsWith('/security')
-            ? 'Rastreamento e suporte'
-            : pathname.startsWith('/admin')
-              ? 'Admin SaaS'
-              : 'Visão geral';
+        : pathname.startsWith('/users')
+          ? 'Equipe'
+          : pathname.startsWith('/settings')
+            ? 'Configurações'
+            : pathname.startsWith('/security')
+              ? 'Rastreamento'
+              : pathname.startsWith('/admin')
+                ? 'Admin SaaS'
+                : 'Visão geral';
+
+  const submitSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const query = searchRef.current?.value.trim();
+    if (query) router.push(`/trips?q=${encodeURIComponent(query)}`);
+  };
 
   return (
-    <header className="h-[72px] sticky top-0 bg-white/88 backdrop-blur-xl border-b border-primary/10 flex justify-between items-center px-4 sm:px-6 lg:px-8 z-40 shadow-[0_1px_16px_rgba(7,59,206,.035)]">
-      <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
-        {/* Hamburger menu for mobile/tablet */}
+    <header className="sticky top-0 z-30 flex h-[68px] items-center justify-between border-b border-outline-variant bg-white px-4 sm:px-7 lg:px-10 xl:px-12">
+      <div className="flex min-w-0 flex-1 items-center gap-3 lg:gap-6">
         <button
           type="button"
-          className="lg:hidden p-2 hover:bg-surface-container-high rounded-full text-on-surface transition-all active:scale-95 shrink-0"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-outline-variant text-on-surface/65 hover:bg-surface-container-low xl:hidden"
           onClick={toggleSidebar}
           aria-label="Abrir menu"
         >
-          <span className="material-symbols-outlined text-[24px]">menu</span>
+          <span className="material-symbols-outlined text-[21px]">menu</span>
         </button>
 
-        <div className="hidden sm:block min-w-[120px]">
-          <p className="text-[9px] uppercase tracking-[.2em] font-bold text-on-surface/40">Rumo workspace</p>
-          <p className="text-sm font-bold text-primary mt-0.5">{sectionName}</p>
+        <div className="hidden min-w-[104px] xl:block">
+          <p className="text-[10px] font-medium text-on-surface/42">Você está em</p>
+          <p className="mt-0.5 truncate text-[13px] font-semibold text-on-surface">{sectionName}</p>
         </div>
-        <div className="hidden sm:block h-7 w-px bg-primary/10" />
-        {/* Search Bar */}
-        <div className="relative max-w-xs sm:max-w-sm w-full">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface opacity-75 text-[20px]">
+
+        <form onSubmit={submitSearch} className="relative w-full max-w-[600px]">
+          <label htmlFor="global-search" className="sr-only">Buscar viagens e clientes</label>
+          <span className="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-on-surface/38">
             search
           </span>
           <input
-            className="w-full bg-surface-container-low border border-primary/10 rounded-xl py-2.5 pl-9 pr-3 text-xs focus:ring-2 focus:ring-primary/15 focus:border-primary/30 outline-none transition-all"
+            id="global-search"
+            ref={searchRef}
+            type="search"
+            autoComplete="off"
+            className="h-10 w-full rounded-xl border border-outline-variant bg-surface-container-lowest pl-10 pr-14 text-[13px] text-on-surface outline-none transition-colors placeholder:text-on-surface/38 hover:border-outline focus:border-primary/35 focus:bg-white focus:ring-2 focus:ring-primary/[.07]"
             placeholder="Buscar viagens, clientes..."
-            type="text"
           />
-        </div>
+          <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded-md border border-outline-variant bg-white px-2 py-1 text-[10px] font-medium text-on-surface/40 sm:block">
+            ⌘K
+          </kbd>
+        </form>
       </div>
 
-      {/* User Actions */}
-      <div className="flex items-center gap-1 sm:gap-4 shrink-0 pl-2">
+      <div className="ml-3 flex shrink-0 items-center gap-1.5 sm:gap-3">
+        <Link
+          href="/trips/new"
+          prefetch={false}
+          onMouseEnter={() => router.prefetch('/trips/new')}
+          className="ui-btn ui-btn-secondary ui-btn-sm !hidden sm:!inline-flex"
+        >
+          <span className="material-symbols-outlined text-[17px]">add</span>
+          Nova viagem
+        </Link>
+
         <div className="relative" ref={dropdownRef}>
           <button
-            onClick={() => setShowDropdown(!showDropdown)}
-            className="hover:bg-surface-container-low rounded-full p-2 text-on-surface relative active:scale-95 transition-all flex items-center justify-center"
-            title="Notificações"
+            type="button"
+            onClick={() => setShowNotifications((current) => !current)}
+            className="relative grid h-9 w-9 place-items-center rounded-xl text-on-surface/55 transition-colors hover:bg-surface-container-low hover:text-on-surface"
+            aria-label="Notificações"
+            aria-expanded={showNotifications}
           >
-            <span className="material-symbols-outlined text-[22px]">notifications</span>
-            {mounted && unreadCount > 0 && (
-              <span className="absolute top-1 right-1 min-w-[16px] h-4 bg-coral text-white text-[9px] font-black rounded-full flex items-center justify-center px-1 shadow-[0_0_0_2px_rgba(255,255,255,1)] animate-pulse">
-                {unreadCount}
+            <span className="material-symbols-outlined text-[20px]">notifications</span>
+            {unreadCount > 0 && (
+              <span className="absolute right-1.5 top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[8px] font-bold leading-none text-white ring-2 ring-white">
+                {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
           </button>
 
-          {showDropdown && (
-            <div className="absolute right-0 top-12 z-50 w-80 sm:w-96 bg-white border border-outline-variant rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-3 duration-150 flex flex-col max-h-[480px]">
-              {/* Dropdown Header */}
-              <div className="p-4 border-b border-outline-variant bg-surface-container-lowest flex items-center justify-between">
+          {showNotifications && (
+            <div className="absolute right-0 top-12 z-50 flex max-h-[500px] w-[min(380px,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-outline-variant bg-white shadow-[0_24px_64px_rgba(11,30,58,.14)]">
+              <div className="flex items-center justify-between border-b border-outline-variant bg-surface-container-low/70 px-4 py-4">
                 <div>
-                  <h4 className="text-sm font-black text-primary">Notificações</h4>
-                  {mounted && unreadCount > 0 && (
-                    <p className="text-[10px] text-coral font-bold uppercase tracking-wider mt-0.5">
-                      {unreadCount} novas notificações
-                    </p>
-                  )}
+                  <h2 className="text-sm font-semibold">Notificações</h2>
+                  <p className="mt-0.5 text-[10px] text-on-surface/45">
+                    {unreadCount ? `${unreadCount} não lida${unreadCount > 1 ? 's' : ''}` : 'Tudo em dia'}
+                  </p>
                 </div>
-                <div className="flex items-center gap-2">
+                {notifications.length > 0 && (
                   <button
                     type="button"
-                    onClick={() => markAllAsRead()}
-                    className="p-1 hover:bg-surface-container rounded-lg text-primary text-[10px] font-extrabold uppercase tracking-wider transition-colors flex items-center gap-1"
-                    title="Marcar todas como lidas"
+                    onClick={markAllAsRead}
+                    className="text-[10px] font-semibold text-primary hover:underline"
                   >
-                    <span className="material-symbols-outlined text-xs">done_all</span>
-                    Lidas
+                    Marcar como lidas
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => clearAll()}
-                    className="p-1 hover:bg-surface-container rounded-lg text-error text-[10px] font-extrabold uppercase tracking-wider transition-colors flex items-center gap-1"
-                    title="Limpar tudo"
-                  >
-                    <span className="material-symbols-outlined text-xs">clear_all</span>
-                    Limpar
-                  </button>
-                </div>
+                )}
               </div>
 
-              {/* Notifications List */}
-              <div className="overflow-y-auto flex-1 custom-scrollbar max-h-[320px] divide-y divide-outline-variant bg-white">
-                {mounted && notifications.length > 0 ? (
-                  notifications.map((notification) => {
-                    const getToneIcon = () => {
-                      switch (notification.tone) {
-                        case 'success':
-                          return { name: 'check_circle', color: 'text-success bg-success/10' };
-                        case 'error':
-                          return { name: 'error', color: 'text-error bg-error/10' };
-                        default:
-                          return { name: 'info', color: 'text-primary bg-primary/10' };
-                      }
-                    };
-                    const icon = getToneIcon();
-
-                    return (
-                      <div
-                        key={notification.id}
-                        onClick={() => markAsRead(notification.id)}
-                        className={`p-4 flex gap-3 transition-colors hover:bg-surface-container-low cursor-pointer relative group ${
-                          !notification.read ? 'bg-primary/5 font-medium' : ''
+              <div className="custom-scrollbar flex-1 divide-y divide-outline-variant overflow-y-auto">
+                {notifications.length ? (
+                  notifications.map((notification) => (
+                    <article
+                      key={notification.id}
+                      className={`group relative flex w-full gap-3 px-4 py-4 text-left transition-colors hover:bg-surface-container-low ${
+                        notification.read ? 'bg-white' : 'bg-ice-blue/55'
+                      }`}
+                    >
+                      <span
+                        className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg ${
+                          notification.tone === 'success'
+                            ? 'bg-status-active text-success'
+                            : notification.tone === 'error'
+                              ? 'bg-status-cancelled text-error'
+                              : 'bg-ice-blue text-primary'
                         }`}
                       >
-                        {/* Left Icon */}
-                        <div className={`h-9 w-9 shrink-0 rounded-full flex items-center justify-center ${icon.color}`}>
-                          <span className="material-symbols-outlined text-[18px]">{icon.name}</span>
-                        </div>
-
-                        {/* Content */}
-                        <div className="flex-1 min-w-0 pr-6">
-                          <p className="text-xs font-bold text-on-surface truncate">{notification.title}</p>
-                          <p className="mt-1 text-[11px] leading-relaxed text-on-surface opacity-80 break-words font-normal">
-                            {notification.message}
-                          </p>
-                          <p className="mt-2 text-[9px] font-bold text-on-surface opacity-50">
-                            {formatRelativeTime(notification.createdAt)}
-                          </p>
-                        </div>
-
-                        {/* Read Indicator Dot */}
-                        {!notification.read && (
-                          <div className="absolute right-3 top-1/2 -translate-y-1/2 w-2 h-2 bg-coral rounded-full" />
-                        )}
-
-                        {/* Delete button (visible on hover) */}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
+                        <span className="material-symbols-outlined text-[17px]">
+                          {notification.tone === 'success' ? 'check' : notification.tone === 'error' ? 'priority_high' : 'info'}
+                        </span>
+                      </span>
+                      <span className="min-w-0 flex-1 pr-5">
+                        <span className="flex items-center gap-2">
+                          <span className="block truncate text-xs font-semibold">{notification.title}</span>
+                          {!notification.read && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-label="Não lida" />}
+                        </span>
+                        <span className="mt-1 block text-[11px] leading-relaxed text-on-surface/58">{notification.message}</span>
+                        <span className="mt-2 flex items-center gap-3 text-[9px] text-on-surface/38">
+                          {formatRelativeTime(notification.createdAt)}
+                          {!notification.read && (
+                            <button type="button" onClick={() => markAsRead(notification.id)} className="font-semibold text-primary hover:underline">
+                              Marcar como lida
+                            </button>
+                          )}
+                        </span>
+                      </span>
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          removeNotification(notification.id);
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.stopPropagation();
                             removeNotification(notification.id);
-                          }}
-                          className="absolute right-2 top-2 h-6 w-6 rounded-full bg-white border border-outline shadow-xs flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-error hover:text-white transition-all text-on-surface"
-                        >
-                          <span className="material-symbols-outlined text-[14px]">close</span>
-                        </button>
-                      </div>
-                    );
-                  })
+                          }
+                        }}
+                        className="absolute right-3 top-3 grid h-6 w-6 place-items-center rounded-md text-on-surface/30 opacity-0 hover:bg-white hover:text-on-surface group-hover:opacity-100"
+                        aria-label="Remover notificação"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">close</span>
+                      </span>
+                    </article>
+                  ))
                 ) : (
-                  <div className="py-12 px-4 text-center flex flex-col items-center justify-center gap-2 bg-surface-container-lowest">
-                    <span className="material-symbols-outlined text-[44px] text-primary opacity-30">notifications_off</span>
-                    <p className="text-xs text-on-surface opacity-60 font-semibold">Sem notificações para mostrar</p>
-                    <p className="text-[10px] text-on-surface opacity-50">
-                      Avisaremos você por aqui quando houver novidades.
-                    </p>
+                  <div className="px-5 py-10 text-center">
+                    <span className="material-symbols-outlined text-[30px] text-on-surface/22">notifications_off</span>
+                    <p className="mt-2 text-xs font-medium">Nenhuma notificação</p>
+                    <p className="mt-1 text-[10px] text-on-surface/42">Avisaremos quando algo precisar da sua atenção.</p>
                   </div>
                 )}
               </div>
 
-              {/* Footer */}
-              {mounted && notifications.length > 0 && (
-                <div className="p-2 border-t border-outline-variant bg-surface-container-lowest text-center">
+              {notifications.length > 0 && (
+                <div className="border-t border-outline-variant p-2">
                   <button
-                    onClick={() => {
-                      markAllAsRead();
-                      setShowDropdown(false);
-                    }}
-                    className="w-full py-1.5 text-[10px] font-black uppercase tracking-wider text-primary hover:bg-surface-container rounded-lg transition-all"
+                    type="button"
+                    onClick={clearAll}
+                    className="h-8 w-full rounded-lg text-[10px] font-medium text-on-surface/45 hover:bg-surface-container-low hover:text-on-surface"
                   >
-                    Marcar todas como lidas
+                    Limpar notificações
                   </button>
                 </div>
               )}
@@ -262,24 +246,19 @@ export default function Header() {
           )}
         </div>
 
-        <button className="hover:bg-surface-container-low rounded-full p-2 text-on-surface active:scale-95 transition-all hidden sm:inline-block">
-          <span className="material-symbols-outlined text-[22px]">help_outline</span>
-        </button>
-        <div className="h-6 w-[1px] bg-outline-variant mx-1 sm:mx-2"></div>
-        <div className="flex items-center gap-2 sm:gap-3 cursor-pointer group">
-          <div className="text-right hidden md:block">
-            <p className="font-label-md text-xs font-semibold text-on-surface leading-tight">{displayName}</p>
-            <p className="text-[10px] text-on-surface opacity-60 uppercase tracking-wider mt-0.5">
-              {displayRole}
-            </p>
-          </div>
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden bg-primary text-on-primary flex items-center justify-center text-xs font-bold shadow-[0_4px_12px_rgba(7,59,206,.18)] ring-2 ring-white">
+        <div className="hidden h-6 w-px bg-outline-variant sm:block" />
+
+        <div className="flex items-center gap-2.5 rounded-xl border border-transparent py-1 pl-1 sm:pr-1 md:border-outline-variant md:pr-2">
+          <span className="grid h-8 w-8 place-items-center overflow-hidden rounded-full bg-primary text-[10px] font-bold text-white">
             {user?.avatarUrl ? (
-              <img className="w-full h-full object-cover" alt={displayName} src={user.avatarUrl} />
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" decoding="async" />
             ) : (
-              initials || 'U'
+              initials || 'RU'
             )}
-          </div>
+          </span>
+          <span className="hidden max-w-[120px] truncate text-xs font-semibold md:block">{displayName}</span>
+          <span className="material-symbols-outlined hidden text-[17px] text-on-surface/38 md:block">expand_more</span>
         </div>
       </div>
     </header>

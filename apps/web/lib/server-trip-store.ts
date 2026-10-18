@@ -38,6 +38,27 @@ export interface TripRecord extends Record<string, unknown> {
   aiGeneratedAt?: string;
   aiPrompt?: any;
   aiResponse?: any;
+  aiContext?: string;
+  aiContextItemCount?: number;
+}
+
+export interface TripSummaryRecord {
+  id: string;
+  createdDate: string;
+  name: string;
+  destinations: string[];
+  startDate: string;
+  endDate: string;
+  travelers: string[];
+  status: string;
+  clientId?: string;
+  clientName: string;
+  wizardDraft?: {
+    formData?: {
+      startDate?: string;
+      endDate?: string;
+    };
+  };
 }
 
 const LOCAL_LEGACY_AGENCY_ID = 'agency-default';
@@ -162,6 +183,50 @@ function normalizeTravelers(travelers: unknown, travelersData: unknown) {
   return Array.from({ length: count }, (_, index) => (index === 0 ? 'DR' : `+${index}`));
 }
 
+const RAG_BLOCK_TYPES = new Set([
+  'day_summary',
+  'places',
+  'activity',
+  'transport',
+  'text',
+  'suggested_places',
+]);
+
+function cleanContextText(value: unknown, maxLength: number) {
+  return String(value || '')
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[e-mail removido]')
+    .replace(/(?:\+?\d{1,3}[\s.-]?)?(?:\(?\d{2,3}\)?[\s.-]?)?\d{4,5}[\s.-]?\d{4}/g, '[telefone removido]')
+    .replace(/\s+/g, ' ')
+    .replace(/^\d{1,2}:\d{2}\s*[-–—]\s*/, '')
+    .trim()
+    .slice(0, maxLength);
+}
+
+/** Compact, image-free representation persisted in metadata for fast agency RAG. */
+export function buildTripAiContext(items: unknown) {
+  if (!Array.isArray(items)) return { text: '', itemCount: 0 };
+
+  const lines = items
+    .filter((item) => item && typeof item === 'object')
+    .map((item) => item as JsonRecord)
+    .filter((item) => RAG_BLOCK_TYPES.has(String(item.type || '')))
+    .slice(0, 60)
+    .map((item) => {
+      const day = Math.max(1, Number(item.day) || 1);
+      const title = cleanContextText(item.title, 140);
+      const subtitle = cleanContextText(item.subTitle, 120);
+      const details = cleanContextText(item.details, 360);
+      const content = [title, subtitle, details].filter(Boolean).join(' — ');
+      return content ? `Dia ${day}: ${content}` : '';
+    })
+    .filter(Boolean);
+
+  return {
+    text: lines.join('\n').slice(0, 14_000),
+    itemCount: lines.length,
+  };
+}
+
 function mapSupabaseTrip(row: any): TripRecord {
   const content = (row.content || {}) as JsonRecord;
   const metadata = (row.metadata || {}) as JsonRecord;
@@ -212,6 +277,7 @@ function buildSupabaseTripPayload(input: Partial<TripRecord>, agencyId: string, 
     ? input.destinations.map(String).filter(Boolean)
     : [];
   const travelers = Array.isArray(input.travelers) ? input.travelers.map(String) : [];
+  const aiContext = buildTripAiContext(input.itinerary);
 
   return {
     agency_id: agencyId,
@@ -249,6 +315,8 @@ function buildSupabaseTripPayload(input: Partial<TripRecord>, agencyId: string, 
       wizardDraft: input.wizardDraft && typeof input.wizardDraft === 'object' ? input.wizardDraft : null,
       templateId: input.templateId ? String(input.templateId) : null,
       templateMatch: input.templateMatch && typeof input.templateMatch === 'object' ? input.templateMatch : null,
+      aiContext: aiContext.text || (typeof input.aiContext === 'string' ? input.aiContext : ''),
+      aiContextItemCount: aiContext.itemCount || Number(input.aiContextItemCount || 0),
     },
   };
 }
@@ -290,11 +358,51 @@ export async function listTripsForAgency(agencyId: string) {
   }
 
   const supabaseTrips = (data || []).map(mapSupabaseTrip);
-  const legacyTrips = scopedLegacyTrips().filter(
-    (trip) => !supabaseTrips.some((supabaseTrip) => supabaseTrip.id === trip.id)
-  );
+  const shouldMergeLegacyTrips =
+    isPlatformScope(agencyId) || Array.from(aliases).some((alias) => !looksLikeUuid(alias));
+  const legacyTrips = shouldMergeLegacyTrips
+    ? scopedLegacyTrips().filter(
+        (trip) => !supabaseTrips.some((supabaseTrip) => supabaseTrip.id === trip.id)
+      )
+    : [];
 
   return [...supabaseTrips, ...legacyTrips];
+}
+
+function summarizeTrip(trip: TripRecord): TripSummaryRecord {
+  const wizardDraft = trip.wizardDraft && typeof trip.wizardDraft === 'object'
+    ? trip.wizardDraft as JsonRecord
+    : undefined;
+  const formData = wizardDraft?.formData && typeof wizardDraft.formData === 'object'
+    ? wizardDraft.formData as JsonRecord
+    : undefined;
+
+  return {
+    id: trip.id,
+    createdDate: trip.createdDate,
+    name: trip.name,
+    destinations: Array.isArray(trip.destinations) ? trip.destinations.map(String) : [],
+    startDate: trip.startDate,
+    endDate: trip.endDate,
+    travelers: Array.isArray(trip.travelers) ? trip.travelers.map(String) : [],
+    status: trip.status,
+    clientId: typeof trip.clientId === 'string' ? trip.clientId : undefined,
+    clientName: trip.clientName,
+    wizardDraft: wizardDraft
+      ? {
+          formData: {
+            startDate: typeof formData?.startDate === 'string' ? formData.startDate : undefined,
+            endDate: typeof formData?.endDate === 'string' ? formData.endDate : undefined,
+          },
+        }
+      : undefined,
+  };
+}
+
+/** Lightweight projection for lists. Never exposes itinerary content, documents or base64 media. */
+export async function listTripSummariesForAgency(agencyId: string) {
+  const trips = await listTripsForAgency(agencyId);
+  return trips.map(summarizeTrip);
 }
 
 export async function findTripById(id: string, agencyId?: string) {

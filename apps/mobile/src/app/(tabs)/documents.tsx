@@ -106,7 +106,7 @@ function DocumentCard({
         onPress={handleOpen}
         style={({ pressed }) => [
           styles.openButton,
-          { backgroundColor: pressed ? "#D95638" : Brand.coral, opacity: pressed ? 0.92 : 1 },
+          { backgroundColor: pressed ? "#0094AE" : Brand.coral, opacity: pressed ? 0.92 : 1 },
         ]}
       >
         <ThemedText style={styles.openButtonText}>

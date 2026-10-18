@@ -1,320 +1,217 @@
-'use client';
-
-import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { getDashboardPageData } from '../../../lib/server-dashboard-data';
+import DashboardNews from './dashboard-news';
 
-interface Stats {
-  totalTrips: number;
-  totalClients: number;
-  totalUsers: number;
-  totalPhotos: number;
-  activeTrips: number;
+function formatTripDate(value: string) {
+  if (!value) return 'Data a definir';
+  const date = new Date(`${value.slice(0, 10)}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' })
+    .format(date)
+    .replace('.', '');
 }
 
-interface TripSummary {
-  status: string;
+function statusClass(status: string) {
+  const normalized = status.toLowerCase();
+  if (normalized === 'confirmado' || normalized === 'confirmed') return 'bg-status-confirmed text-success';
+  if (normalized === 'publicado' || normalized === 'active') return 'bg-ice-blue text-primary';
+  if (normalized === 'cancelado' || normalized === 'cancelled') return 'bg-status-cancelled text-error';
+  if (normalized === 'rascunho' || normalized === 'draft') return 'bg-surface-container text-on-surface/60';
+  return 'bg-[#EDF8FF] text-[#24536B]';
 }
 
-interface SessionUser {
-  fullName: string;
-}
+export default async function DashboardPage() {
+  const { user, summary } = await getDashboardPageData();
+  const today = new Intl.DateTimeFormat('pt-BR', {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'short',
+    timeZone: 'America/Fortaleza',
+  }).format(new Date());
 
-interface NewsItem {
-  title: string;
-  link: string;
-  description: string;
-  pubDate: string;
-  imageUrl?: string;
-  source: string;
-}
+  const firstName = user?.fullName?.split(' ')[0] || 'consultor';
+  const stats = [
+    { label: 'Viagens ativas', value: summary.counts.activeTrips, icon: 'flight_takeoff', tone: 'text-primary bg-ice-blue' },
+    { label: 'Total de viagens', value: summary.counts.totalTrips, icon: 'route', tone: 'text-on-surface bg-surface-container' },
+    { label: 'Clientes', value: summary.counts.totalClients, icon: 'group', tone: 'text-success bg-status-active' },
+    { label: 'Equipe', value: summary.counts.totalUsers, icon: 'badge', tone: 'text-sky-700 bg-sky-50' },
+  ];
 
-export default function DashboardPage() {
-  const [stats, setStats] = useState<Stats>({
-    totalTrips: 0,
-    totalClients: 0,
-    totalUsers: 0,
-    totalPhotos: 0,
-    activeTrips: 0,
-  });
-  const [user, setUser] = useState<SessionUser | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [news, setNews] = useState<NewsItem[]>([]);
-  const [newsLoading, setNewsLoading] = useState(true);
-  const [newsRefreshing, setNewsRefreshing] = useState(false);
-  const [newsUpdatedAt, setNewsUpdatedAt] = useState<Date | null>(null);
-
-  const fetchNews = async (refresh = false) => {
-    if (refresh) setNewsRefreshing(true);
-    else setNewsLoading(true);
-    try {
-      const endpoint = refresh ? `/api/news?refresh=${Date.now()}` : '/api/news';
-      const res = await fetch(endpoint, { cache: refresh ? 'no-store' : 'default' });
-      if (res.ok) {
-        const data = await res.json();
-        setNews(data);
-        setNewsUpdatedAt(new Date());
-      }
-    } catch (error) {
-      console.error('Error loading news:', error);
-    } finally {
-      setNewsLoading(false);
-      setNewsRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const [tripsRes, clientsRes, usersRes, libraryRes, meRes] = await Promise.all([
-          fetch('/api/trips'),
-          fetch('/api/clients'),
-          fetch('/api/users'),
-          fetch('/api/library'),
-          fetch('/api/auth/me'),
-        ]);
-
-        const trips: TripSummary[] = await tripsRes.json();
-        const clients = await clientsRes.json();
-        const users = await usersRes.json();
-        const library = await libraryRes.json();
-        const me = meRes.ok ? await meRes.json() : { user: null };
-
-        setStats({
-          totalTrips: trips.length,
-          totalClients: clients.length,
-          totalUsers: users.length,
-          totalPhotos: library.photos ? library.photos.length : 0,
-          activeTrips: trips.filter((trip) => trip.status === 'Publicado' || trip.status === 'Confirmado').length,
-        });
-        setUser(me.user);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
-    void fetchNews();
-  }, []);
+  const quickActions = [
+    { label: 'Criar viagem', detail: 'Inicie um roteiro', icon: 'add', href: '/trips/new' },
+    { label: 'Ver clientes', detail: 'Acesse os perfis', icon: 'person_search', href: '/clients' },
+    { label: 'Abrir biblioteca', detail: 'Fotos e modelos', icon: 'collections_bookmark', href: '/library' },
+    { label: 'Gerenciar equipe', detail: 'Acessos e usuários', icon: 'group', href: '/users' },
+  ];
 
   return (
-    <div className="flex-1 space-y-7 max-w-[1480px] mx-auto animate-page-enter">
-      {/* Top Banner */}
-      <div className="relative overflow-hidden rounded-[26px] bg-[linear-gradient(125deg,#073BCE_0%,#061D59_100%)] p-6 text-white shadow-[0_18px_45px_rgba(7,59,206,.18)] sm:p-8 flex flex-col md:flex-row md:items-end md:justify-between gap-5">
-        <div aria-hidden="true" className="absolute -right-10 -top-24 h-64 w-64 rounded-full border-[46px] border-white/[.05]" />
+    <div className="mx-auto w-full max-w-[1440px] space-y-7">
+      <section className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[.18em] text-sky-compass"><span className="h-1.5 w-1.5 rounded-full bg-coral" />Central de operações</div>
-          <h2 className="mt-3 text-3xl sm:text-[38px] leading-tight font-extrabold text-white tracking-[-.04em]">Olá, {user?.fullName?.split(' ')[0] || 'consultor'}.</h2>
-          <p className="text-white/60 text-sm mt-2">Aqui está o pulso da sua agência hoje.</p>
+          <p className="text-[11px] font-medium capitalize tracking-[.04em] text-on-surface/48">{today}</p>
+          <h1 className="mt-2 text-[32px] font-bold leading-[1.08] tracking-[-.04em] text-on-surface sm:text-[38px]">
+            Olá, {firstName}.
+          </h1>
+          <p className="mt-2 text-sm text-on-surface/52">Tudo que importa para sua operação, sem distrações.</p>
         </div>
-        <Link href="/trips/new" className="btn-interactive relative inline-flex items-center justify-center gap-2 rounded-xl bg-coral px-5 py-3 text-xs font-bold text-white shadow-[0_10px_24px_rgba(255,84,45,.24)]">
-          <span className="material-symbols-outlined text-[18px]">add</span> Nova viagem
+        <Link
+          href="/trips/new"
+          prefetch={false}
+          className="ui-btn ui-btn-primary"
+        >
+          <span className="material-symbols-outlined text-[18px]">add</span>
+          Criar nova viagem
         </Link>
-      </div>
+      </section>
 
-      {loading ? (
-        <div className="text-center py-12 flex items-center justify-center gap-2">
-          <span className="material-symbols-outlined animate-spin">sync</span>
-          <span>Carregando estatísticas operacionais...</span>
+      <section className="flex flex-col gap-4 rounded-2xl border border-outline-variant bg-white p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+        <div className="flex items-center gap-4">
+          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-primary/15 bg-ice-blue text-primary">
+            <span className="material-symbols-outlined text-[21px]">travel_explore</span>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-on-surface">Sua operação está pronta para seguir</p>
+            <p className="mt-1 text-xs leading-relaxed text-on-surface/50">
+              {summary.counts.activeTrips} {summary.counts.activeTrips === 1 ? 'viagem ativa' : 'viagens ativas'} e{' '}
+              {summary.counts.totalClients} clientes na base.
+            </p>
+          </div>
         </div>
-      ) : (
-        <>
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Active Trips */}
-            <div className="scroll-reveal rumo-card p-5 rounded-2xl flex items-center gap-4">
-              <div className="w-11 h-11 bg-primary text-white rounded-xl flex items-center justify-center">
-                <span className="material-symbols-outlined text-[28px]">flight_takeoff</span>
-              </div>
-              <div>
-                <span className="text-[9px] uppercase font-bold tracking-[.14em] text-on-surface/45">Viagens ativas</span>
-                <p className="text-2xl font-extrabold text-primary">{stats.activeTrips}</p>
-              </div>
-            </div>
+        <Link
+          href="/trips"
+          prefetch={false}
+          className="ui-btn ui-btn-secondary shrink-0"
+        >
+          Ver viagens
+          <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+        </Link>
+      </section>
 
-            {/* Total Trips */}
-            <div className="scroll-reveal scroll-reveal-delay-100 rumo-card p-5 rounded-2xl flex items-center gap-4">
-              <div className="w-11 h-11 bg-ice-blue text-primary rounded-xl flex items-center justify-center">
-                <span className="material-symbols-outlined text-[28px]">route</span>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-on-surface opacity-60">Total Roteiros</span>
-                <p className="text-2xl font-extrabold text-primary">{stats.totalTrips}</p>
-              </div>
+      <section className="overflow-hidden rounded-2xl border border-outline-variant bg-white">
+        <div className="grid grid-cols-2 divide-x divide-y divide-outline-variant md:grid-cols-4 md:divide-y-0">
+          {stats.map((stat) => (
+            <div key={stat.label} className="flex min-h-[104px] items-center gap-3 p-4 sm:p-5">
+              <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${stat.tone}`}>
+                <span className="material-symbols-outlined text-[19px]">{stat.icon}</span>
+              </span>
+              <span>
+                <strong className="block text-2xl font-bold leading-none tracking-[-.03em]">{stat.value}</strong>
+                <span className="mt-1.5 block text-[11px] font-medium text-on-surface/46">{stat.label}</span>
+              </span>
             </div>
+          ))}
+        </div>
+      </section>
 
-            {/* Clients */}
-            <div className="scroll-reveal scroll-reveal-delay-200 rumo-card p-5 rounded-2xl flex items-center gap-4">
-              <div className="w-11 h-11 bg-[#e7f2e9] text-success rounded-xl flex items-center justify-center">
-                <span className="material-symbols-outlined text-[28px]">groups</span>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-on-surface opacity-60">Clientes Ativos</span>
-                <p className="text-2xl font-extrabold text-primary">{stats.totalClients}</p>
-              </div>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(300px,.75fr)]">
+        <section className="overflow-hidden rounded-2xl border border-outline-variant bg-white">
+          <div className="flex items-center justify-between border-b border-outline-variant px-5 py-4">
+            <div>
+              <h2 className="text-sm font-semibold">Viagens em destaque</h2>
+              <p className="mt-1 text-[11px] text-on-surface/43">Acesse rapidamente o que está em andamento.</p>
             </div>
-
-            {/* Users */}
-            <div className="scroll-reveal scroll-reveal-delay-300 rumo-card p-5 rounded-2xl flex items-center gap-4">
-              <div className="w-11 h-11 bg-coral/10 text-coral rounded-xl flex items-center justify-center">
-                <span className="material-symbols-outlined text-[28px]">shield</span>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-on-surface opacity-60">Agentes / Usuários</span>
-                <p className="text-2xl font-extrabold text-primary">{stats.totalUsers}</p>
-              </div>
-            </div>
+            <Link href="/trips" prefetch={false} className="text-[11px] font-semibold text-primary hover:underline">
+              Ver todas
+            </Link>
           </div>
 
-          {/* Quick Actions and Recent Activity */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Quick Actions */}
-            <div className="scroll-reveal scroll-reveal-delay-150 rumo-card p-6 rounded-2xl">
-              <h3 className="font-bold text-sm text-primary uppercase tracking-wider mb-4">Ações Rápidas</h3>
-              <div className="grid grid-cols-2 gap-3">
+          <div className="divide-y divide-outline-variant">
+            {summary.recentTrips.length ? (
+              summary.recentTrips.map((trip) => (
                 <Link
-                  href="/trips/new"
-                  className="btn-interactive flex flex-col items-center justify-center p-4 border border-outline-variant rounded-xl hover:border-primary hover:bg-surface-container-low text-center gap-2 group"
+                  key={trip.id}
+                  href={`/trips/${trip.id}/edit`}
+                  prefetch={false}
+                  className="group flex items-center gap-4 px-5 py-4 transition-colors hover:bg-surface-container-low"
                 >
-                  <span className="material-symbols-outlined text-primary text-[28px] group-hover:scale-105 transition-transform">add_circle</span>
-                  <span className="text-xs font-semibold text-on-surface">Novo Roteiro</span>
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-outline-variant bg-white text-primary">
+                    <span className="material-symbols-outlined text-[18px]">flight</span>
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex flex-wrap items-center gap-2">
+                      <strong className="truncate text-xs font-semibold text-on-surface">{trip.name}</strong>
+                      <span className={`rounded-full px-2 py-1 text-[9px] font-semibold ${statusClass(trip.status)}`}>
+                        {trip.status}
+                      </span>
+                    </span>
+                    <span className="mt-1.5 block truncate text-[11px] text-on-surface/46">
+                      {trip.destination} · {trip.clientName}
+                    </span>
+                  </span>
+                  <span className="hidden shrink-0 text-right sm:block">
+                    <span className="block text-[10px] font-medium text-on-surface/55">
+                      {formatTripDate(trip.startDate)} — {formatTripDate(trip.endDate)}
+                    </span>
+                    <span className="mt-1 block text-[9px] text-on-surface/35">{trip.id}</span>
+                  </span>
+                  <span className="material-symbols-outlined text-[17px] text-on-surface/25 transition-transform group-hover:translate-x-0.5 group-hover:text-primary">
+                    arrow_forward
+                  </span>
                 </Link>
-                <Link
-                  href="/library"
-                  className="btn-interactive flex flex-col items-center justify-center p-4 border border-outline-variant rounded-xl hover:border-primary hover:bg-surface-container-low text-center gap-2 group"
-                >
-                  <span className="material-symbols-outlined text-primary text-[28px] group-hover:scale-105 transition-transform">folder_open</span>
-                  <span className="text-xs font-semibold text-on-surface">Biblioteca</span>
-                </Link>
-                <Link
-                  href="/security"
-                  className="btn-interactive flex flex-col items-center justify-center p-4 border border-outline-variant rounded-xl hover:border-primary hover:bg-surface-container-low text-center gap-2 group"
-                >
-                  <span className="material-symbols-outlined text-primary text-[28px] group-hover:scale-105 transition-transform">location_searching</span>
-                  <span className="text-xs font-semibold text-on-surface">Rastrear Clientes</span>
-                </Link>
-                <Link
-                  href="/users"
-                  className="btn-interactive flex flex-col items-center justify-center p-4 border border-outline-variant rounded-xl hover:border-primary hover:bg-surface-container-low text-center gap-2 group"
-                >
-                  <span className="material-symbols-outlined text-primary text-[28px] group-hover:scale-105 transition-transform">badge</span>
-                  <span className="text-xs font-semibold text-on-surface">Gerenciar Time</span>
-                </Link>
-              </div>
-            </div>
-
-            {/* Quick Summary / IA Agent status */}
-            <div className="scroll-reveal scroll-reveal-delay-250 bg-primary text-white p-6 rounded-2xl shadow-[0_16px_40px_rgba(24,59,78,.16)] flex flex-col justify-between">
-              <div>
-                <h3 className="font-bold text-sm text-white uppercase tracking-wider mb-4">Copiloto Rumo</h3>
-                <div className="flex gap-4 items-start bg-white/[.08] p-4 rounded-xl border border-white/10">
-                  <span className="material-symbols-outlined text-[36px] text-coral animate-pulse">auto_awesome</span>
-                  <div className="space-y-1">
-                    <p className="text-xs font-bold text-white">IA roteirista ativa</p>
-                    <p className="text-xs text-white/65 leading-relaxed">
-                      Gerador de roteiros inteligentes conectado e pronto para processar dados de destino, clima e eventos em tempo real.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs text-white/55">
-                <span>Versão do Motor: Claude 3.5 Sonnet</span>
-                <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 bg-success rounded-full"></span>
-                  Operacional
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Rumo News Section */}
-          <div className="scroll-reveal scroll-reveal-delay-300 rumo-card p-6 rounded-2xl">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary text-[24px]">newspaper</span>
-                <h3 className="font-bold text-sm text-primary uppercase tracking-wider">Rumo News: O Mundo das Viagens</h3>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="hidden text-[10px] text-on-surface opacity-55 sm:inline">
-                  {newsUpdatedAt ? `Atualizado às ${newsUpdatedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : 'Atualizado recentemente'}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => void fetchNews(true)}
-                  disabled={newsLoading || newsRefreshing}
-                  className="btn-interactive inline-flex items-center gap-1.5 rounded-lg border border-primary/15 bg-primary/[0.04] px-3 py-2 text-[10px] font-bold text-primary transition-colors hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-                  title="Atualizar minhas notícias"
-                >
-                  <span className={`material-symbols-outlined text-[16px] ${newsRefreshing ? 'animate-spin' : ''}`}>refresh</span>
-                  <span>{newsRefreshing ? 'Atualizando...' : 'Atualizar'}</span>
-                </button>
-              </div>
-            </div>
-
-            {newsLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="animate-pulse flex flex-col gap-3">
-                    <div className="bg-surface-container-high h-40 rounded-lg w-full"></div>
-                    <div className="h-4 bg-surface-container-high rounded w-3/4"></div>
-                    <div className="h-3 bg-surface-container-high rounded w-full"></div>
-                    <div className="h-3 bg-surface-container-high rounded w-5/6"></div>
-                  </div>
-                ))}
-              </div>
+              ))
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {news.map((item, idx) => (
-                  <a
-                    key={idx}
-                    href={item.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex flex-col bg-surface-container-low hover:bg-surface-container-medium border border-outline-variant rounded-xl overflow-hidden transition-all duration-200 hover:shadow-md"
-                  >
-                    {item.imageUrl ? (
-                      <div className="h-40 overflow-hidden relative">
-                        <img
-                          src={item.imageUrl}
-                          alt={item.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <span className="absolute bottom-2 left-2 bg-primary text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                          {item.source}
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="h-40 bg-primary-container-alt text-primary flex items-center justify-center relative">
-                        <span className="material-symbols-outlined text-4xl opacity-50">travel</span>
-                        <span className="absolute bottom-2 left-2 bg-primary text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                          {item.source}
-                        </span>
-                      </div>
-                    )}
-                    <div className="p-4 flex-1 flex flex-col justify-between gap-3">
-                      <div className="space-y-2">
-                        <h4 className="font-bold text-sm text-on-surface line-clamp-2 group-hover:text-primary transition-colors">
-                          {item.title}
-                        </h4>
-                        <p className="text-xs text-on-surface opacity-75 line-clamp-3 leading-relaxed">
-                          {item.description}
-                        </p>
-                      </div>
-                      <div className="text-[10px] text-on-surface opacity-60 flex justify-between items-center pt-2 border-t border-outline-variant/50">
-                        <span>{new Date(item.pubDate).toLocaleDateString('pt-BR')}</span>
-                        <span className="flex items-center gap-0.5 font-semibold text-primary group-hover:translate-x-1 transition-transform">
-                          Ler mais <span className="material-symbols-outlined text-xs">arrow_forward</span>
-                        </span>
-                      </div>
-                    </div>
-                  </a>
-                ))}
+              <div className="px-5 py-12 text-center">
+                <span className="material-symbols-outlined text-[30px] text-on-surface/20">luggage</span>
+                <p className="mt-2 text-xs font-semibold">Nenhuma viagem por aqui ainda</p>
+                <Link href="/trips/new" className="mt-2 inline-block text-[11px] font-semibold text-primary hover:underline">
+                  Criar a primeira viagem
+                </Link>
               </div>
             )}
           </div>
-        </>
-      )}
+        </section>
+
+        <aside className="space-y-6">
+          <section className="rounded-2xl border border-outline-variant bg-white p-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold">Ações rápidas</h2>
+              <span className="text-[9px] font-semibold uppercase tracking-[.14em] text-on-surface/30">Atalhos</span>
+            </div>
+            <div className="mt-4 divide-y divide-outline-variant">
+              {quickActions.map((action) => (
+                <Link
+                  key={action.href}
+                  href={action.href}
+                  prefetch={false}
+                  className="group flex items-center gap-3 py-3 first:pt-0 last:pb-0"
+                >
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-surface-container-low text-on-surface/58 group-hover:bg-ice-blue group-hover:text-primary">
+                    <span className="material-symbols-outlined text-[17px]">{action.icon}</span>
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-xs font-semibold">{action.label}</span>
+                    <span className="mt-0.5 block text-[10px] text-on-surface/42">{action.detail}</span>
+                  </span>
+                  <span className="material-symbols-outlined text-[15px] text-on-surface/23 group-hover:text-primary">arrow_forward</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-primary/15 bg-ice-blue/55 p-5">
+            <div className="flex items-start gap-3">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white text-primary">
+                <span className="material-symbols-outlined text-[19px]">auto_awesome</span>
+              </span>
+              <div>
+                <p className="text-xs font-semibold">Copiloto Rumo</p>
+                <p className="mt-1 text-[11px] leading-relaxed text-on-surface/50">
+                  Transforme as preferências do cliente em um roteiro pronto para revisar.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/trips/new"
+              prefetch={false}
+              className="mt-4 inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+            >
+              Criar com IA <span className="material-symbols-outlined text-[15px]">arrow_forward</span>
+            </Link>
+          </section>
+        </aside>
+      </div>
+
+      <DashboardNews />
     </div>
   );
 }

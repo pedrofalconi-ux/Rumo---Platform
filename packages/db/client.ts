@@ -160,21 +160,9 @@ function ensureDbFile(filename: string, initialData: any) {
   }
 
   if (REMOTE_DB_ENABLED) {
-    const remoteKey = getRemoteKey(filename);
-    try {
-      const existsResult = runRemoteStorage('exists', remoteKey);
-      const existsPayload = existsResult ? JSON.parse(existsResult) as { exists?: boolean } : {};
-      if (!existsPayload.exists) {
-        runRemoteStorage('upload', remoteKey, JSON.stringify(initialData, null, 2));
-        const marker = getRemoteMarker(filename);
-        remoteDataCache.set(marker, { value: cloneData(initialData), loadedAt: Date.now() });
-        return marker;
-      }
-      return getRemoteMarker(filename);
-    } catch (error) {
-      console.warn(`[db] Remote persistence bootstrap failed for ${filename}. Reads may fall back to local seed until storage recovers.`, error);
-      return getRemoteMarker(filename);
-    }
+    // Do not perform remote I/O during module evaluation. Reads and writes
+    // resolve the object lazily when that collection is actually requested.
+    return getRemoteMarker(filename);
   }
   return filePath;
 }
@@ -390,26 +378,31 @@ const TRAVELER_INVITES_FILE = ensureDbFile('traveler-invites.json', initialTrave
 const TRAVELER_TRIP_ACCESS_FILE = ensureDbFile('traveler-trip-access.json', initialTravelerTripAccess);
 const AI_GENERATIONS_FILE = ensureDbFile('ai-generations.json', []);
 
-const existingUsers = readData<any[]>(USERS_FILE);
-if (existingUsers.some((user) => !user.passwordHash || !user.agencyId || !user.accessStatus || !user.accessExpiresAt)) {
-  writeData(
-    USERS_FILE,
-    existingUsers.map((user) => ({
-      avatarUrl: '',
-      createdAt: new Date().toISOString(),
-      agencyId: 'agency-default',
-      accessStatus: 'active',
-      accessExpiresAt: '2099-12-31T23:59:59.000Z',
-      ...user,
-      passwordHash: user.passwordHash || createPasswordHash('rumo123'),
-    }))
-  );
-}
+let usersCompatibilityChecked = false;
+let tripsCompatibilityChecked = false;
+let clientsCompatibilityChecked = false;
 
-const usersAfterNormalization = readData<any[]>(USERS_FILE);
-if (!usersAfterNormalization.some((user) => user.role === 'platform_admin')) {
-  writeData(USERS_FILE, [
-    {
+function ensureUsersCompatibility() {
+  if (usersCompatibilityChecked) return;
+  usersCompatibilityChecked = true;
+
+  const existingUsers = readData<any[]>(USERS_FILE);
+  const normalizedUsers = existingUsers.map((user) => ({
+    avatarUrl: '',
+    createdAt: new Date().toISOString(),
+    agencyId: 'agency-default',
+    accessStatus: 'active',
+    accessExpiresAt: '2099-12-31T23:59:59.000Z',
+    ...user,
+    passwordHash: user.passwordHash || createPasswordHash('rumo123'),
+  }));
+  const needsNormalization = existingUsers.some(
+    (user) => !user.passwordHash || !user.agencyId || !user.accessStatus || !user.accessExpiresAt
+  );
+  const usersAfterNormalization = needsNormalization ? normalizedUsers : existingUsers;
+
+  if (!usersAfterNormalization.some((user) => user.role === 'platform_admin')) {
+    usersAfterNormalization.unshift({
       id: 'user-platform-admin',
       fullName: 'Administrador Rumo',
       email: 'platform@rumo.com',
@@ -421,43 +414,56 @@ if (!usersAfterNormalization.some((user) => user.role === 'platform_admin')) {
       accessExpiresAt: '2099-12-31T23:59:59.000Z',
       passwordHash: createPasswordHash('rumo123'),
       createdAt: new Date().toISOString(),
-    },
-    ...usersAfterNormalization,
-  ]);
+    });
+  }
+
+  if (needsNormalization || usersAfterNormalization.length !== existingUsers.length) {
+    writeData(USERS_FILE, usersAfterNormalization);
+  }
 }
 
-const existingTrips = readData<any[]>(TRIPS_FILE);
-if (
-  existingTrips.some(
-    (trip) =>
-      !trip.agencyId ||
-      !Array.isArray(trip.documents) ||
-      !Array.isArray(trip.transportation) ||
-      !Array.isArray(trip.accommodations)
-  )
-) {
-  writeData(
-    TRIPS_FILE,
-    existingTrips.map((trip) => ({
-      agencyId: 'agency-default',
-      documents: [],
-      transportation: [],
-      accommodations: [],
-      ...trip,
-    }))
-  );
+function ensureTripsCompatibility() {
+  if (tripsCompatibilityChecked) return;
+  tripsCompatibilityChecked = true;
+
+  const existingTrips = readData<any[]>(TRIPS_FILE);
+  if (
+    existingTrips.some(
+      (trip) =>
+        !trip.agencyId ||
+        !Array.isArray(trip.documents) ||
+        !Array.isArray(trip.transportation) ||
+        !Array.isArray(trip.accommodations)
+    )
+  ) {
+    writeData(
+      TRIPS_FILE,
+      existingTrips.map((trip) => ({
+        agencyId: 'agency-default',
+        documents: [],
+        transportation: [],
+        accommodations: [],
+        ...trip,
+      }))
+    );
+  }
 }
 
-const existingClients = readData<any[]>(CLIENTS_FILE);
-if (existingClients.some((client) => !client.agencyId)) {
-  writeData(
-    CLIENTS_FILE,
-    existingClients.map((client) => ({
-      agencyId: 'agency-default',
-      appAccessStatus: 'pending',
-      ...client,
-    }))
-  );
+function ensureClientsCompatibility() {
+  if (clientsCompatibilityChecked) return;
+  clientsCompatibilityChecked = true;
+
+  const existingClients = readData<any[]>(CLIENTS_FILE);
+  if (existingClients.some((client) => !client.agencyId)) {
+    writeData(
+      CLIENTS_FILE,
+      existingClients.map((client) => ({
+        agencyId: 'agency-default',
+        appAccessStatus: 'pending',
+        ...client,
+      }))
+    );
+  }
 }
 
 // Generic read/write helpers
@@ -605,11 +611,16 @@ export const db = {
   },
   trips: {
     findMany: (agencyId?: string) => {
+      ensureTripsCompatibility();
       const trips = readData<any[]>(TRIPS_FILE);
       return agencyId ? trips.filter((trip) => trip.agencyId === agencyId) : trips;
     },
-    findOne: (id: string) => readData<any[]>(TRIPS_FILE).find((t) => t.id === id),
+    findOne: (id: string) => {
+      ensureTripsCompatibility();
+      return readData<any[]>(TRIPS_FILE).find((t) => t.id === id);
+    },
     create: (data: any) => {
+      ensureTripsCompatibility();
       const trips = readData<any[]>(TRIPS_FILE);
       const newTrip = {
         id: `HOR-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -623,6 +634,7 @@ export const db = {
       return newTrip;
     },
     update: (id: string, data: any) => {
+      ensureTripsCompatibility();
       const trips = readData<any[]>(TRIPS_FILE);
       const index = trips.findIndex((t) => t.id === id);
       if (index === -1) return null;
@@ -631,6 +643,7 @@ export const db = {
       return trips[index];
     },
     delete: (id: string) => {
+      ensureTripsCompatibility();
       const trips = readData<any[]>(TRIPS_FILE);
       const filtered = trips.filter((t) => t.id !== id);
       writeData(TRIPS_FILE, filtered);
@@ -639,10 +652,12 @@ export const db = {
   },
   clients: {
     findMany: (agencyId?: string) => {
+      ensureClientsCompatibility();
       const clients = readData<any[]>(CLIENTS_FILE);
       return agencyId ? clients.filter((client) => client.agencyId === agencyId) : clients;
     },
     create: (data: any) => {
+      ensureClientsCompatibility();
       const clients = readData<any[]>(CLIENTS_FILE);
       const newClient = {
         id: `client-${Date.now()}`,
@@ -653,6 +668,7 @@ export const db = {
       return newClient;
     },
     update: (id: string, data: any, agencyId?: string) => {
+      ensureClientsCompatibility();
       const clients = readData<any[]>(CLIENTS_FILE);
       const index = clients.findIndex((client) => client.id === id && (!agencyId || client.agencyId === agencyId));
       if (index === -1) return null;
@@ -661,12 +677,14 @@ export const db = {
       return clients[index];
     },
     delete: (id: string) => {
+      ensureClientsCompatibility();
       const clients = readData<any[]>(CLIENTS_FILE);
       const filtered = clients.filter((c) => c.id !== id);
       writeData(CLIENTS_FILE, filtered);
       return true;
     },
     deleteForAgency: (id: string, agencyId: string) => {
+      ensureClientsCompatibility();
       const clients = readData<any[]>(CLIENTS_FILE);
       const filtered = clients.filter((client) => !(client.id === id && client.agencyId === agencyId));
       if (filtered.length === clients.length) return false;
@@ -676,13 +694,21 @@ export const db = {
   },
   users: {
     findMany: (agencyId?: string) => {
+      ensureUsersCompatibility();
       const users = readData<any[]>(USERS_FILE);
       const filtered = agencyId ? users.filter((user) => user.agencyId === agencyId) : users;
       return filtered.map(sanitizeUser);
     },
-    findOne: (id: string) => sanitizeUser(readData<any[]>(USERS_FILE).find((u) => u.id === id)),
-    findByEmail: (email: string) => readData<any[]>(USERS_FILE).find((u) => u.email.toLowerCase() === email.toLowerCase()),
+    findOne: (id: string) => {
+      ensureUsersCompatibility();
+      return sanitizeUser(readData<any[]>(USERS_FILE).find((u) => u.id === id));
+    },
+    findByEmail: (email: string) => {
+      ensureUsersCompatibility();
+      return readData<any[]>(USERS_FILE).find((u) => u.email.toLowerCase() === email.toLowerCase());
+    },
     create: (data: any) => {
+      ensureUsersCompatibility();
       const users = readData<any[]>(USERS_FILE);
       const exists = users.some((u) => u.email.toLowerCase() === data.email.toLowerCase());
       if (exists) {
@@ -704,6 +730,7 @@ export const db = {
       return sanitizeUser(newUser);
     },
     update: (id: string, data: any) => {
+      ensureUsersCompatibility();
       const users = readData<any[]>(USERS_FILE);
       const index = users.findIndex((user) => user.id === id);
       if (index === -1) return null;
@@ -712,6 +739,7 @@ export const db = {
       return sanitizeUser(users[index]);
     },
     delete: (id: string) => {
+      ensureUsersCompatibility();
       const users = readData<any[]>(USERS_FILE);
       const filtered = users.filter((u) => u.id !== id);
       writeData(USERS_FILE, filtered);

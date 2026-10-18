@@ -11,6 +11,7 @@ import {
   readLocalTrips,
   upsertLocalTrip,
 } from '@/lib/trip-local-store';
+import { formatBrazilianPhone } from '@/lib/phone';
 
 const CITIES = AMERICA_DESTINATIONS;
 
@@ -19,6 +20,13 @@ const normalizeSearch = (value: string) =>
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
+
+const tripStatusClass = (status: Trip['status']) => {
+  if (status === 'Confirmado') return 'border-success/20 bg-status-active text-success';
+  if (status === 'Publicado') return 'border-primary/20 bg-ice-blue text-primary';
+  if (status === 'Cancelado') return 'border-error/20 bg-status-cancelled text-error';
+  return 'border-amber-200 bg-amber-50 text-amber-800';
+};
 
 interface ItineraryItem {
   id: string;
@@ -296,7 +304,7 @@ const ADD_OPTIONS: AddOption[] = [
   { type: 'cruise', label: 'Cruzeiro', defaultSymbol: 'directions_boat', iconName: 'directions_boat', iconColor: 'text-red-500', category: 'Adicionar' },
   { type: 'services', label: 'Serviços', subText: 'Lounge, fast track, estacionamento, meet, etc.', defaultSymbol: 'local_activity', iconName: 'room_service', iconColor: 'text-sky-600', category: 'Adicionar' },
   { type: 'page_break', label: 'Quebra de página PDF', defaultSymbol: 'library_books', iconName: 'content_cut', iconColor: 'text-rose-400', category: 'Adicionar' },
-  { type: 'price', label: 'Preço', defaultSymbol: 'sell', iconName: 'sell', iconColor: 'text-orange-500', category: 'Adicionar' },
+  { type: 'price', label: 'Preço', defaultSymbol: 'sell', iconName: 'sell', iconColor: 'text-sky-600', category: 'Adicionar' },
 
   // Importação
   { type: 'import_itinerary', label: 'Modelo de itinerário', defaultSymbol: 'explore', iconName: 'route', iconColor: 'text-red-500', category: 'Importação' },
@@ -403,7 +411,7 @@ const getTrailTheme = () => {
     node: 'bg-white border-primary text-primary ring-[#E7EEFF]',
     card: 'border-primary/15 bg-gradient-to-br from-white to-[#F1F5FF]',
     label: 'text-primary bg-[#E2EAFF]',
-    rail: 'bg-coral',
+    rail: 'bg-sky-compass',
   };
 };
 
@@ -1627,7 +1635,7 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
       {trip?.aiStatus === 'AI_DRAFT' && !isPreviewMode && (
         trip?.aiResponse?.provider === 'mock' ? (
           <div className="bg-rose-50 border border-rose-300 text-rose-900 px-5 py-3.5 flex flex-wrap justify-between items-center gap-3 rounded-xl mb-6 print:hidden">
-            <div className="flex items-start gap-2">
+            <div className="min-w-[240px] flex-1 flex items-start gap-2">
               <span className="material-symbols-outlined text-sm mt-0.5">warning</span>
               <div>
                 <p className="text-xs font-bold">Roteiro de teste — sem IA real</p>
@@ -1638,14 +1646,14 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
             </div>
             <button
               onClick={handleGenerateWithAi}
-              className="px-3.5 py-1.5 bg-rose-600 text-white text-xs font-bold rounded-lg hover:bg-rose-700 transition-all"
+              className="ui-btn ui-btn-danger ui-btn-sm shrink-0"
             >
               Tentar gerar de novo
             </button>
           </div>
         ) : (
           <div className="bg-amber-50 border border-amber-200 text-amber-900 px-5 py-3.5 flex flex-wrap justify-between items-center gap-3 rounded-xl mb-6 print:hidden">
-            <div className="flex items-start gap-2">
+            <div className="min-w-[240px] flex-1 flex items-start gap-2">
               <span className="material-symbols-outlined text-sm mt-0.5">auto_awesome</span>
               <div>
                 <p className="text-xs font-bold">Rascunho gerado por IA</p>
@@ -1656,7 +1664,7 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
             </div>
             <button
               onClick={handleApproveAiDraft}
-              className="px-3.5 py-1.5 bg-amber-600 text-white text-xs font-bold rounded-lg hover:bg-amber-700 transition-all"
+              className="ui-btn ui-btn-secondary ui-btn-sm shrink-0 border-amber-300 bg-amber-100 text-amber-900 hover:border-amber-400 hover:bg-amber-200 hover:text-amber-950"
             >
               Aprovar conteudo IA
             </button>
@@ -1666,10 +1674,10 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
 
       {trip?.templateMatch && !isPreviewMode && (
         <div className="mb-6 rounded-2xl border border-primary/10 bg-white p-5 shadow-sm print:hidden">
-          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-wider text-coral">Aderência ao modelo</p><h3 className="mt-1 text-sm font-black text-primary">Como este roteiro foi composto</h3></div><p className="text-[10px] text-on-surface/50">{trip.templateMatch.matchedBlocks}/{trip.templateMatch.totalBlocks} blocos · {trip.templateMatch.matchedRequired}/{trip.templateMatch.totalRequired} obrigatórios</p></div>
+          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-semibold text-primary">Uso do modelo</p><h3 className="mt-1 text-sm font-semibold text-on-surface">Como este roteiro foi composto</h3></div><p className="text-[10px] text-on-surface/50">{trip.templateMatch.matchedBlocks}/{trip.templateMatch.totalBlocks} itens · {trip.templateMatch.matchedRequired}/{trip.templateMatch.totalRequired} essenciais</p></div>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">{[
             ['Modelo', trip.templateMatch.templatePercent, 'bg-primary'],
-            ['Preferências', trip.templateMatch.customizationPercent, 'bg-coral'],
+            ['Preferências', trip.templateMatch.customizationPercent, 'bg-sky-compass'],
             ['Sugestões IA', trip.templateMatch.aiSuggestionsPercent, 'bg-sky-400'],
           ].map(([label, value, color]) => <div key={String(label)} className="rounded-xl bg-surface-container-low p-3"><div className="flex justify-between text-[10px] font-bold"><span>{label}</span><span>{value}%</span></div><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-primary/10"><div className={`h-full rounded-full ${color}`} style={{ width: `${value}%` }}/></div></div>)}</div>
         </div>
@@ -1688,7 +1696,7 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
           </div>
           <button
             onClick={handleCancelAiGeneration}
-            className="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1 active:scale-95 shadow-sm"
+            className="ui-btn ui-btn-danger ui-btn-sm"
           >
             <span className="material-symbols-outlined text-[12px] font-bold">close</span>
             Cancelar Geração
@@ -1747,8 +1755,8 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
         </div>
       </div>
       {/* Header bar */}
-      <section className="pdf-trip-header mb-8 flex justify-between items-start">
-        <div className="flex flex-col gap-2">
+      <section className="pdf-trip-header mb-8 flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+        <div className="min-w-0 flex-1 flex flex-col gap-2">
           <div className="pdf-breadcrumb flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-on-surface opacity-75">
             <Link href="/trips" className="hover:text-primary transition-colors">
               Viagens
@@ -1767,12 +1775,12 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
                 if (e.key === 'Escape') setIsEditingTitle(false);
               }}
               autoFocus
-              className="font-headline-lg text-2xl font-bold text-primary mt-1 bg-transparent border-b border-primary focus:outline-none w-full max-w-lg"
+              className="font-headline-lg text-2xl font-bold text-on-surface mt-1 bg-transparent border-b border-primary focus:outline-none w-full max-w-lg"
             />
           ) : (
             <h2
               onClick={handleStartEditingTitle}
-              className="font-headline-lg text-2xl font-bold text-primary mt-1 cursor-pointer hover:underline decoration-dashed decoration-primary/45 flex items-center gap-2 group"
+              className="font-headline-lg text-2xl font-bold text-on-surface mt-1 cursor-pointer hover:underline decoration-dashed decoration-primary/45 flex items-center gap-2 group"
               title="Clique para editar o título"
             >
               {trip.name}
@@ -1808,13 +1816,13 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
         ) : null}
 
         {/* Action buttons */}
-        <div className="pdf-actions flex items-center gap-2 print-hidden">
+        <div className="pdf-actions ui-action-bar w-full justify-start print-hidden xl:w-auto xl:max-w-[760px] xl:justify-end">
           {!isPreviewMode ? (
             <>
               <button
                 onClick={handleGenerateWithAi}
                 disabled={aiGenerating || isLocalOnlyTrip}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-60 disabled:cursor-not-allowed text-xs font-bold transition-all"
+                className="ui-btn ui-btn-secondary"
                 title={isLocalOnlyTrip ? 'IA indisponivel enquanto a viagem existir apenas no fallback local' : 'Gerar com IA'}
               >
                 <span className="material-symbols-outlined text-base">auto_awesome</span>
@@ -1822,14 +1830,14 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
               </button>
               <button 
                 onClick={handleExportPDF}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-outline-variant hover:bg-surface-container-low text-xs font-bold transition-all"
+                className="ui-btn ui-btn-secondary"
               >
                 <span className="material-symbols-outlined text-base">picture_as_pdf</span>
                 <span>Exportar PDF</span>
               </button>
               <button 
                 onClick={() => setIsPreviewMode(true)}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-outline-variant hover:bg-surface-container-low text-xs font-bold transition-all"
+                className="ui-btn ui-btn-soft"
               >
                 <span className="material-symbols-outlined text-base">visibility</span>
                 <span>Visualizar</span>
@@ -1838,29 +1846,29 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
           ) : (
             <button 
               onClick={() => setIsPreviewMode(false)}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-outline-variant hover:bg-surface-container-low text-xs font-bold transition-all"
+              className="ui-btn ui-btn-secondary"
             >
               <span className="material-symbols-outlined text-base">edit</span>
               <span>Voltar ao Editor</span>
             </button>
           )}
           <button
+            onClick={handleOpenPushModal}
+            className="ui-btn ui-btn-secondary"
+          >
+            <span className="material-symbols-outlined text-base">send</span>
+            <span>Notificações</span>
+          </button>
+          <button
             onClick={() => {
               setInviteForm((prev) => ({ ...prev, travelerName: trip.clientName || '' }));
               setInviteUrl('');
               setIsInviteModalOpen(true);
             }}
-            className="flex items-center gap-2 rounded-lg bg-coral px-3.5 py-2 text-xs font-bold text-white shadow-sm transition-all hover:brightness-105"
+            className="ui-btn ui-btn-primary"
           >
             <span className="material-symbols-outlined text-base">phone_iphone</span>
             <span>Liberar no app</span>
-          </button>
-          <button
-            onClick={handleOpenPushModal}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-on-primary hover:opacity-90 text-xs font-bold transition-all"
-          >
-            <span className="material-symbols-outlined text-base">send</span>
-            <span>Notificações</span>
           </button>
         </div>
       </section>
@@ -1909,10 +1917,11 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-bold text-on-surface opacity-75">WhatsApp</label>
                   <input
-                    type="text"
+                    type="tel"
                     value={inviteForm.phone}
-                    onChange={(event) => setInviteForm((prev) => ({ ...prev, phone: event.target.value }))}
-                    placeholder="+55 11 99999-9999"
+                    onChange={(event) => setInviteForm((prev) => ({ ...prev, phone: formatBrazilianPhone(event.target.value) }))}
+                    placeholder="(11) 99999-9999"
+                    autoComplete="tel"
                     className="border border-outline-variant rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                   />
                 </div>
@@ -1944,17 +1953,17 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
                 </div>
               )}
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-outline-variant">
+              <div className="ui-action-bar justify-end border-t border-outline-variant pt-3">
                 <button
                   type="button"
                   onClick={() => setIsInviteModalOpen(false)}
-                  className="px-4 py-2.5 border border-outline rounded-lg text-xs font-semibold hover:bg-surface-container"
+                  className="ui-btn ui-btn-secondary"
                 >
                   Fechar
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 bg-primary text-on-primary font-bold rounded-lg text-xs hover:opacity-90"
+                  className="ui-btn ui-btn-primary"
                 >
                   Gerar convite
                 </button>
@@ -2153,17 +2162,17 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-2 pt-2 border-t border-outline-variant">
+                <div className="ui-action-bar justify-end border-t border-outline-variant pt-3">
                   <button
                     type="button"
                     onClick={() => setIsPushModalOpen(false)}
-                    className="px-4 py-2.5 border border-outline rounded-lg text-xs font-semibold hover:bg-surface-container"
+                    className="ui-btn ui-btn-secondary"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 bg-primary text-on-primary font-bold rounded-lg text-xs hover:opacity-90 flex items-center gap-1.5"
+                    className="ui-btn ui-btn-primary"
                   >
                     <span className="material-symbols-outlined text-[15px]">send</span>
                     Emitir push
@@ -2424,7 +2433,7 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
             )}
 
             <div className="absolute left-5 top-5 right-5 flex items-start justify-between gap-3">
-              <div className={`${trip.coverImage && !coverImageFailed ? 'text-white' : 'text-primary'} max-w-md`}>
+              <div className={`${trip.coverImage && !coverImageFailed ? 'text-white' : 'text-on-surface'} max-w-md`}>
                 <h3 className="font-headline-md text-2xl font-black leading-tight mt-1">{trip.name}</h3>
               </div>
               <button
@@ -2469,7 +2478,7 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
             <div className="border-b border-outline-variant/40 pb-2">
               <span className="font-semibold text-[10px] uppercase text-on-surface opacity-60">Status da Trip</span>
               <div className="mt-0.5">
-                <span className="px-2 py-0.5 bg-status-active text-success border border-success/20 font-bold rounded text-[9px] uppercase inline-block">
+                <span className={`inline-block rounded border px-2 py-0.5 text-[9px] font-bold uppercase ${tripStatusClass(trip.status)}`}>
                   {trip.status}
                 </span>
               </div>
@@ -2499,7 +2508,7 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
           {/* Travelers Card */}
           <div className="pdf-info-card bg-white border border-outline-variant p-6 rounded-xl shadow-sm flex flex-col justify-between min-h-[180px]">
             <div>
-              <h3 className="font-bold text-sm text-primary uppercase tracking-wider">Viajantes</h3>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-on-surface">Viajantes</h3>
               <p className="text-[11px] text-on-surface opacity-70 mt-0.5">Membros inclusos no roteiro</p>
               
               <div className="flex flex-wrap gap-2 mt-4">
@@ -2524,7 +2533,7 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
             
             <button
               onClick={() => setIsTravelerModalOpen(true)}
-              className="print:hidden w-full mt-4 flex items-center justify-center gap-1.5 px-4 py-2 border border-primary text-primary rounded-lg text-xs font-bold hover:bg-primary-container-alt transition-colors active:scale-95"
+              className="ui-btn ui-btn-soft mt-4 w-full print:hidden"
             >
               <span className="material-symbols-outlined text-sm">person_add</span>
               <span>Gerenciar Viajantes</span>
@@ -2536,12 +2545,12 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
             <div>
               <div className="flex justify-between items-start mb-2">
                 <div>
-                  <h3 className="font-bold text-sm text-primary uppercase tracking-wider">Documentos da Viagem</h3>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-on-surface">Documentos da viagem</h3>
                   <p className="text-[11px] text-on-surface opacity-70 mt-0.5">Anexos para o viajante acessar</p>
                 </div>
                 <label 
                   htmlFor="doc-upload-input"
-                  className={`p-2 hover:bg-primary hover:text-on-primary rounded-full transition-all duration-300 text-primary active:scale-95 cursor-pointer flex items-center justify-center hover:rotate-90 hover:scale-110 hover:shadow-md ${uploadingDoc ? 'animate-spin' : 'animate-pulse-subtle'}`}
+                  className={`ui-icon-btn cursor-pointer ${uploadingDoc ? 'animate-spin' : ''}`}
                   title="Anexar documento"
                 >
                   <span className="material-symbols-outlined text-lg">
@@ -2924,17 +2933,17 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-outline-variant">
+              <div className="ui-action-bar justify-end border-t border-outline-variant pt-3">
                 <button
                   type="button"
                   onClick={() => setIsTripSettingsModalOpen(false)}
-                  className="px-4 py-2.5 border border-outline rounded-lg text-xs font-semibold hover:bg-surface-container"
+                  className="ui-btn ui-btn-secondary"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 bg-primary text-on-primary font-bold rounded-lg text-xs hover:opacity-90"
+                  className="ui-btn ui-btn-primary"
                 >
                   Salvar Alterações
                 </button>
@@ -2986,7 +2995,7 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
                 <button
                   type="submit"
                   disabled={!travelerName.trim()}
-                  className="sm:self-end flex items-center justify-center gap-1.5 px-4 py-2.5 bg-primary text-on-primary rounded-lg text-xs font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  className="ui-btn ui-btn-primary sm:self-end"
                 >
                   <span className="material-symbols-outlined text-base">person_add</span>
                   <span>Adicionar</span>
@@ -3045,7 +3054,7 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
           <div aria-hidden="true" className="absolute -right-8 -top-16 h-48 w-48 rounded-full border-[34px] border-white/[0.06]" />
           <div className="relative flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-coral px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-white shadow-sm">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-primary px-3 py-1.5 text-[10px] font-semibold tracking-[0.08em] text-white shadow-sm">
                 <span className="material-symbols-outlined text-[15px]">route</span>
                 Trilha da viagem
               </div>
@@ -3069,7 +3078,7 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
 
         {/* Days loop */}
         <div className="relative">
-        <div aria-hidden="true" className="absolute bottom-4 left-[25px] top-7 w-[5px] rounded-full bg-gradient-to-b from-coral via-primary/55 to-sky-compass/30 sm:left-[31px]" />
+        <div aria-hidden="true" className="absolute bottom-4 left-[25px] top-7 w-[4px] rounded-full bg-gradient-to-b from-primary via-sky-compass/65 to-sky-compass/20 sm:left-[31px]" />
         {getDays().map((dayNum, dayIndex) => {
           const dayItems = items.filter((i) => i.day === dayNum);
 
@@ -3077,7 +3086,7 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
             <div key={dayNum} className="scroll-reveal journey-node relative mb-16 last:mb-4">
               <div className="relative flex items-center justify-between mb-7">
                 <div className="flex items-center gap-4">
-                  <div className="z-10 flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-[18px] bg-coral text-white shadow-[0_10px_25px_rgba(255,84,45,0.3)] ring-[6px] ring-[#EDF2FC] sm:h-16 sm:w-16">
+                  <div className="z-10 flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-[18px] bg-primary text-white shadow-[0_10px_25px_rgba(46,139,255,0.24)] ring-[6px] ring-[#EDF2FC] sm:h-16 sm:w-16">
                     <span className="text-[8px] font-black uppercase tracking-[0.16em] text-white/70">Dia</span>
                     <span className="text-xl font-black leading-none">{dayNum}</span>
                   </div>
@@ -3302,7 +3311,7 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
                       setActiveDay(dayNum);
                       setIsModalOpen(true);
                     }}
-                    className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-primary/20 bg-white/55 rounded-full text-xs font-bold text-primary hover:border-coral hover:text-coral hover:bg-white transition-colors"
+                    className="flex items-center gap-2 rounded-full border border-dashed border-primary/25 bg-white/55 px-4 py-2.5 text-xs font-semibold text-primary transition-colors hover:border-primary/50 hover:bg-white"
                   >
                     <span className="material-symbols-outlined text-xs">add</span>
                     <span>Adicionar item no Dia {dayNum}</span>

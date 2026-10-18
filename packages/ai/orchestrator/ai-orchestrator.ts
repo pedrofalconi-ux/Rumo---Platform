@@ -20,6 +20,11 @@ import type { CuratedPoi, PoiRetriever } from '../rag/poi-retriever';
 import { uncoveredPoiResult } from '../rag/poi-retriever';
 import { calculateTemplateMatch, formatTemplatePromptContext } from '../rag/template-document-retriever';
 import type { ItineraryTemplateContext } from '../rag/template-document-retriever';
+import {
+  emptyItineraryRetrievalResult,
+  formatItineraryPromptContext,
+} from '../rag/itinerary-retriever';
+import type { ItineraryRetriever } from '../rag/itinerary-retriever';
 
 export interface GenerationLogger {
   log(entry: {
@@ -49,7 +54,8 @@ export class AiOrchestrator {
     config?: Partial<AiOrchestratorConfig>,
     private logger: GenerationLogger = noopLogger,
     private logContext?: { userId: string },
-    private poiRetriever?: PoiRetriever
+    private poiRetriever?: PoiRetriever,
+    private itineraryRetriever?: ItineraryRetriever
   ) {
     const resolved = resolveOrchestratorConfig(config);
     this.provider = createLLMProvider(resolved);
@@ -90,7 +96,13 @@ export class AiOrchestrator {
     let tokensOut = 0;
 
     const templatePrompt = context?.template ? formatTemplatePromptContext(context.template) : '';
-    const planPrompt = [buildPlanTripPrompt(input, ruleCtx.constraints, totalDays), templatePrompt].filter(Boolean).join('\n\n');
+    const itineraryReferences = await this.retrieveItineraryReferences(input);
+    const itineraryPrompt = formatItineraryPromptContext(itineraryReferences);
+    const planPrompt = [
+      buildPlanTripPrompt(input, ruleCtx.constraints, totalDays),
+      itineraryPrompt,
+      templatePrompt,
+    ].filter(Boolean).join('\n\n');
     const planGeneration = await this.generatePlanWithRecovery(input, totalDays, planPrompt);
     const plan = planGeneration.plan;
 
@@ -127,7 +139,7 @@ export class AiOrchestrator {
         ruleCtx.constraints,
         poiContext,
         previouslyUsedPlaceNames
-      ), templatePrompt].filter(Boolean).join('\n\n');
+      ), itineraryPrompt, templatePrompt].filter(Boolean).join('\n\n');
       const diningCandidates = poiContext.pois.filter((poi) =>
         ['restaurant', 'cafe', 'bar'].includes(poi.type)
       );
@@ -234,6 +246,10 @@ export class AiOrchestrator {
         latencyMs: Date.now() - started,
         daysGenerated: dayResults.length,
         failedDays: failedDays.length ? failedDays : undefined,
+        rag: {
+          referenceItineraryCount: itineraryReferences.references.length,
+          referenceTripIds: itineraryReferences.references.map((reference) => reference.tripId),
+        },
         templateMatch,
       },
     };
@@ -249,7 +265,12 @@ export class AiOrchestrator {
     const ruleCtx = buildRuleContext(input);
     const totalDays = countTripDays(input.startDate, input.endDate);
 
-    const planPrompt = buildPlanTripPrompt(input, ruleCtx.constraints, totalDays);
+    const itineraryReferences = await this.retrieveItineraryReferences(input);
+    const itineraryPrompt = formatItineraryPromptContext(itineraryReferences);
+    const planPrompt = [
+      buildPlanTripPrompt(input, ruleCtx.constraints, totalDays),
+      itineraryPrompt,
+    ].filter(Boolean).join('\n\n');
     const planGeneration = await this.generatePlanWithRecovery(input, totalDays, planPrompt);
     const dayPlan = planGeneration.plan.days.find((entry) => entry.day === day);
 
@@ -258,7 +279,10 @@ export class AiOrchestrator {
     }
 
     const poiContext = await this.retrievePois(input, dayPlan);
-    let dayPrompt = buildGenerateDayPrompt(input, dayPlan, ruleCtx.constraints, poiContext);
+    let dayPrompt = [
+      buildGenerateDayPrompt(input, dayPlan, ruleCtx.constraints, poiContext),
+      itineraryPrompt,
+    ].filter(Boolean).join('\n\n');
     if (instruction?.trim()) {
       dayPrompt += `\n\nInstrucao adicional do consultor: ${instruction.trim().slice(0, 500)}`;
     }
@@ -355,6 +379,17 @@ export class AiOrchestrator {
     }
   }
 
+  private async retrieveItineraryReferences(input: TripInput) {
+    if (!this.itineraryRetriever) return emptyItineraryRetrievalResult();
+
+    try {
+      return await this.itineraryRetriever.retrieve({ input, limit: 4 });
+    } catch (error) {
+      console.warn('[ai] Recuperacao de itinerarios de referencia falhou; geracao seguira sem esse contexto.', error);
+      return emptyItineraryRetrievalResult();
+    }
+  }
+
   private async generateDayWithRecovery(
     input: TripInput,
     dayPlan: TripPlan['days'][number],
@@ -429,9 +464,10 @@ export function createAiOrchestrator(
   config?: Partial<AiOrchestratorConfig>,
   logger?: GenerationLogger,
   logContext?: { userId: string },
-  poiRetriever?: PoiRetriever
+  poiRetriever?: PoiRetriever,
+  itineraryRetriever?: ItineraryRetriever
 ): AiOrchestrator {
-  return new AiOrchestrator(config, logger, logContext, poiRetriever);
+  return new AiOrchestrator(config, logger, logContext, poiRetriever, itineraryRetriever);
 }
 
 function hashPrompt(prompt: string): string {

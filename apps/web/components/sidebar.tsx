@@ -2,161 +2,197 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useAppShell } from './app-shell-context';
 import { useUIStore } from '../lib/ui-store';
 
-interface AgencySettings {
-  agencyName: string;
-  logoUrl: string;
+interface NavItem {
+  name: string;
+  icon: string;
+  href: string;
+  activeOn?: string[];
 }
 
-interface SessionUser {
-  role: 'platform_admin' | 'agency_admin' | 'agent' | 'traveler';
+interface NavGroup {
+  label: string;
+  items: NavItem[];
 }
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [settings, setSettings] = useState<AgencySettings | null>(null);
-  const [user, setUser] = useState<SessionUser | null>(null);
+  const { settings, user } = useAppShell();
   const { sidebarOpen, setSidebarOpen } = useUIStore();
 
   useEffect(() => {
-    const fetchSidebarData = async () => {
-      const [settingsResponse, meResponse] = await Promise.all([
-        fetch('/api/settings'),
-        fetch('/api/auth/me'),
-      ]);
-      if (settingsResponse.ok) setSettings(await settingsResponse.json());
-      if (meResponse.ok) {
-        const data = await meResponse.json();
-        setUser(data.user);
-      }
+    if (!sidebarOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSidebarOpen(false);
     };
-
-    fetchSidebarData();
-
-    const handleBrandingUpdate = (event: Event) => {
-      const detail = (event as CustomEvent<Partial<AgencySettings>>).detail;
-      setSettings((current) => ({
-        agencyName: detail.agencyName || current?.agencyName || 'Rumo',
-        logoUrl: detail.logoUrl ?? current?.logoUrl ?? '',
-      }));
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', closeOnEscape);
     };
-    window.addEventListener('rumo:branding-updated', handleBrandingUpdate);
-    return () => window.removeEventListener('rumo:branding-updated', handleBrandingUpdate);
-  }, []);
+  }, [sidebarOpen, setSidebarOpen]);
 
-  useEffect(() => {
-    const warmRoutes = ['/dashboard', '/trips', '/trips/new', '/library', '/users', '/settings', '/security'];
-    for (const href of warmRoutes) {
-      router.prefetch(href);
-    }
-  }, [router]);
-
-  // Close sidebar on route change on mobile
-  useEffect(() => {
-    setSidebarOpen(false);
-  }, [pathname, setSidebarOpen]);
-
-  const navItems = [
-    { name: 'Visão geral', icon: 'space_dashboard', href: '/dashboard' },
-    { name: 'Viagens', icon: 'flight_takeoff', href: '/trips', activeOn: ['/trips', '/trips/new', '/trips/edit'] },
-    { name: 'Clientes', icon: 'contacts', href: '/clients' },
-    { name: 'Biblioteca', icon: 'local_library', href: '/library' },
-    { name: 'Equipe', icon: 'group', href: '/users' },
-    { name: 'Configurações', icon: 'tune', href: '/settings' },
-    { name: 'Rastreamento', icon: 'location_searching', href: '/security' },
-    ...(user?.role === 'platform_admin'
-      ? [{ name: 'Admin SaaS', icon: 'admin_panel_settings', href: '/admin/agencies', activeOn: ['/admin'] }]
-      : []),
+  const groups: NavGroup[] = [
+    {
+      label: 'Operação',
+      items: [
+        { name: 'Visão geral', icon: 'home', href: '/dashboard' },
+        { name: 'Itinerários', icon: 'route', href: '/trips', activeOn: ['/trips'] },
+        { name: 'Clientes', icon: 'group', href: '/clients' },
+      ],
+    },
+    {
+      label: 'Conteúdo',
+      items: [
+        { name: 'Biblioteca', icon: 'collections_bookmark', href: '/library' },
+      ],
+    },
+    {
+      label: 'Gestão',
+      items: [
+        { name: 'Equipe', icon: 'badge', href: '/users' },
+        { name: 'Configurações', icon: 'tune', href: '/settings' },
+        ...(user?.role === 'platform_admin'
+          ? [{ name: 'Admin SaaS', icon: 'admin_panel_settings', href: '/admin/agencies', activeOn: ['/admin'] }]
+          : []),
+      ],
+    },
   ];
 
-  const isActive = (item: typeof navItems[0]) => {
-    if (item.activeOn) {
-      return item.activeOn.some((path) => pathname.startsWith(path));
-    }
+  const isActive = (item: NavItem) => {
+    if (item.activeOn) return item.activeOn.some((path) => pathname.startsWith(path));
     return pathname === item.href;
+  };
+
+  const navigate = (href: string) => {
+    setSidebarOpen(false);
+    router.prefetch(href);
   };
 
   return (
     <>
-      {/* Mobile Sidebar Overlay Backdrop */}
       {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-xs z-45 lg:hidden transition-opacity duration-300"
+        <button
+          type="button"
+          aria-label="Fechar menu"
+          className="fixed inset-0 z-40 bg-[#101828]/20 backdrop-blur-[2px] xl:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       <aside
-        className={`w-[260px] h-screen fixed left-0 top-0 overflow-hidden bg-[linear-gradient(180deg,#061D59_0%,#041437_100%)] text-white flex flex-col py-6 px-4 z-50 transition-transform duration-300 ease-in-out lg:translate-x-0 shadow-[12px_0_40px_rgba(0,16,63,.12)] ${
+        className={`fixed left-0 top-0 z-50 flex h-dvh w-[248px] flex-col overflow-hidden border-r border-outline-variant bg-white px-3.5 py-4 text-on-surface transition-transform duration-200 ease-out xl:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="relative flex items-center justify-between gap-3 mb-9 px-2">
-          <div className="flex items-center gap-3">
-            <div className="relative"><img src={settings?.logoUrl || '/rumo-mark.svg'} alt={settings?.agencyName || 'Rumo'} className="h-11 w-11 rounded-[14px] bg-white object-contain p-1 shadow-lg" /><span className="absolute -right-1 -bottom-1 h-3.5 w-3.5 rounded-full border-[3px] border-primary-container bg-coral" /></div>
-            <div className="min-w-0">
-              <h1 className="truncate text-lg font-extrabold leading-tight tracking-[-.02em] text-white">{settings?.agencyName || 'Rumo'}</h1>
-              <p className="text-[9px] text-sky-compass uppercase tracking-[0.18em] truncate">
-                {settings?.logoUrl ? 'Workspace da agência' : 'A sua bússola'}
-              </p>
-            </div>
-          </div>
+        <div className="flex h-12 items-center justify-between px-2">
+          <Link
+            href="/dashboard"
+            prefetch={false}
+            onMouseEnter={() => router.prefetch('/dashboard')}
+            onClick={() => navigate('/dashboard')}
+            className="flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline-2 focus-visible:outline-primary"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-[10px] border border-outline-variant bg-white">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={settings?.logoUrl || '/rumo-mark.svg'}
+                alt=""
+                className="h-7 w-7 object-contain"
+                decoding="async"
+              />
+            </span>
+            <span className="min-w-0">
+              {settings?.logoUrl ? (
+                <span className="block truncate text-[15px] font-bold tracking-[-0.02em]">
+                  {settings.agencyName || 'Rumo'}
+                </span>
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src="/rumo-logo.svg" alt="Rumo" className="h-4 w-auto" decoding="async" />
+              )}
+              <span className="block truncate text-[10px] font-medium text-on-surface/45">Workspace de viagens</span>
+            </span>
+          </Link>
+
           <button
             type="button"
-            className="lg:hidden p-1.5 hover:bg-surface-container-high rounded-full text-on-surface transition-colors"
+            className="grid h-8 w-8 place-items-center rounded-lg text-on-surface/55 hover:bg-surface-container xl:hidden"
             onClick={() => setSidebarOpen(false)}
+            aria-label="Fechar menu"
           >
-            <span className="material-symbols-outlined text-[20px]">close</span>
+            <span className="material-symbols-outlined text-[19px]">close</span>
           </button>
         </div>
 
-        <p className="px-4 mb-2 text-[9px] font-bold uppercase tracking-[.22em] text-sky-compass/55">Workspace</p>
-        <nav className="flex-1 space-y-1 overflow-y-auto scrollbar-hide">
-          {navItems.map((item) => {
-            const active = isActive(item);
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                prefetch
-                className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm transition-all duration-200 group ${
-                  active ? 'sidebar-active' : 'text-white/60 hover:text-white hover:bg-white/[.07]'
-                }`}
-                onMouseEnter={() => router.prefetch(item.href)}
-                onFocus={() => router.prefetch(item.href)}
+        <nav className="custom-scrollbar mt-6 flex-1 space-y-6 overflow-y-auto px-0.5 pb-4">
+          {groups.map((group) => (
+            <section key={group.label} aria-labelledby={`nav-${group.label}`}>
+              <h2
+                id={`nav-${group.label}`}
+                className="mb-2 px-3 text-[9px] font-bold uppercase tracking-[0.18em] text-on-surface/35"
               >
-                <span className="material-symbols-outlined" style={active ? { fontVariationSettings: "'FILL' 1" } : undefined}>
-                  {item.icon}
-                </span>
-                <span className="text-[13px] font-semibold">{item.name}</span>
-              </Link>
-            );
-          })}
+                {group.label}
+              </h2>
+              <div className="space-y-1">
+                {group.items.map((item) => {
+                  const active = isActive(item);
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      prefetch={false}
+                      onMouseEnter={() => router.prefetch(item.href)}
+                      onFocus={() => router.prefetch(item.href)}
+                      onClick={() => navigate(item.href)}
+                      aria-current={active ? 'page' : undefined}
+                      className={`group flex h-10 items-center gap-3 rounded-xl border-l-2 px-3 text-[13px] font-medium transition-colors duration-150 ${
+                        active
+                          ? 'border-sky-compass bg-surface-container text-on-surface'
+                          : 'border-transparent text-on-surface/62 hover:bg-surface-container-low hover:text-on-surface'
+                      }`}
+                    >
+                      <span
+                        className="material-symbols-outlined text-[19px]"
+                        style={active ? { fontVariationSettings: "'FILL' 1, 'wght' 500" } : undefined}
+                      >
+                        {item.icon}
+                      </span>
+                      <span>{item.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
         </nav>
 
-        <div className="mt-auto space-y-4 pt-6">
+        <div className="border-t border-outline-variant pt-3">
           <Link
             href="/trips/new"
-            prefetch
-            className="w-full bg-coral text-white py-3.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:bg-[#ff6847] active:scale-[.98] transition-all shadow-[0_10px_24px_rgba(255,84,45,.24)]"
+            prefetch={false}
             onMouseEnter={() => router.prefetch('/trips/new')}
             onFocus={() => router.prefetch('/trips/new')}
+            onClick={() => navigate('/trips/new')}
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-xs font-semibold text-white transition-colors hover:bg-primary-container active:scale-[.99]"
           >
-            <span className="material-symbols-outlined text-sm">add</span>
-            Criar nova viagem
+            <span className="material-symbols-outlined text-[18px]">add</span>
+            Nova viagem
           </Link>
-          <div className="border-t border-white/10 pt-4">
-            <Link
-              href="/logout"
-              className="flex items-center gap-3 py-3 px-4 rounded-xl text-white/55 hover:text-white hover:bg-white/[.07] transition-colors duration-200"
-            >
-              <span className="material-symbols-outlined">logout</span>
-              <span className="text-xs font-semibold">Sair da conta</span>
-            </Link>
-          </div>
+          <Link
+            href="/logout"
+            prefetch={false}
+            className="mt-2 flex h-10 items-center gap-3 rounded-xl px-3 text-xs font-medium text-on-surface/50 hover:bg-surface-container-low hover:text-on-surface"
+          >
+            <span className="material-symbols-outlined text-[18px]">logout</span>
+            Sair da conta
+          </Link>
         </div>
       </aside>
     </>

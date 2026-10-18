@@ -8,19 +8,7 @@ import {
   mergeTripsById,
   readLocalTrips,
   removeLocalTrip,
-  writeLocalTrips,
 } from '../../../lib/trip-local-store';
-
-interface ItineraryItem {
-  id: string;
-  day: number;
-  type: string;
-  title: string;
-  subTitle?: string;
-  details?: string;
-  image?: string;
-  meta?: any;
-}
 
 interface Trip {
   id: string;
@@ -32,8 +20,15 @@ interface Trip {
   travelers: string[];
   status: 'Rascunho' | 'Publicado' | 'Pendente' | 'Cancelado' | 'Confirmado';
   clientName: string;
-  itinerary: ItineraryItem[];
   wizardDraft?: { formData?: { startDate?: string; endDate?: string } };
+}
+
+interface ItineraryReference {
+  id: string;
+  title: string;
+  destinations: string[];
+  status: string;
+  itemCount: number;
 }
 
 type SortField = 'createdDate' | 'name';
@@ -56,7 +51,8 @@ export default function TripsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('Todos');
-  const [accountFilter, setAccountFilter] = useState('Todas Contas');
+  const [viewFilter, setViewFilter] = useState<'all' | 'ai'>('all');
+  const [contextReferences, setContextReferences] = useState<ItineraryReference[]>([]);
   const [sortField, setSortField] = useState<SortField>('createdDate');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -64,15 +60,42 @@ export default function TripsPage() {
   const fetchTrips = async () => {
     setLoading(true);
     try {
+      const contextRequest = fetch('/api/ai/context/itineraries').catch(() => null);
       const response = await fetch('/api/trips');
-      const localTrips = readLocalTrips<Trip>();
+      const localTrips = readLocalTrips<Trip>().map((trip) => ({
+        id: trip.id,
+        createdDate: trip.createdDate,
+        name: trip.name,
+        destinations: Array.isArray(trip.destinations) ? trip.destinations : [],
+        startDate: trip.startDate,
+        endDate: trip.endDate,
+        travelers: Array.isArray(trip.travelers) ? trip.travelers : [],
+        status: trip.status,
+        clientName: trip.clientName,
+        wizardDraft: trip.wizardDraft
+          ? {
+              formData: {
+                startDate: trip.wizardDraft.formData?.startDate,
+                endDate: trip.wizardDraft.formData?.endDate,
+              },
+            }
+          : undefined,
+      }));
       if (response.ok) {
         const data = await response.json();
         const mergedTrips = mergeTripsById(data, localTrips);
         setTrips(mergedTrips);
-        writeLocalTrips(mergedTrips);
       } else {
         setTrips(localTrips);
+      }
+      setLoading(false);
+
+      const contextResponse = await contextRequest;
+      if (contextResponse?.ok) {
+        const contextData = await contextResponse.json();
+        setContextReferences(Array.isArray(contextData.references) ? contextData.references : []);
+      } else {
+        setContextReferences([]);
       }
     } catch (error) {
       console.error('Erro ao buscar viagens:', error);
@@ -83,9 +106,14 @@ export default function TripsPage() {
   };
 
   useEffect(() => {
-    const requestedStatus = new URLSearchParams(window.location.search).get('status');
-    if (requestedStatus) setStatusFilter(requestedStatus);
-    fetchTrips();
+    const searchParams = new URLSearchParams(window.location.search);
+    const requestedStatus = searchParams.get('status');
+    const requestedSearch = searchParams.get('q');
+    queueMicrotask(() => {
+      if (requestedStatus) setStatusFilter(requestedStatus);
+      if (requestedSearch) setSearchTerm(requestedSearch);
+      void fetchTrips();
+    });
   }, []);
 
   const handleDeleteTrip = async (id: string) => {
@@ -122,8 +150,9 @@ export default function TripsPage() {
 
     const matchesStatus =
       statusFilter === 'Todos' || trip.status === statusFilter;
+    const matchesView = viewFilter === 'all' || contextReferences.some((reference) => reference.id === trip.id);
 
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesStatus && matchesView;
   }).sort((first, second) => {
     const comparison = sortField === 'name'
       ? first.name.localeCompare(second.name, 'pt-BR', { sensitivity: 'base' })
@@ -159,7 +188,7 @@ export default function TripsPage() {
   const clearFilters = () => {
     setSearchTerm('');
     setStatusFilter('Todos');
-    setAccountFilter('Todas Contas');
+    setViewFilter('all');
     setCurrentPage(1);
   };
 
@@ -170,7 +199,7 @@ export default function TripsPage() {
       case 'Confirmado':
         return 'bg-status-confirmed text-success border border-success/30';
       case 'Pendente':
-        return 'bg-status-cancelled text-tertiary border border-tertiary/20';
+        return 'bg-slate-100 text-slate-600 border border-slate-200';
       case 'Rascunho':
         return 'bg-primary/10 text-primary border border-primary/20';
       case 'Cancelado':
@@ -185,57 +214,35 @@ export default function TripsPage() {
       {/* Header Section */}
       <div className="page-heading scroll-reveal flex flex-col sm:flex-row gap-4 sm:items-end justify-between mb-8">
         <div>
-          <h2 className="font-headline-lg text-3xl font-black text-primary tracking-[-.035em]">Viagens</h2>
-          <p className="text-on-surface opacity-75 text-sm mt-1">
-            Gerencie e acompanhe todos os itinerários ativos da sua agência.
+          <h2 className="font-headline-lg text-3xl font-bold tracking-[-.035em] text-on-surface">Itinerários</h2>
+          <p className="mt-1 text-sm text-on-surface/60">
+            Crie, revise e publique experiências completas para seus viajantes.
           </p>
         </div>
         <Link
           href="/trips/new"
-          className="btn-interactive bg-coral text-white font-bold text-xs px-6 py-3 rounded-xl shadow-[0_10px_24px_rgba(255,84,45,.2)] flex items-center justify-center gap-2 hover:shadow-md active:scale-95 transition-all shrink-0 w-full sm:w-auto text-center"
+          className="ui-btn ui-btn-primary w-full shrink-0 sm:w-auto"
         >
-          <span className="material-symbols-outlined text-sm">add_circle</span>
-          CRIAR NOVA VIAGEM
+          <span className="material-symbols-outlined text-[17px]">add</span>
+          Criar nova viagem
         </Link>
       </div>
 
-      {/* Advanced Filters */}
-      <div className="scroll-reveal scroll-reveal-delay-50 grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6 bg-white p-5 rounded-2xl border border-primary/10 shadow-[0_8px_28px_rgba(16,28,58,.05)]">
-        <div className="flex flex-col gap-1">
-          <label className="font-semibold text-xs text-on-surface opacity-75">Datas da viagem</label>
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface opacity-60 text-[20px]">
-              calendar_today
-            </span>
-            <input
-              className="w-full border border-outline-variant rounded-lg py-2 pl-10 pr-3 text-xs bg-surface-container-lowest focus:ring-1 focus:ring-primary outline-none"
-              type="text"
-              defaultValue="Todas as datas"
-              readOnly
-            />
-          </div>
+      <section className="mb-6 flex flex-col gap-4 rounded-2xl border border-outline-variant bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-ice-blue text-primary"><span className="material-symbols-outlined text-[20px]">auto_awesome</span></span>
+          <div><h3 className="text-sm font-semibold">A IA aprende com o repertório da sua agência</h3><p className="mt-1 max-w-2xl text-xs leading-relaxed text-on-surface/52">{contextReferences.length ? `${contextReferences.length} itinerário${contextReferences.length > 1 ? 's' : ''} com conteúdo já pode${contextReferences.length > 1 ? 'm' : ''} ser usado${contextReferences.length > 1 ? 's' : ''} como referência de estilo, ritmo e sequência.` : 'Assim que um itinerário tiver conteúdo, ele poderá orientar novas criações da própria agência.'}</p></div>
         </div>
+        <button type="button" onClick={() => { setViewFilter((current) => current === 'ai' ? 'all' : 'ai'); setCurrentPage(1); }} className={`ui-btn shrink-0 ${viewFilter === 'ai' ? 'ui-btn-primary' : 'ui-btn-secondary'}`}>
+          <span className="material-symbols-outlined text-[17px]">database</span>
+          {viewFilter === 'ai' ? 'Ver todos' : 'Ver referências da IA'}
+        </button>
+      </section>
 
+      {/* Filtros disponíveis */}
+      <div className="scroll-reveal scroll-reveal-delay-50 mb-6 grid grid-cols-1 gap-4 rounded-2xl border border-outline-variant bg-white p-5 md:grid-cols-[minmax(0,2fr)_minmax(180px,1fr)_auto]">
         <div className="flex flex-col gap-1">
-          <label className="font-semibold text-xs text-on-surface opacity-75">Contas</label>
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface opacity-60 text-[20px]">
-              hub
-            </span>
-            <select
-              value={accountFilter}
-              onChange={(e) => setAccountFilter(e.target.value)}
-              className="w-full border border-outline-variant rounded-lg py-2 pl-10 pr-3 text-xs bg-surface-container-lowest appearance-none outline-none"
-            >
-              <option>Todas Contas</option>
-              <option>App Meu Agente</option>
-              <option>ABC Viagens</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="font-semibold text-xs text-on-surface opacity-75">Pesquisar Viagem</label>
+          <label className="text-xs font-semibold text-on-surface/65">Buscar itinerário</label>
           <div className="relative">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface opacity-60 text-[20px]">
               search
@@ -244,14 +251,14 @@ export default function TripsPage() {
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
               className="w-full border border-outline-variant rounded-lg py-2 pl-10 pr-3 text-xs bg-surface-container-lowest focus:ring-1 focus:ring-primary outline-none"
-              placeholder="Nome, ID ou cliente..."
+              placeholder="Nome do roteiro ou cliente"
               type="text"
             />
           </div>
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="font-semibold text-xs text-on-surface opacity-75">Estado</label>
+          <label className="text-xs font-semibold text-on-surface/65">Status</label>
           <div className="relative">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface opacity-60 text-[20px]">
               flag
@@ -261,7 +268,7 @@ export default function TripsPage() {
               onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
               className="w-full border border-outline-variant rounded-lg py-2 pl-10 pr-3 text-xs bg-surface-container-lowest appearance-none outline-none"
             >
-              <option value="Todos">Todos Estados</option>
+              <option value="Todos">Todos os status</option>
               <option value="Rascunho">Rascunhos</option>
               <option value="Publicado">Publicado</option>
               <option value="Confirmado">Confirmado</option>
@@ -274,16 +281,16 @@ export default function TripsPage() {
         <div className="flex items-end">
           <button
             onClick={clearFilters}
-            className="btn-interactive w-full border border-outline text-primary font-semibold text-xs py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-surface-container transition-colors"
+            className="ui-btn ui-btn-secondary w-full"
           >
             <span className="material-symbols-outlined text-[18px]">filter_list</span>
-            Limpar Filtros
+            Limpar filtros
           </button>
         </div>
       </div>
 
       {/* Robust Data Table */}
-      <div className="scroll-reveal scroll-reveal-delay-100 bg-white rounded-2xl border border-primary/10 overflow-hidden shadow-[0_10px_30px_rgba(16,28,58,.055)]">
+      <div className="scroll-reveal scroll-reveal-delay-100 overflow-hidden rounded-2xl border border-outline-variant bg-white">
         {loading ? (
           <div className="px-6 py-12 text-center text-on-surface opacity-65 text-sm flex items-center justify-center gap-2">
             <span className="material-symbols-outlined animate-spin">sync</span>
@@ -296,13 +303,13 @@ export default function TripsPage() {
                 <tr>
                   <th aria-sort={sortField === 'createdDate' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'} className="px-6 py-4 font-semibold text-xs text-on-surface opacity-70 uppercase tracking-wider">
                     <button type="button" onClick={() => handleSort('createdDate')} className="flex items-center gap-2 hover:text-primary" title="Ordenar por data de criação">
-                      Data de Criação
+                      Criado em
                       <span className="material-symbols-outlined text-[14px]">{sortIcon('createdDate')}</span>
                     </button>
                   </th>
                   <th aria-sort={sortField === 'name' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'} className="px-6 py-4 font-semibold text-xs text-on-surface opacity-70 uppercase tracking-wider">
                     <button type="button" onClick={() => handleSort('name')} className="flex items-center gap-2 hover:text-primary" title="Ordenar por nome da viagem">
-                      Nome da Viagem
+                      Itinerário
                       <span className="material-symbols-outlined text-[14px]">{sortIcon('name')}</span>
                     </button>
                   </th>
@@ -337,9 +344,7 @@ export default function TripsPage() {
                       >
                         {trip.name}
                       </Link>
-                      <div className="text-[10px] text-on-surface opacity-60 uppercase font-bold mt-0.5">
-                        ID: {trip.id}
-                      </div>
+                      {contextReferences.some((reference) => reference.id === trip.id) && <div className="mt-1 inline-flex items-center gap-1 text-[10px] font-medium text-primary"><span className="material-symbols-outlined text-[13px]">auto_awesome</span>Referência da IA</div>}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-1">
@@ -383,15 +388,17 @@ export default function TripsPage() {
                     <td className="px-6 py-4 text-right flex gap-1 justify-end items-center">
                       <button
                         onClick={() => handleDeleteTrip(trip.id)}
-                        className="btn-interactive p-1.5 hover:bg-surface-container-high rounded-full transition-colors text-error"
+                        className="ui-icon-btn border-transparent text-error hover:border-error/15 hover:bg-error/5 hover:text-error"
                         title="Excluir"
+                        aria-label={`Excluir ${trip.name}`}
                       >
                         <span className="material-symbols-outlined text-[18px]">delete</span>
                       </button>
                       <Link
                         href={trip.status === 'Rascunho' ? `/trips/new?draft=${trip.id}` : `/trips/${trip.id}/edit`}
-                        className="btn-interactive p-1.5 hover:bg-surface-container-high rounded-full transition-colors text-primary"
+                        className="ui-icon-btn"
                         title={trip.status === 'Rascunho' ? 'Continuar preenchimento' : 'Editar'}
+                        aria-label={trip.status === 'Rascunho' ? `Continuar ${trip.name}` : `Editar ${trip.name}`}
                       >
                         <span className="material-symbols-outlined text-[18px]">{trip.status === 'Rascunho' ? 'play_arrow' : 'edit'}</span>
                       </Link>
@@ -401,7 +408,7 @@ export default function TripsPage() {
                 {filteredTrips.length === 0 && (
                   <tr>
                     <td colSpan={7} className="px-6 py-12 text-center text-on-surface opacity-65 text-sm">
-                      Nenhuma viagem encontrada para os filtros aplicados.
+                      Nenhum itinerário encontrado para os filtros aplicados.
                     </td>
                   </tr>
                 )}
@@ -413,7 +420,7 @@ export default function TripsPage() {
         {/* Pagination */}
         <div className="px-6 py-4 bg-surface-container-low flex justify-between items-center border-t border-outline-variant">
           <p className="text-xs text-on-surface opacity-75">
-            Mostrando {paginatedTrips.length} de {filteredTrips.length} viagens encontradas
+            Mostrando {paginatedTrips.length} de {filteredTrips.length} itinerários
           </p>
           {totalPages > 0 && <div className="flex items-center gap-2">
             <button

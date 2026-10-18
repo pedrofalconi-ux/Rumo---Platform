@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { formatBrazilianPhone } from '../../../lib/phone';
 
 interface User {
   id: string;
@@ -91,7 +92,7 @@ export default function UsersPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [e.target.name]: e.target.name === 'phone' ? formatBrazilianPhone(e.target.value) : e.target.value,
     }));
   };
 
@@ -241,7 +242,7 @@ export default function UsersPage() {
                         )}
                       </td>
                       <td className="px-6 py-3.5">{u.email}</td>
-                      <td className="px-6 py-3.5 opacity-80">{u.phone || 'Não informado'}</td>
+                      <td className="px-6 py-3.5 opacity-80">{u.phone ? formatBrazilianPhone(u.phone) : 'Não informado'}</td>
                       <td className="px-6 py-3.5">
                         <select
                           disabled={isSelf || !canManageTeam}
@@ -292,7 +293,7 @@ export default function UsersPage() {
       {/* Header bar */}
       <div className="page-heading scroll-reveal flex justify-between items-end">
         <div>
-          <h2 className="font-headline-lg text-3xl font-black text-primary tracking-[-.035em]">Time operacional</h2>
+          <h2 className="font-headline-lg text-3xl font-semibold tracking-[-.03em] text-on-surface">Time operacional</h2>
           <p className="text-on-surface opacity-75 text-sm mt-1">
             Cadastre e gerencie a equipe e os níveis de permissão da sua agência.
           </p>
@@ -300,10 +301,10 @@ export default function UsersPage() {
         {canManageTeam && (
           <button
             onClick={() => setShowModal(true)}
-            className="btn-interactive bg-coral text-white font-bold text-xs px-6 py-3 rounded-xl shadow-[0_10px_24px_rgba(255,84,45,.2)] flex items-center gap-2 hover:shadow-md active:scale-95 transition-all"
+            className="ui-btn ui-btn-primary"
           >
-            <span className="material-symbols-outlined text-sm">person_add</span>
-            ADICIONAR MEMBRO
+            <span className="material-symbols-outlined text-[17px]">person_add</span>
+            Adicionar membro
           </button>
         )}
       </div>
@@ -379,9 +380,10 @@ export default function UsersPage() {
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-semibold">Telefone de Contato</label>
                 <input
-                  type="text"
+                  type="tel"
                   name="phone"
-                  placeholder="+55 11 99999-9999"
+                  placeholder="(11) 99999-9999"
+                  autoComplete="tel"
                   value={formData.phone}
                   onChange={handleChange}
                   className="input-interactive border border-outline-variant rounded-lg p-2 text-xs focus:ring-1 focus:ring-primary outline-none"
@@ -482,14 +484,14 @@ export default function UsersPage() {
                     setShowModal(false);
                   }}
                   disabled={submitting}
-                  className="btn-interactive px-4 py-2 border border-outline rounded-lg text-xs font-semibold hover:bg-surface-container"
+                  className="ui-btn ui-btn-secondary"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="btn-interactive px-4 py-2 bg-primary text-on-primary rounded-lg text-xs font-bold hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
+                  className="ui-btn ui-btn-primary"
                 >
                   {submitting ? 'Adicionando...' : 'Adicionar membro'}
                 </button>

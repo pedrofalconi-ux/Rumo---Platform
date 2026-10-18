@@ -9,15 +9,15 @@ import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    text: '#14213D',
-    background: '#F5F7FB',
+    text: '#0B1E3A',
+    background: '#F8FAFC',
     backgroundElement: '#FFFFFF',
-    backgroundSelected: '#E1E8F5',
+    backgroundSelected: '#E8F2FF',
     textSecondary: '#68728A',
-    primary: '#073BCE',
-    primarySoft: '#EAF0FF',
-    accent: '#FF6542',
-    accentSoft: '#FFF0EC',
+    primary: '#2E8BFF',
+    primarySoft: '#F1F7FF',
+    accent: '#00B8D9',
+    accentSoft: '#E6F9FC',
     success: '#12805C',
     border: '#DCE4F2',
   },
@@ -29,8 +29,8 @@ export const Colors = {
     textSecondary: '#AFC1C5',
     primary: '#F7F6F1',
     primarySoft: '#294C5E',
-    accent: '#FF7A47',
-    accentSoft: '#553526',
+    accent: '#34D6EE',
+    accentSoft: '#164A55',
     success: '#70C6A8',
     border: '#315568',
   },
@@ -81,16 +81,16 @@ export const Radius = {
 } as const;
 
 export const Brand = {
-  navy: '#073BCE',
-  navyDeep: '#061D59',
-  coral: '#FF6542',
-  sand: '#F5F7FB',
-  mineral: '#6F98F5',
+  navy: '#2E8BFF',
+  navyDeep: '#0B1E3A',
+  coral: '#00B8D9',
+  sand: '#F8FAFC',
+  mineral: '#00D4FF',
   white: '#FFFFFF',
 } as const;
 
 /**
- * Agency-selectable app themes (see apps/web's Settings > Branding & White-label).
+ * Agency-selectable app themes (see Configurações > Marca no aplicativo).
  * An agency's chosen theme id travels on `trip.agency.themeId` from the traveler
  * trips API. `headlineFont` names a font family loaded via expo-font in the root
  * layout (see _layout.tsx) — undefined means "keep the system default", which is
@@ -105,7 +105,7 @@ export type AppTheme = {
 };
 
 export const THEMES: Record<string, AppTheme> = {
-  rumo: { navy: '#073BCE', navyDeep: '#061D59', coral: '#FF6542', glow: '#8FB1FF' },
+  rumo: { navy: '#2E8BFF', navyDeep: '#0B1E3A', coral: '#00B8D9', glow: '#86E8F5' },
   'quiet-luxury': {
     navy: '#93542F',
     navyDeep: '#6E3D21',
