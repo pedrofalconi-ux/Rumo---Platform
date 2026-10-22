@@ -9,13 +9,17 @@ export function createLLMProvider(config: AiOrchestratorConfig): LLMProvider {
   const provider = (config.provider || 'gemini').toLowerCase();
 
   if (provider === 'mock') {
-    return new MockProvider(config.model || 'mock-itinerary-v1');
+    // Sempre reporta um nome de modelo falso: senao o log de geracao registra
+    // "gemini-2.5-flash" (LLM_MODEL) para um roteiro que nenhuma IA escreveu.
+    return new MockProvider('mock-itinerary-v1');
   }
 
   if (provider === 'anthropic') {
     const apiKey = config.apiKey || process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
-      throw new Error('ANTHROPIC_API_KEY nao configurada para LLM_PROVIDER=anthropic');
+      throw new Error(
+        'Chave da Anthropic ausente. Cole a chave em Configuracoes > Inteligencia artificial ou defina ANTHROPIC_API_KEY no ambiente.'
+      );
     }
     return new AnthropicProvider(
       config.model || 'claude-sonnet-4-20250514',
@@ -28,7 +32,9 @@ export function createLLMProvider(config: AiOrchestratorConfig): LLMProvider {
   if (provider === 'openai') {
     const apiKey = config.apiKey || process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      throw new Error('OPENAI_API_KEY nao configurada para LLM_PROVIDER=openai');
+      throw new Error(
+        'Chave da OpenAI ausente. Cole a chave em Configuracoes > Inteligencia artificial ou defina OPENAI_API_KEY no ambiente.'
+      );
     }
     return new OpenAIProvider(
       config.model || 'gpt-4o',
@@ -41,7 +47,9 @@ export function createLLMProvider(config: AiOrchestratorConfig): LLMProvider {
   if (provider === 'gemini') {
     const apiKey = config.apiKey || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
     if (!apiKey) {
-      throw new Error('GEMINI_API_KEY nao configurada para LLM_PROVIDER=gemini');
+      throw new Error(
+        'Chave do Gemini ausente. Cole a chave em Configuracoes > Inteligencia artificial ou defina GEMINI_API_KEY no ambiente.'
+      );
     }
     return new GeminiProvider(
       config.model || 'gemini-2.5-flash',

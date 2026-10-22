@@ -63,6 +63,66 @@ function resolveProvider(
   return provider;
 }
 
+function resolveApiKey(
+  provider: string,
+  settings: Awaited<ReturnType<typeof getAgencySettings>>
+) {
+  if (provider === 'anthropic') {
+    return process.env.ANTHROPIC_API_KEY || settings.claudeKey || '';
+  }
+  if (provider === 'gemini') {
+    return (
+      process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || settings.geminiKey || ''
+    );
+  }
+  if (provider === 'openai') {
+    return process.env.OPENAI_API_KEY || '';
+  }
+  return '';
+}
+
+const ECONOMY_MODELS: Record<string, string> = {
+  gemini: 'gemini-2.5-flash-lite',
+  openai: 'gpt-4o-mini',
+  anthropic: 'claude-3-5-haiku-latest',
+};
+
+const DEFAULT_MODELS: Record<string, string> = {
+  gemini: 'gemini-2.5-flash',
+  openai: 'gpt-4o',
+  anthropic: 'claude-sonnet-4-20250514',
+  mock: 'mock-itinerary-v1',
+};
+
+/**
+ * Diagnostico do motor de IA sem instanciar o provider — usado por
+ * `GET /api/ai/health`, que precisa reportar "sem chave" em vez de estourar.
+ */
+export async function describeAgencyAiEngine(agencyId: string) {
+  const settings = await getAgencySettings(agencyId);
+  const provider = resolveProvider(undefined, settings);
+  const apiKey = resolveApiKey(provider, settings);
+  const envKeyPresent = Boolean(
+    provider === 'anthropic'
+      ? process.env.ANTHROPIC_API_KEY
+      : provider === 'gemini'
+        ? process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
+        : provider === 'openai'
+          ? process.env.OPENAI_API_KEY
+          : ''
+  );
+
+  return {
+    provider,
+    model: process.env.LLM_MODEL || DEFAULT_MODELS[provider] || '',
+    hasApiKey: Boolean(apiKey),
+    keySource: (apiKey ? (envKeyPresent ? 'env' : 'agency_settings') : 'none') as
+      | 'env'
+      | 'agency_settings'
+      | 'none',
+  };
+}
+
 async function persistGenerationLog(entry: Parameters<GenerationLogger['log']>[0]) {
   if (supabaseAdmin && isUuid(entry.agencyId)) {
     const { error } = await supabaseAdmin.from('ai_generations').insert({
@@ -107,15 +167,7 @@ export async function createTripAiOrchestrator(
 ) {
   const settings = await getAgencySettings(agencyId);
   const provider = resolveProvider(overrides?.provider, settings);
-  const apiKey =
-    overrides?.apiKey ||
-    (provider === 'anthropic'
-      ? process.env.ANTHROPIC_API_KEY || settings.claudeKey
-      : provider === 'gemini'
-        ? process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || settings.geminiKey || ''
-        : provider === 'openai'
-          ? process.env.OPENAI_API_KEY || ''
-          : '');
+  const apiKey = overrides?.apiKey || resolveApiKey(provider, settings);
 
   const logger: GenerationLogger = {
     log: (entry) => {
@@ -145,15 +197,7 @@ export async function createAgencyLlmProvider(
 ) {
   const settings = await getAgencySettings(agencyId);
   const provider = resolveProvider(overrides?.provider, settings);
-  const apiKey =
-    overrides?.apiKey ||
-    (provider === 'anthropic'
-      ? process.env.ANTHROPIC_API_KEY || settings.claudeKey
-      : provider === 'gemini'
-        ? process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || settings.geminiKey || ''
-        : provider === 'openai'
-          ? process.env.OPENAI_API_KEY || ''
-          : '');
+  const apiKey = overrides?.apiKey || resolveApiKey(provider, settings);
 
   return createLLMProvider({
     provider,
@@ -168,14 +212,8 @@ export async function createAgencyLlmProvider(
 export async function createEconomyAgencyLlmProvider(agencyId: string) {
   const settings = await getAgencySettings(agencyId);
   const provider = resolveProvider(undefined, settings);
-  const economyModels: Record<string, string> = {
-    gemini: 'gemini-2.5-flash-lite',
-    openai: 'gpt-4o-mini',
-    anthropic: 'claude-3-5-haiku-latest',
-  };
-
   return createAgencyLlmProvider(agencyId, {
-    model: process.env.LLM_ENRICHMENT_MODEL || economyModels[provider],
+    model: process.env.LLM_ENRICHMENT_MODEL || ECONOMY_MODELS[provider],
     fallbackModels: provider === 'gemini' ? ['gemini-2.5-flash', 'gemini-flash-latest'] : undefined,
     temperature: 0.25,
     maxTokens: 900,

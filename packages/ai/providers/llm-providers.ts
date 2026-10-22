@@ -154,11 +154,14 @@ export class GeminiProvider implements LLMProvider {
           const schemaHint = JSON.stringify(zodToJsonSchema(params.schema, 'schema'));
           const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(
             model
-          )}:generateContent?key=${encodeURIComponent(this.apiKey)}`;
+          )}:generateContent`;
 
           const response = await fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              'x-goog-api-key': this.apiKey,
+            },
             body: JSON.stringify({
               systemInstruction: {
                 parts: [
