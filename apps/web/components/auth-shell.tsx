@@ -54,7 +54,7 @@ export default function AuthShell({
               {journeySteps.map(([label, text], index) => (
                 <li key={label} className="flex gap-4">
                   <div className="flex flex-col items-center">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#2E8BFF]/55 bg-[#102B50] text-[10px] font-extrabold text-[#00D4FF]">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#00D4FF]/40 bg-[#102B50] text-[10px] font-extrabold text-[#00D4FF]">
                       {index + 1}
                     </span>
                     {index < journeySteps.length - 1 ? <span className="mt-1 h-full w-px bg-white/12" /> : null}
@@ -70,7 +70,7 @@ export default function AuthShell({
 
           <p className="relative z-10 text-xs text-white/42">Rumo · A sua bússola</p>
 
-          <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full border border-[#2E8BFF]/18" />
+          <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full border border-white/10" />
           <div aria-hidden="true" className="pointer-events-none absolute -bottom-12 -right-12 h-48 w-48 rounded-full border border-[#00D4FF]/12" />
         </aside>
 
@@ -82,7 +82,7 @@ export default function AuthShell({
             </Link>
 
             <div className="rounded-[24px] border border-[#E9EEF4] bg-white p-6 shadow-[0_16px_40px_rgba(11,30,58,0.055)] sm:p-9 xl:p-10">
-              <div className="flex items-center gap-2 text-[#2E8BFF]">
+              <div className="flex items-center gap-2 text-[#13315C]">
                 <span className="h-1.5 w-1.5 rounded-full bg-[#00D4FF]" />
                 <p className="text-[11px] font-extrabold uppercase tracking-[0.16em]">{eyebrow}</p>
               </div>

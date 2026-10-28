@@ -11,7 +11,9 @@ const agencyEditableFields = [
   'appThemeId',
 ] as const;
 
-type AgencySettingsView = Partial<Record<(typeof agencyEditableFields)[number], unknown>>;
+type AgencySettingsView = Partial<Record<(typeof agencyEditableFields)[number], unknown>> & {
+  geminiKey?: unknown;
+};
 
 function sanitizeAgencySettings(settings: AgencySettingsView) {
   const sanitized: Record<string, unknown> = {};
@@ -22,6 +24,8 @@ function sanitizeAgencySettings(settings: AgencySettingsView) {
   sanitized.logoUrl = extractAgencyLogoPath(String(settings.logoUrl || ''))
     ? agencyLogoProxyUrl()
     : settings.logoUrl || '';
+  // A chave de IA e write-only: o painel so precisa saber se existe uma salva.
+  sanitized.geminiKeyConfigured = Boolean(String(settings.geminiKey || '').trim());
   return sanitized;
 }
 
@@ -35,6 +39,15 @@ function pickAgencyEditableSettings(body: Record<string, unknown>) {
       picked[field] = body[field];
     }
   }
+
+  // Chave de IA: string vazia significa "mantem a atual" (o formulario nunca
+  // recebe a chave de volta), e clearGeminiKey e a forma explicita de remover.
+  if (body.clearGeminiKey === true) {
+    picked.geminiKey = '';
+  } else if (typeof body.geminiKey === 'string' && body.geminiKey.trim()) {
+    picked.geminiKey = body.geminiKey.trim();
+  }
+
   return picked;
 }
 
@@ -49,6 +62,7 @@ export async function GET() {
         defaultCurrency: 'BRL',
         notificationEmail: '',
         appThemeId: 'rumo',
+        geminiKeyConfigured: false,
       });
     }
     return NextResponse.json(sanitizeAgencySettings(await getAgencySettings(user.agencyId)));

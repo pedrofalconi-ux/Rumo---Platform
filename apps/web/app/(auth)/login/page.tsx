@@ -37,7 +37,7 @@ function AuthInput({
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
           autoComplete={autoComplete}
-          className="input-interactive h-13 w-full rounded-xl border border-[#E9EEF4] bg-white pl-12 pr-14 text-sm font-medium text-[#0B1E3A] placeholder:text-[#A2ADBB] hover:border-[#C9D5E2] focus:border-[#2E8BFF] focus:bg-white"
+          className="input-interactive h-13 w-full rounded-xl border border-[#E9EEF4] bg-white pl-12 pr-14 text-sm font-medium text-[#0B1E3A] placeholder:text-[#A2ADBB] hover:border-[#C9D5E2] focus:border-[#13315C] focus:bg-white"
         />
         {trailing ? <div className="absolute right-3 top-1/2 -translate-y-1/2">{trailing}</div> : null}
       </div>
@@ -92,13 +92,13 @@ export default function LoginPage() {
         <>
           <p>
             Ainda não usa a Rumo?{' '}
-            <Link href="/register" className="font-bold text-[#2E8BFF] transition-colors hover:text-[#0B1E3A]">
+            <Link href="/register" className="font-bold text-[#13315C] transition-colors hover:text-[#2A5793]">
               Criar conta
             </Link>
           </p>
           <p className="mt-1">
             É viajante?{' '}
-            <Link href="/traveler/register" className="font-semibold text-[#2E8BFF] transition-colors hover:text-[#0B1E3A]">
+            <Link href="/traveler/register" className="font-semibold text-[#13315C] transition-colors hover:text-[#2A5793]">
               Acessar convite de viagem
             </Link>
           </p>
@@ -128,7 +128,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setShowPassword((value) => !value)}
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-[#8190A3] transition-colors hover:bg-[#F1F7FF] hover:text-[#2E8BFF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2E8BFF]"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-[#8190A3] transition-colors hover:bg-[#EEF2F9] hover:text-[#13315C] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#13315C]"
               title={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
               aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
             >
@@ -147,7 +147,7 @@ export default function LoginPage() {
           disabled={loading}
           type="submit"
           aria-busy={loading}
-          className="btn-interactive mt-2 flex h-13 w-full items-center justify-center gap-3 rounded-xl bg-[#2E8BFF] px-6 text-sm font-extrabold text-white hover:bg-[#1F73DF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2E8BFF] disabled:cursor-not-allowed disabled:opacity-60"
+          className="btn-interactive mt-2 flex h-13 w-full items-center justify-center gap-3 rounded-xl bg-[#13315C] px-6 text-sm font-extrabold text-white hover:bg-[#0C2444] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#13315C] disabled:cursor-not-allowed disabled:opacity-60"
         >
           <span>{loading ? 'Entrando...' : 'Entrar'}</span>
           <ArrowRight aria-hidden="true" className="h-5 w-5" />

@@ -20,7 +20,9 @@ import { ApiError } from "@/lib/traveler-api";
 type Mode = "login" | "invite";
 const ONBOARDING_KEY = "rumo.traveler.onboarding.v1";
 
-const BLUE = "#2E8BFF";
+const BLUE = "#13315C";
+// Navy sobre navy desaparece: os brilhos do hero escuro usam o tom claro da familia.
+const BLUE_GLOW = "#2A5793";
 const BLUE_DEEP = "#0B1E3A";
 const CORAL = "#00B8D9";
 const INK = "#14213D";
@@ -73,8 +75,13 @@ export function AuthScreen() {
 
   const handleSubmit = async () => {
     if (mode === "login") {
-      await signIn(form.email.trim(), form.password, pendingInviteToken || undefined);
-      setPendingInviteToken(null);
+      try {
+        await signIn(form.email.trim(), form.password, pendingInviteToken || undefined);
+        setPendingInviteToken(null);
+      } catch {
+        // signIn ja guardou a mensagem em `error` e a tela a mostra; sem este catch
+        // a rejeicao sobe sem dono e abre o redbox do Expo em cima do formulario.
+      }
       return;
     }
     try {
@@ -292,7 +299,7 @@ function Onboarding({ onComplete }: { onComplete: () => Promise<void> }) {
 
 function OnboardingIllustration({ kind }: { kind: "route" | "documents" | "support" }) {
   if (kind === "documents") {
-    return <View style={styles.phoneFrame}><View style={styles.phoneSpeaker} /><View style={styles.documentCard}><View style={styles.documentIcon}><Text style={styles.documentIconText}>✓</Text></View><View style={styles.documentLines}><View style={styles.documentLineLong} /><View style={styles.documentLineShort} /></View></View><View style={[styles.documentCard, styles.documentCardSecond]}><View style={[styles.documentIcon, { backgroundColor: "#EAF0FF" }]}><Text style={[styles.documentIconText, { color: BLUE }]}>↗</Text></View><View style={styles.documentLines}><View style={styles.documentLineLong} /><View style={styles.documentLineShort} /></View></View></View>;
+    return <View style={styles.phoneFrame}><View style={styles.phoneSpeaker} /><View style={styles.documentCard}><View style={styles.documentIcon}><Text style={styles.documentIconText}>✓</Text></View><View style={styles.documentLines}><View style={styles.documentLineLong} /><View style={styles.documentLineShort} /></View></View><View style={[styles.documentCard, styles.documentCardSecond]}><View style={[styles.documentIcon, { backgroundColor: "#E8EDF6" }]}><Text style={[styles.documentIconText, { color: BLUE }]}>↗</Text></View><View style={styles.documentLines}><View style={styles.documentLineLong} /><View style={styles.documentLineShort} /></View></View></View>;
   }
   if (kind === "support") {
     return <View style={styles.phoneFrame}><View style={styles.phoneSpeaker} /><View style={styles.chatBubbleAgency}><Text style={styles.chatAgencyLabel}>SUA AGÊNCIA</Text><Text style={styles.chatText}>Tudo certo para o passeio de amanhã?</Text></View><View style={styles.chatBubbleTraveler}><Text style={styles.chatTravelerText}>Tudo perfeito! ✓</Text></View><View style={styles.supportPulse}><Text style={styles.supportPulseText}>24h</Text></View></View>;
@@ -367,7 +374,7 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1 }, flex: { flex: 1 },
   onboardingLoading: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: BLUE_DEEP },
   onboardingPage: { flex: 1, backgroundColor: BLUE_DEEP, overflow: "hidden" },
-  onboardingGlow: { position: "absolute", width: 520, height: 520, borderRadius: 260, backgroundColor: BLUE, top: -280, right: -220, opacity: 0.75 },
+  onboardingGlow: { position: "absolute", width: 520, height: 520, borderRadius: 260, backgroundColor: BLUE_GLOW, top: -280, right: -220, opacity: 0.75 },
   onboardingSafe: { flex: 1, width: "100%", maxWidth: 560, alignSelf: "center", paddingHorizontal: 24, paddingVertical: 12 },
   onboardingTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", zIndex: 2 },
   skipText: { color: "rgba(255,255,255,.65)", fontSize: 12, fontWeight: "800" },
@@ -398,12 +405,12 @@ const styles = StyleSheet.create({
   scrollContentWide: { flexDirection: "row", padding: 28, gap: 0, alignItems: "stretch", maxWidth: 1220, width: "100%", alignSelf: "center" },
   hero: { flex: 1.08, minHeight: 650, borderTopLeftRadius: 30, borderBottomLeftRadius: 30, backgroundColor: BLUE_DEEP, padding: 42, overflow: "hidden", justifyContent: "space-between" },
   heroCompact: { minHeight: 255, flex: 0, borderRadius: 26, padding: 22 },
-  heroGlow: { position: "absolute", width: 420, height: 420, borderRadius: 210, backgroundColor: BLUE, top: -170, right: -100, opacity: 0.7 },
+  heroGlow: { position: "absolute", width: 420, height: 420, borderRadius: 210, backgroundColor: BLUE_GLOW, top: -170, right: -100, opacity: 0.7 },
   heroRingOne: { position: "absolute", width: 330, height: 330, borderRadius: 165, borderWidth: 38, borderColor: "rgba(255,255,255,.05)", right: -110, bottom: -70 },
   heroRingTwo: { position: "absolute", width: 190, height: 190, borderRadius: 95, borderWidth: 1, borderColor: "rgba(255,255,255,.12)", right: -35, bottom: 0 },
   brandLockup: { flexDirection: "row", alignItems: "center", gap: 12, zIndex: 2 },
   compassMark: { width: 45, height: 45, borderRadius: 14, borderWidth: 2, borderColor: "rgba(255,255,255,.85)", alignItems: "center", justifyContent: "center", transform: [{ rotate: "45deg" }] },
-  compassMarkDark: { borderColor: BLUE },
+  compassMarkDark: { borderColor: BLUE_GLOW },
   compassNeedle: { width: 7, height: 23, borderRadius: 6, backgroundColor: CORAL },
   compassCenter: { position: "absolute", width: 7, height: 7, borderRadius: 4, backgroundColor: "white" },
   brandName: { color: "white", fontSize: 21, fontWeight: "900", letterSpacing: 2 }, brandNameDark: { color: BLUE_DEEP },
@@ -431,7 +438,7 @@ const styles = StyleSheet.create({
   input: { flex: 1, minHeight: 50, paddingHorizontal: 14, color: INK, fontSize: 13, outlineStyle: "none" } as never,
   inputTrailing: { paddingRight: 13 }, passwordToggle: { color: BLUE, fontSize: 10, fontWeight: "800" }, fieldHint: { color: MUTED, fontSize: 9, marginLeft: 2 },
   errorBox: { borderRadius: 12, borderWidth: 1, borderColor: "#FFC8BA", backgroundColor: "#FFF1ED", padding: 11 }, errorText: { color: "#9A3D20", fontSize: 11, fontWeight: "700", lineHeight: 16 },
-  submitButton: { minHeight: 54, borderRadius: 14, backgroundColor: CORAL, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 14, shadowColor: CORAL, shadowOpacity: 0.23, shadowRadius: 16, shadowOffset: { width: 0, height: 8 } },
+  submitButton: { minHeight: 54, borderRadius: 14, backgroundColor: BLUE, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 14, shadowColor: BLUE, shadowOpacity: 0.23, shadowRadius: 16, shadowOffset: { width: 0, height: 8 } },
   submitText: { color: "white", fontSize: 13, fontWeight: "900" }, submitArrow: { color: "white", fontSize: 21, marginTop: -2 },
   securityLine: { flexDirection: "row", alignItems: "flex-start", justifyContent: "center", gap: 7 }, securityIcon: { color: "#17805C", fontSize: 11, fontWeight: "900" }, securityText: { color: MUTED, fontSize: 9, lineHeight: 14, textAlign: "center", maxWidth: 310 },
 });

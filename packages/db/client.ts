@@ -344,6 +344,7 @@ const initialSettings = {
   amadeusKey: '',
   tboKey: '',
   claudeKey: '',
+  geminiKey: '',
   pixabayKey: '',
   unsplashKey: '',
   notificationEmail: 'alertas@horizonenterprise.com',

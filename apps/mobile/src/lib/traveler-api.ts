@@ -110,7 +110,10 @@ function normalizeInviteToken(value: string) {
 
 function requireApiUrl() {
   if (!API_URL) {
-    throw new Error("EXPO_PUBLIC_API_URL nao configurada.");
+    throw new Error(
+      "App sem endereco da API. Defina EXPO_PUBLIC_API_URL em apps/mobile/.env " +
+        "(em dev, o IP da maquina na rede local, nao localhost) e reinicie o Expo."
+    );
   }
   return API_URL;
 }

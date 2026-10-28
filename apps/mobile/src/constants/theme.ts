@@ -12,10 +12,10 @@ export const Colors = {
     text: '#0B1E3A',
     background: '#F8FAFC',
     backgroundElement: '#FFFFFF',
-    backgroundSelected: '#E8F2FF',
+    backgroundSelected: '#DEE5F1',
     textSecondary: '#68728A',
-    primary: '#2E8BFF',
-    primarySoft: '#F1F7FF',
+    primary: '#13315C',
+    primarySoft: '#E8EDF6',
     accent: '#00B8D9',
     accentSoft: '#E6F9FC',
     success: '#12805C',
@@ -81,7 +81,7 @@ export const Radius = {
 } as const;
 
 export const Brand = {
-  navy: '#2E8BFF',
+  navy: '#13315C',
   navyDeep: '#0B1E3A',
   coral: '#00B8D9',
   sand: '#F8FAFC',
@@ -105,7 +105,7 @@ export type AppTheme = {
 };
 
 export const THEMES: Record<string, AppTheme> = {
-  rumo: { navy: '#2E8BFF', navyDeep: '#0B1E3A', coral: '#00B8D9', glow: '#86E8F5' },
+  rumo: { navy: '#13315C', navyDeep: '#0B1E3A', coral: '#00B8D9', glow: '#86E8F5' },
   'quiet-luxury': {
     navy: '#93542F',
     navyDeep: '#6E3D21',

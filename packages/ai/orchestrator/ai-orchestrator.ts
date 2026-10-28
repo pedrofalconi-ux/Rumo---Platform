@@ -128,6 +128,10 @@ export class AiOrchestrator {
 
     const dayResults: DayBlocks[] = [];
     const failedDays: Array<{ day: number; error: string }> = [];
+    // Dias em que a IA falhou duas vezes e o esqueleto generico entrou no lugar.
+    // Sem isso o painel anuncia "roteiro gerado com sucesso" para um dia que
+    // nenhuma IA escreveu.
+    const degradedDays: Array<{ day: number; reason: string }> = [];
     const usedDiningPlaceNames = new Set<string>();
 
     for (const dayPlan of plan.days) {
@@ -154,6 +158,12 @@ export class AiOrchestrator {
           diningCandidates
         );
         dayResults.push(dayGeneration.dayBlocks);
+        if (dayGeneration.usedFallback) {
+          degradedDays.push({
+            day: dayPlan.day,
+            reason: dayGeneration.recoveredFrom || 'Fallback automatico aplicado',
+          });
+        }
         for (const placeName of collectUsedDiningPlaceNames(dayGeneration.dayBlocks, diningCandidates.map((poi) => poi.name))) {
           usedDiningPlaceNames.add(placeName);
         }
@@ -226,7 +236,7 @@ export class AiOrchestrator {
       model: this.provider.model,
       promptHash: generationId,
       promptSnapshot: input,
-      responseSnapshot: { itineraryCount: itinerary.length, failedDays },
+      responseSnapshot: { itineraryCount: itinerary.length, failedDays, degradedDays },
       tokensIn,
       tokensOut,
       latencyMs: Date.now() - started,
@@ -246,6 +256,7 @@ export class AiOrchestrator {
         latencyMs: Date.now() - started,
         daysGenerated: dayResults.length,
         failedDays: failedDays.length ? failedDays : undefined,
+        degradedDays: degradedDays.length ? degradedDays : undefined,
         rag: {
           referenceItineraryCount: itineraryReferences.references.length,
           referenceTripIds: itineraryReferences.references.map((reference) => reference.tripId),
@@ -397,7 +408,14 @@ export class AiOrchestrator {
     blockedTypes: string[],
     previouslyUsedPlaceNames: string[] = [],
     diningCandidates: CuratedPoi[] = []
-  ): Promise<{ dayBlocks: DayBlocks; tokensIn: number; tokensOut: number; latencyMs: number; recoveredFrom?: string }> {
+  ): Promise<{
+    dayBlocks: DayBlocks;
+    tokensIn: number;
+    tokensOut: number;
+    latencyMs: number;
+    recoveredFrom?: string;
+    usedFallback?: boolean;
+  }> {
     const started = Date.now();
 
     try {
@@ -422,7 +440,12 @@ export class AiOrchestrator {
       };
     } catch (error) {
       const firstError = error instanceof Error ? error.message : String(error);
-      const retryPrompt = `${prompt}\n\nSua resposta anterior veio parcial ou invalida. Corrija e retorne JSON completo, mantendo o dia ${dayPlan.day}. Erro observado: ${firstError.slice(0, 800)}`;
+      // Sem a lista explicita o modelo repete o mesmo nome e queima a segunda
+      // tentativa com o erro identico — era o que derrubava dias inteiros.
+      const forbiddenNames = previouslyUsedPlaceNames.length
+        ? `\n\nNao use nenhum destes estabelecimentos, ja aparecem em outros dias: ${previouslyUsedPlaceNames.join(', ')}.`
+        : '';
+      const retryPrompt = `${prompt}\n\nSua resposta anterior veio parcial ou invalida. Corrija e retorne JSON completo, mantendo o dia ${dayPlan.day}. Erro observado: ${firstError.slice(0, 800)}${forbiddenNames}`;
 
       try {
         const retry = await this.provider.generate({
@@ -454,6 +477,7 @@ export class AiOrchestrator {
           tokensOut: 0,
           latencyMs: Date.now() - started,
           recoveredFrom: `${firstError} | fallback aplicado apos nova falha: ${retryMessage}`,
+          usedFallback: true,
         };
       }
     }
@@ -653,7 +677,11 @@ function normalizePlaceName(value: string) {
 }
 
 function isDiningBlock(block: DayBlocks['blocks'][number]) {
-  const content = normalizePlaceName(`${block.title} ${block.subTitle || ''} ${block.details || ''}`);
+  // Só título e subtítulo. O `details` é prosa descritiva e quase sempre cita
+  // cafés, bares ou gastronomia do bairro — incluí-lo fazia um bloco de ponto
+  // turístico virar "restaurante", e o nome do ponto entrava na lista de
+  // estabelecimentos já usados (foi assim que a Ponte Vecchio virou restaurante).
+  const content = normalizePlaceName(`${block.title} ${block.subTitle || ''}`);
   return /\b(almoco|jantar|restaurant|restaurante|cafe|bar|gastronomi|comida|culinari|refeicao)\b/.test(content);
 }
 
@@ -722,8 +750,15 @@ export function groundDiningBlocksWithCuratedPois(
 }
 
 export function collectUsedDiningPlaceNames(dayBlocks: DayBlocks, diningCandidateNames: string[]) {
-  const serialized = normalizePlaceName(JSON.stringify(dayBlocks));
-  const used = diningCandidateNames.filter((name) => serialized.includes(normalizePlaceName(name)));
+  // Só conta um estabelecimento como usado se ele nomeia um bloco gastronômico.
+  // A varredura antiga era sobre o JSON inteiro do dia, então um restaurante
+  // apenas citado no resumo do dia ficava proibido no resto da viagem.
+  const used = diningCandidateNames.filter((name) => {
+    const normalized = normalizePlaceName(name);
+    return dayBlocks.blocks.some(
+      (block) => isDiningBlock(block) && normalizePlaceName(blockPlaceName(block)).includes(normalized)
+    );
+  });
 
   for (const block of dayBlocks.blocks) {
     if (!isDiningBlock(block)) continue;
@@ -734,6 +769,25 @@ export function collectUsedDiningPlaceNames(dayBlocks: DayBlocks, diningCandidat
   return Array.from(new Map(used.map((name) => [normalizePlaceName(name), name])).values());
 }
 
+/**
+ * Nomes curtos ("bar", "cafe", "osteria") colidem com qualquer titulo que os
+ * contenha. So tratamos como o mesmo lugar quando os nomes sao iguais ou quando
+ * o menor deles e especifico o bastante para identificar um estabelecimento.
+ */
+const MIN_DINING_NAME_LENGTH = 6;
+const MIN_DINING_CONTAINMENT_LENGTH = 12;
+
+function isSamePlaceName(current: string, previous: string) {
+  if (!current || !previous) return false;
+  if (current === previous) return true;
+
+  const shorter = current.length <= previous.length ? current : previous;
+  const longer = shorter === current ? previous : current;
+  if (shorter.length < MIN_DINING_CONTAINMENT_LENGTH) return false;
+
+  return longer.includes(shorter);
+}
+
 export function assertDiningDiversity(
   dayBlocks: DayBlocks,
   previouslyUsedPlaceNames: string[],
@@ -741,14 +795,12 @@ export function assertDiningDiversity(
 ) {
   const forbidden = previouslyUsedPlaceNames
     .map((name) => ({ name, normalized: normalizePlaceName(name) }))
-    .filter(({ normalized }) => normalized.length >= 4);
+    .filter(({ normalized }) => normalized.length >= MIN_DINING_NAME_LENGTH);
 
   for (const block of dayBlocks.blocks) {
     if (!isDiningBlock(block)) continue;
     const current = normalizePlaceName(blockPlaceName(block));
-    const repeated = forbidden.find(
-      ({ normalized }) => current === normalized || current.includes(normalized) || normalized.includes(current)
-    );
+    const repeated = forbidden.find(({ normalized }) => isSamePlaceName(current, normalized));
     if (repeated) {
       throw new Error(`Estabelecimento repetido de outro dia: ${repeated.name}. Escolha outro restaurante real.`);
     }

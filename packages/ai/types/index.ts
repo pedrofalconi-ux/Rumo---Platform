@@ -195,6 +195,8 @@ export interface AiGenerationMeta {
   latencyMs: number;
   daysGenerated: number;
   failedDays?: Array<{ day: number; error: string }>;
+  /** Dias entregues com o esqueleto de contingencia em vez de conteudo da IA. */
+  degradedDays?: Array<{ day: number; reason: string }>;
   rag?: {
     referenceItineraryCount: number;
     referenceTripIds: string[];

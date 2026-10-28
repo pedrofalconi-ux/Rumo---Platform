@@ -844,6 +844,11 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
         alert('Nenhuma chave de IA configurada: o roteiro gerado e um modelo de teste generico, nao uma sugestao real de IA. Nao envie para o viajante.');
       } else if (data.meta?.failedDays?.length) {
         alert(`Roteiro parcial gerado. Dias com falha: ${data.meta.failedDays.map((d: { day: number }) => d.day).join(', ')}.`);
+      } else if (data.meta?.degradedDays?.length) {
+        alert(
+          `Roteiro gerado, mas os dias ${data.meta.degradedDays.map((d: { day: number }) => d.day).join(', ')} sairam em modo de contingencia: ` +
+            'o conteudo deles e um esqueleto generico, nao uma sugestao da IA. Regenere esses dias ou escreva-os a mao antes de publicar.'
+        );
       } else {
         alert('Roteiro gerado com sucesso. Revise o conteudo antes de publicar.');
       }
@@ -3086,7 +3091,7 @@ export default function EditItineraryPage({ params }: { params: Promise<{ id: st
             <div key={dayNum} className="scroll-reveal journey-node relative mb-16 last:mb-4">
               <div className="relative flex items-center justify-between mb-7">
                 <div className="flex items-center gap-4">
-                  <div className="z-10 flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-[18px] bg-primary text-white shadow-[0_10px_25px_rgba(46,139,255,0.24)] ring-[6px] ring-[#EDF2FC] sm:h-16 sm:w-16">
+                  <div className="z-10 flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-[18px] bg-primary text-white shadow-[0_10px_25px_rgba(19,49,92,0.24)] ring-[6px] ring-[#EDF2FC] sm:h-16 sm:w-16">
                     <span className="text-[8px] font-black uppercase tracking-[0.16em] text-white/70">Dia</span>
                     <span className="text-xl font-black leading-none">{dayNum}</span>
                   </div>

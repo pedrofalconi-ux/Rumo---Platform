@@ -8,6 +8,7 @@ interface SettingsForm {
   defaultCurrency: string;
   notificationEmail: string;
   appThemeId: string;
+  geminiKeyConfigured?: boolean;
 }
 
 const emptySettings: SettingsForm = {
@@ -16,14 +17,38 @@ const emptySettings: SettingsForm = {
   defaultCurrency: 'BRL',
   notificationEmail: '',
   appThemeId: 'rumo',
+  geminiKeyConfigured: false,
+};
+
+interface AiEngineStatus {
+  provider: string;
+  model: string;
+  configured: boolean;
+  keySource: 'env' | 'agency_settings' | 'none';
+  usingMock: boolean;
+  probe?: {
+    ran: boolean;
+    ok: boolean;
+    latencyMs?: number;
+    tokensIn?: number;
+    tokensOut?: number;
+    error?: string;
+  };
+}
+
+const PROVIDER_LABELS: Record<string, string> = {
+  gemini: 'Google Gemini',
+  anthropic: 'Anthropic Claude',
+  openai: 'OpenAI',
+  mock: 'Simulador (sem IA real)',
 };
 
 const APP_THEMES = [
   {
     id: 'rumo',
     name: 'Identidade Rumo',
-    description: 'Azul luminoso, ciano e tipografia limpa. É a experiência padrão do painel e do aplicativo.',
-    swatch: ['#2E8BFF', '#00B8D9', '#0B1E3A'],
+    description: 'Azul marinho, ciano e tipografia limpa. É a experiência padrão do painel e do aplicativo.',
+    swatch: ['#13315C', '#00B8D9', '#0B1E3A'],
   },
   {
     id: 'quiet-luxury',
@@ -44,7 +69,11 @@ export default function SettingsPage() {
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [formData, setFormData] = useState<SettingsForm>(emptySettings);
   const [uploading, setUploading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'general' | 'branding'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'branding' | 'ai'>('general');
+  const [aiKey, setAiKey] = useState('');
+  const [aiStatus, setAiStatus] = useState<AiEngineStatus | null>(null);
+  const [aiStatusError, setAiStatusError] = useState('');
+  const [aiTesting, setAiTesting] = useState(false);
 
   const handleLogoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -115,6 +144,77 @@ export default function SettingsPage() {
     fetchSettings();
   }, []);
 
+  const loadAiStatus = async (probe = false) => {
+    setAiStatusError('');
+    if (probe) setAiTesting(true);
+    try {
+      const response = await fetch(`/api/ai/health${probe ? '?probe=1' : ''}`);
+      const data = await response.json();
+      if (!response.ok || data.ok === false) {
+        setAiStatus(null);
+        setAiStatusError(data.error || 'Não foi possível verificar o motor de IA.');
+        return;
+      }
+      setAiStatus(data as AiEngineStatus);
+    } catch {
+      setAiStatus(null);
+      setAiStatusError('Erro de conexão ao verificar o motor de IA.');
+    } finally {
+      if (probe) setAiTesting(false);
+    }
+  };
+
+  useEffect(() => {
+    const bootstrapAiStatus = async () => {
+      await loadAiStatus();
+    };
+
+    bootstrapAiStatus();
+  }, []);
+
+  const handleSaveAiKey = async () => {
+    if (!aiKey.trim()) return;
+    setLoading(true);
+    try {
+      const response = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ geminiKey: aiKey.trim() }),
+      });
+      if (!response.ok) {
+        alert('Não foi possível salvar a chave.');
+        return;
+      }
+      setFormData(await response.json());
+      setAiKey('');
+      await loadAiStatus(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRemoveAiKey = async () => {
+    if (!window.confirm('Remover a chave de IA salva? A geração de roteiros para de funcionar até você cadastrar outra.')) {
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clearGeminiKey: true }),
+      });
+      if (!response.ok) {
+        alert('Não foi possível remover a chave.');
+        return;
+      }
+      setFormData(await response.json());
+      await loadAiStatus();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData((prev) => ({
       ...prev,
@@ -157,6 +257,7 @@ export default function SettingsPage() {
         {[
           ['general', 'tune', 'Geral'],
           ['branding', 'palette', 'Marca no aplicativo'],
+          ['ai', 'auto_awesome', 'Inteligência artificial'],
         ].map(([id, icon, label]) => (
           <button key={id} type="button" onClick={() => setActiveTab(id as typeof activeTab)} className={`flex min-w-fit flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition ${activeTab === id ? 'bg-primary text-white shadow-sm' : 'text-on-surface/55 hover:bg-surface-container-low'}`}>
             <span className="material-symbols-outlined text-[17px]">{icon}</span>{label}
@@ -318,16 +419,151 @@ export default function SettingsPage() {
               </div>
             </div>}
 
-            <div className="ui-action-bar justify-end border-t border-outline-variant pt-4">
-              <button
-                disabled={loading}
-                type="submit"
-                className="ui-btn ui-btn-primary"
-              >
-                <span className="material-symbols-outlined text-[16px]">save</span>
-                {loading ? 'Salvando...' : 'Salvar preferências'}
-              </button>
-            </div>
+            {activeTab === 'ai' && <div className="space-y-5">
+              <div>
+                <h3 className="text-sm font-semibold text-on-surface">Motor de IA</h3>
+                <p className="mt-1 text-xs text-on-surface/55">
+                  A IA escreve o rascunho do roteiro — descrição da viagem, resumo dos dias, lugares, atividades,
+                  transporte e dicas. Voos e hotéis reservados continuam manuais.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-outline-variant bg-surface-container-low p-5">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <span className="text-xs font-semibold">Status</span>
+                    {aiStatus ? (
+                      <p className="mt-1 text-[11px] text-on-surface/60">
+                        {PROVIDER_LABELS[aiStatus.provider] || aiStatus.provider}
+                        {aiStatus.model ? ` · ${aiStatus.model}` : ''}
+                        {aiStatus.keySource === 'env'
+                          ? ' · chave vinda do ambiente'
+                          : aiStatus.keySource === 'agency_settings'
+                            ? ' · chave salva nesta agência'
+                            : ' · nenhuma chave cadastrada'}
+                      </p>
+                    ) : (
+                      <p className="mt-1 text-[11px] text-on-surface/60">
+                        {aiStatusError || 'Verificando...'}
+                      </p>
+                    )}
+                  </div>
+                  {aiStatus && (
+                    <span
+                      className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${
+                        aiStatus.usingMock
+                          ? 'bg-status-draft text-on-surface/70'
+                          : aiStatus.configured
+                            ? 'bg-status-active text-success'
+                            : 'bg-status-cancelled text-error'
+                      }`}
+                    >
+                      {aiStatus.usingMock ? 'Simulador' : aiStatus.configured ? 'Ativo' : 'Sem chave'}
+                    </span>
+                  )}
+                </div>
+
+                {aiStatus?.usingMock && (
+                  <p className="mt-3 rounded-xl bg-status-draft p-3 text-[11px] leading-snug text-on-surface/75">
+                    O provider está em <strong>mock</strong>: os roteiros gerados são exemplos genéricos, não
+                    sugestões reais. Defina <code>LLM_PROVIDER=gemini</code> no ambiente para usar a IA.
+                  </p>
+                )}
+
+                {aiStatus?.probe && (
+                  <p
+                    className={`mt-3 rounded-xl p-3 text-[11px] leading-snug ${
+                      aiStatus.probe.ok ? 'bg-status-active text-success' : 'bg-status-cancelled text-error'
+                    }`}
+                  >
+                    {aiStatus.probe.ok
+                      ? `Conexão confirmada em ${aiStatus.probe.latencyMs} ms (${aiStatus.probe.tokensIn} tokens de entrada, ${aiStatus.probe.tokensOut} de saída).`
+                      : aiStatus.probe.error}
+                  </p>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => loadAiStatus(true)}
+                  disabled={aiTesting}
+                  className="btn-interactive mt-4 inline-flex items-center gap-2 rounded-xl border border-outline px-4 py-2.5 text-xs font-semibold transition-colors hover:bg-surface-container disabled:opacity-60"
+                >
+                  <span className={`material-symbols-outlined text-[16px] ${aiTesting ? 'animate-spin' : ''}`}>
+                    {aiTesting ? 'sync' : 'network_check'}
+                  </span>
+                  {aiTesting ? 'Testando...' : 'Testar conexão'}
+                </button>
+              </div>
+
+              <div className="rounded-2xl border border-outline-variant bg-surface-container-low p-5">
+                <label className="text-xs font-semibold" htmlFor="ai-key-input">
+                  Chave da API Gemini
+                </label>
+                <p className="mt-1 text-[11px] text-on-surface/55">
+                  Gere a chave em{' '}
+                  <a
+                    href="https://aistudio.google.com/apikey"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-semibold text-primary underline"
+                  >
+                    Google AI Studio
+                  </a>
+                  . A chave fica apenas no servidor — o painel nunca a devolve depois de salva.
+                </p>
+
+                {formData.geminiKeyConfigured && !aiKey && (
+                  <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl bg-white p-3">
+                    <span className="material-symbols-outlined text-[18px] text-success">key</span>
+                    <span className="flex-1 text-[11px] font-semibold text-on-surface/75">
+                      Uma chave está salva para esta agência.
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleRemoveAiKey}
+                      className="btn-interactive rounded-lg border border-red-200 px-3 py-2 text-[11px] font-bold text-error hover:bg-red-50"
+                    >
+                      Remover
+                    </button>
+                  </div>
+                )}
+
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                  <input
+                    id="ai-key-input"
+                    type="password"
+                    autoComplete="off"
+                    spellCheck={false}
+                    value={aiKey}
+                    onChange={(event) => setAiKey(event.target.value)}
+                    placeholder={formData.geminiKeyConfigured ? 'Colar nova chave para substituir' : 'AIza...'}
+                    className="input-interactive flex-1 rounded-lg border border-outline-variant p-2.5 text-xs outline-none focus:ring-1 focus:ring-primary"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSaveAiKey}
+                    disabled={loading || !aiKey.trim()}
+                    className="ui-btn ui-btn-primary justify-center disabled:opacity-50"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">save</span>
+                    Salvar chave
+                  </button>
+                </div>
+              </div>
+            </div>}
+
+            {activeTab !== 'ai' && (
+              <div className="ui-action-bar justify-end border-t border-outline-variant pt-4">
+                <button
+                  disabled={loading}
+                  type="submit"
+                  className="ui-btn ui-btn-primary"
+                >
+                  <span className="material-symbols-outlined text-[16px]">save</span>
+                  {loading ? 'Salvando...' : 'Salvar preferências'}
+                </button>
+              </div>
+            )}
           </form>
         )}
       </div>
